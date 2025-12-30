@@ -1,0 +1,963 @@
+i am going to insert 10 real demo data for my electronics sales and service project.you can have a example like walton electronics.
+ so you can give me data from walton company.now i am going to give you table and triggers.
+
+
+
+INSERT INTO company
+(company_name, company_proprietor, phone_no, email, address, website,
+ contact_person, cp_designation, cp_phone_no, tag_line, mission_vision, status)
+VALUES
+('Walton Plaza', 'Walton Hi-Tech Industries Ltd.', '01711000001', 'info@waltonplaza.com',
+ 'Plot-1088, Block-I, Bashundhara R/A, Dhaka', 'https://www.waltonplaza.com',
+ 'Rafiqul Islam', 'Regional Manager', '01711000091',
+ 'Your Trusted Electronics Partner',
+ 'To deliver advanced technology and reliable service nationwide.', 1);
+
+INSERT INTO company
+(company_name, company_proprietor, phone_no, email, address, website,
+ contact_person, cp_designation, cp_phone_no, tag_line, mission_vision, status)
+VALUES
+('Singer Bangladesh', 'Singer Bangladesh Ltd.', '01711000002', 'contact@singerbd.com',
+ '89 Gulshan Avenue, Dhaka', 'https://www.singerbd.com',
+ 'Mahmud Hasan', 'Sales Manager', '01711000092',
+ 'Trusted Since 1905',
+ 'Providing quality electronics with after-sales excellence.', 1);
+
+INSERT INTO company
+(company_name, company_proprietor, phone_no, email, address, website,
+ contact_person, cp_designation, cp_phone_no, tag_line, mission_vision, status)
+VALUES
+('Vision Electronics', 'RFL Group', '01711000003', 'support@vision.com.bd',
+ 'PRAN-RFL Center, Badda, Dhaka', 'https://www.vision.com.bd',
+ 'Sajjad Hossain', 'Service Head', '01711000093',
+ 'Smart Life Smart Vision',
+ 'To bring innovative electronics to every home.', 1);
+
+INSERT INTO company
+(company_name, company_proprietor, phone_no, email, address, website,
+ contact_person, cp_designation, cp_phone_no, tag_line, mission_vision, status)
+VALUES
+('Jamuna Electronics', 'Jamuna Group', '01711000004', 'info@jamunaelectronics.com',
+ 'Jamuna Future Park, Dhaka', 'https://www.jamunaelectronics.com',
+ 'Abdul Karim', 'Area Manager', '01711000094',
+ 'Innovation for Better Life',
+ 'Expanding electronics solutions with nationwide coverage.', 1);
+
+INSERT INTO company
+(company_name, company_proprietor, phone_no, email, address, website,
+ contact_person, cp_designation, cp_phone_no, tag_line, mission_vision, status)
+VALUES
+('Minister Hi-Tech Park', 'Minister Group', '01711000005', 'service@ministerbd.com',
+ 'House-47, Road-35, Gulshan-2, Dhaka', 'https://www.ministerbd.com',
+ 'Shariful Islam', 'Service Coordinator', '01711000095',
+ 'Desh er TV',
+ 'To ensure quality electronics Made in Bangladesh.', 1);
+
+INSERT INTO company
+(company_name, company_proprietor, phone_no, email, address, website,
+ contact_person, cp_designation, cp_phone_no, tag_line, mission_vision, status)
+VALUES
+('LG Electronics Bangladesh', 'LG Corporation', '01711000006', 'bd.info@lge.com',
+ 'Gulshan 1, Dhaka', 'https://www.lg.com/bd',
+ 'Tanvir Ahmed', 'Corporate Sales', '01711000096',
+ 'Life’s Good',
+ 'Enhancing lifestyle with smart electronics.', 1);
+
+INSERT INTO company
+(company_name, company_proprietor, phone_no, email, address, website,
+ contact_person, cp_designation, cp_phone_no, tag_line, mission_vision, status)
+VALUES
+('Samsung Consumer Electronics', 'Samsung Bangladesh', '01711000007', 'support@samsungbd.com',
+ 'Banani, Dhaka', 'https://www.samsung.com/bd',
+ 'Naeem Rahman', 'Channel Manager', '01711000097',
+ 'Inspire the World',
+ 'Delivering innovation and premium technology.', 1);
+
+INSERT INTO company
+(company_name, company_proprietor, phone_no, email, address, website,
+ contact_person, cp_designation, cp_phone_no, tag_line, mission_vision, status)
+VALUES
+('Sharp Electronics BD', 'Esquire Electronics Ltd.', '01711000008', 'info@sharpelectronics.com.bd',
+ 'Tejgaon I/A, Dhaka', 'https://www.sharpelectronicsbd.com',
+ 'Rezaul Karim', 'Service Manager', '01711000098',
+ 'Technology You Can Trust',
+ 'Delivering reliable consumer electronics nationwide.', 1);
+
+INSERT INTO company
+(company_name, company_proprietor, phone_no, email, address, website,
+ contact_person, cp_designation, cp_phone_no, tag_line, mission_vision, status)
+VALUES
+('Hitachi Home Appliances', 'Hitachi Bangladesh', '01711000009', 'contact@hitachibd.com',
+ 'Kawran Bazar, Dhaka', 'https://www.hitachibd.com',
+ 'Masud Rana', 'Key Account Manager', '01711000099',
+ 'Inspire the Next',
+ 'Delivering durable appliances with best service support.', 1);
+
+INSERT INTO company
+(company_name, company_proprietor, phone_no, email, address, website,
+ contact_person, cp_designation, cp_phone_no, tag_line, mission_vision, status)
+VALUES
+('Transtec Electronics', 'Bangladesh Lamps Ltd.', '01711000010', 'info@transtec.com.bd',
+ 'Tejgaon Industrial Area, Dhaka', 'https://www.transtec.com.bd',
+ 'Ahsan Kabir', 'Regional Supervisor', '01711000100',
+ 'Powering Everyday Life',
+ 'Providing affordable and quality electronics.', 1);
+
+
+INSERT INTO jobs (job_code, job_title, job_grade, min_salary, max_salary)
+VALUES ('SALES', 'Sales Executive', 'B', 18000, 30000);
+
+INSERT INTO jobs (job_code, job_title, job_grade, min_salary, max_salary)
+VALUES ('CSUP', 'Customer Support Officer', 'B', 20000, 35000);
+
+INSERT INTO jobs (job_code, job_title, job_grade, min_salary, max_salary)
+VALUES ('TECH', 'Service Technician', 'B', 22000, 40000);
+
+INSERT INTO jobs (job_code, job_title, job_grade, min_salary, max_salary)
+VALUES ('MGR', 'Branch Manager', 'A', 40000, 65000);
+
+INSERT INTO jobs (job_code, job_title, job_grade, min_salary, max_salary)
+VALUES ('ASM', 'Assistant Manager', 'A', 32000, 50000);
+
+INSERT INTO jobs (job_code, job_title, job_grade, min_salary, max_salary)
+VALUES ('ACC', 'Accounts Officer', 'B', 25000, 42000);
+
+INSERT INTO jobs (job_code, job_title, job_grade, min_salary, max_salary)
+VALUES ('STOR', 'Store Keeper', 'C', 15000, 25000);
+
+INSERT INTO jobs (job_code, job_title, job_grade, min_salary, max_salary)
+VALUES ('DLV', 'Delivery Man', 'C', 12000, 20000);
+
+INSERT INTO jobs (job_code, job_title, job_grade, min_salary, max_salary)
+VALUES ('IT', 'IT Support Officer', 'B', 28000, 45000);
+
+INSERT INTO jobs (job_code, job_title, job_grade, min_salary, max_salary)
+VALUES ('HR', 'HR & Admin Officer', 'A', 35000, 55000);
+
+INSERT INTO customers (phone_no, customer_name, alt_phone_no, email, address, city, remarks)
+VALUES ('01810000001','Md. Rakib Hasan','01820000001','rakib01@gmail.com','Mirpur-10, Dhaka','Dhaka','Regular customer');
+
+INSERT INTO customers (phone_no, customer_name, alt_phone_no, email, address, city)
+VALUES ('01810000002','Sadia Akter','01820000002','sadia.bd@gmail.com','Dhanmondi 32','Dhaka');
+
+INSERT INTO customers (phone_no, customer_name, alt_phone_no, email, address, city)
+VALUES ('01810000003','Mahmudul Hasan',NULL,'mahmud.hasan@yahoo.com','Uttara Sector 7','Dhaka');
+
+INSERT INTO customers (phone_no, customer_name, email, address, city, remarks)
+VALUES ('01810000004','Shafiq Ahmed','shafiq454@gmail.com','Nandan Park Road','Savar','Buys TV frequently');
+
+INSERT INTO customers (phone_no, customer_name, email, address, city)
+VALUES ('01810000005','Rumi Chowdhury','rumi.c@gmail.com','Halishahar','Chattogram');
+
+INSERT INTO customers (phone_no, customer_name, alt_phone_no, email, address, city)
+VALUES ('01810000006','Nazmul Islam','01820000006','nazmul_bd@gmail.com','Rajshahi City','Rajshahi');
+
+INSERT INTO customers (phone_no, customer_name, email, address, city, remarks)
+VALUES ('01810000007','Kamal Hossain','kamal.h@gmail.com','Khulna Sadar','Khulna','Warranty service user');
+
+INSERT INTO customers (phone_no, customer_name, email, address, city)
+VALUES ('01810000008','Farhana Yasmin','farhana88@gmail.com','Sylhet Ambarkhana','Sylhet');
+
+INSERT INTO customers (phone_no, customer_name, email, address, city)
+VALUES ('01810000009','Arif Mahmud','arifm@gmail.com','Cumilla Town','Cumilla');
+
+INSERT INTO customers (phone_no, customer_name, email, address, city, remarks)
+VALUES ('01810000010','Majedul Karim','majed.karim@gmail.com','Barisal Notun Bazar','Barisal','VIP Customer');
+
+INSERT INTO parts_category (parts_cat_code, parts_cat_name)
+VALUES ('TV', 'Television Spare Parts');
+
+INSERT INTO parts_category (parts_cat_code, parts_cat_name)
+VALUES ('FRG', 'Refrigerator Spare Parts');
+
+INSERT INTO parts_category (parts_cat_code, parts_cat_name)
+VALUES ('AC', 'Air Conditioner Spare Parts');
+
+INSERT INTO parts_category (parts_cat_code, parts_cat_name)
+VALUES ('WM', 'Washing Machine Spare Parts');
+
+INSERT INTO parts_category (parts_cat_code, parts_cat_name)
+VALUES ('MIC', 'Microwave Oven Spare Parts');
+
+INSERT INTO parts_category (parts_cat_code, parts_cat_name)
+VALUES ('MOB', 'Mobile Accessories and Parts');
+
+INSERT INTO parts_category (parts_cat_code, parts_cat_name)
+VALUES ('LAP', 'Laptop and Computer Parts');
+
+INSERT INTO parts_category (parts_cat_code, parts_cat_name)
+VALUES ('AUDIO', 'Audio System Spare Parts');
+
+INSERT INTO parts_category (parts_cat_code, parts_cat_name)
+VALUES ('PWR', 'Power Supply and Boards');
+
+INSERT INTO parts_category (parts_cat_code, parts_cat_name)
+VALUES ('GEN', 'General Electronic Components');
+
+INSERT INTO product_categories (product_cat_name)
+VALUES ('LED Television');
+
+INSERT INTO product_categories (product_cat_name)
+VALUES ('Refrigerator and Freezer');
+
+INSERT INTO product_categories (product_cat_name)
+VALUES ('Air Conditioner');
+
+INSERT INTO product_categories (product_cat_name)
+VALUES ('Washing Machine');
+
+INSERT INTO product_categories (product_cat_name)
+VALUES ('Microwave Oven');
+
+INSERT INTO product_categories (product_cat_name)
+VALUES ('Smart Phone');
+
+INSERT INTO product_categories (product_cat_name)
+VALUES ('Laptop and Computer');
+
+INSERT INTO product_categories (product_cat_name)
+VALUES ('Home Theater and Sound System');
+
+INSERT INTO product_categories (product_cat_name)
+VALUES ('Small Home Appliances');
+
+INSERT INTO product_categories (product_cat_name)
+VALUES ('Generator and Power Products');
+
+INSERT INTO brand (brand_name, model_name, brand_size, color)
+VALUES ('Walton', 'WD-LED32F', '32 Inch', 'Black');
+
+INSERT INTO brand (brand_name, model_name, brand_size, color)
+VALUES ('Walton', 'WTM-RT240', '240 Liter', 'Silver');
+
+INSERT INTO brand (brand_name, model_name, brand_size, color)
+VALUES ('Samsung', 'UA43T5400', '43 Inch', 'Black');
+
+INSERT INTO brand (brand_name, model_name, brand_size, color)
+VALUES ('Samsung', 'AR12MVF', '1 Ton', 'White');
+
+INSERT INTO brand (brand_name, model_name, brand_size, color)
+VALUES ('LG', 'GL-B201SLBB', '190 Liter', 'Silver');
+
+INSERT INTO brand (brand_name, model_name, brand_size, color)
+VALUES ('LG', 'LG-WM140', '8 Kg', 'White');
+
+INSERT INTO brand (brand_name, model_name, brand_size, color)
+VALUES ('Singer', 'Singer Smart 32', '32 Inch', 'Black');
+
+INSERT INTO brand (brand_name, model_name, brand_size, color)
+VALUES ('Hitachi', 'RAS-F13CF', '1 Ton', 'White');
+
+INSERT INTO brand (brand_name, model_name, brand_size, color)
+VALUES ('Vision', 'VIS-24UD', '24 Inch', 'Black');
+
+INSERT INTO brand (brand_name, model_name, brand_size, color)
+VALUES ('Minister', 'M-DFR-240', '240 Liter', 'Red');
+
+
+INSERT INTO suppliers
+(supplier_name, phone_no, email, address, contact_person, cp_phone_no, cp_email, purchase_total, pay_total)
+VALUES
+('Walton Spare Parts Division','01715000001','spares@waltonbd.com','Bashundhara Industrial Area, Dhaka',
+ 'Abdul Karim','01716000001','karim@waltonbd.com', 500000, 350000);
+
+INSERT INTO suppliers
+(supplier_name, phone_no, email, address, contact_person, cp_phone_no, cp_email, purchase_total, pay_total)
+VALUES
+('Samsung Authorized Distributor','01715000002','dist@samsungbd.com','Banani, Dhaka',
+ 'Tanvir Ahmed','01716000002','tanvir@samsungbd.com', 650000, 400000);
+
+INSERT INTO suppliers
+(supplier_name, phone_no, email, address, contact_person, cp_phone_no, cp_email, purchase_total, pay_total)
+VALUES
+('LG Electronics Supplier','01715000003','supplier@lgbd.com','Gulshan-1, Dhaka',
+ 'Ruhul Amin','01716000003','amin@lgbd.com', 300000, 200000);
+
+INSERT INTO suppliers
+(supplier_name, phone_no, email, address, contact_person, cp_phone_no, cp_email, purchase_total, pay_total)
+VALUES
+('Vision / RFL Parts Supplier','01715000004','vision.parts@rfl.com','Badda, Dhaka',
+ 'Shahadat Hossain','01716000004','shahadat@rfl.com', 250000, 150000);
+
+INSERT INTO suppliers
+(supplier_name, phone_no, email, address, contact_person, cp_phone_no, cp_email, purchase_total, pay_total)
+VALUES
+('Minister Hi-Tech Supplier','01715000005','supplier@minister.com','Gulshan-2, Dhaka',
+ 'Nazmul Islam','01716000005','nazmul@minister.com', 180000, 70000);
+
+INSERT INTO suppliers
+(supplier_name, phone_no, email, address, contact_person, cp_phone_no, cp_email, purchase_total, pay_total)
+VALUES
+('Jamuna Electronics Supplier','01715000006','jamuna.supplier@gmail.com','Jamuna Future Park, Dhaka',
+ 'Faruk Ahmed','01716000006','faruk@jamuna.com', 200000, 120000);
+
+INSERT INTO suppliers
+(supplier_name, phone_no, email, address, contact_person, cp_phone_no, cp_email, purchase_total, pay_total)
+VALUES
+('Global Electronics Importer','01715000007','import@globalelec.com','Chawk Bazar, Dhaka',
+ 'Kamal Uddin','01716000007','kamal@globalelec.com', 450000, 250000);
+
+INSERT INTO suppliers
+(supplier_name, phone_no, email, address, contact_person, cp_phone_no, cp_email, purchase_total, pay_total)
+VALUES
+('Asian Spare Parts House','01715000008','asianparts@gmail.com','Elephant Road, Dhaka',
+ 'Sharif Al Mamun','01716000008','sharif@asparts.com', 120000, 60000);
+
+INSERT INTO suppliers
+(supplier_name, phone_no, email, address, contact_person, cp_phone_no, cp_email, purchase_total, pay_total)
+VALUES
+('Bangladesh Electronics Wholesale','01715000009','info@bdwholesale.com','Station Road, Chattogram',
+ 'Jahangir Alam','01716000009','jahangir@bdwholesale.com', 350000, 230000);
+
+INSERT INTO suppliers
+(supplier_name, phone_no, email, address, contact_person, cp_phone_no, cp_email, purchase_total, pay_total)
+VALUES
+('City Electronics Parts Supplier','01715000010','cityparts@gmail.com','Sylhet Amberkhana',
+ 'Shafiq Rahman','01716000010','shafiq@cityparts.com', 160000, 100000);
+
+INSERT INTO service_list (service_name, service_desc, service_cost)
+VALUES ('TV Installation', 'Wall mount / table stand TV installation service', 800);
+
+INSERT INTO service_list (service_name, service_desc, service_cost)
+VALUES ('TV Repair Service', 'LED/LCD television diagnosis and repair service', 1500);
+
+INSERT INTO service_list (service_name, service_desc, service_cost)
+VALUES ('Refrigerator Repair', 'Cooling issue, compressor issue, gas refill and repair', 2000);
+
+INSERT INTO service_list (service_name, service_desc, service_cost)
+VALUES ('AC Installation', 'Indoor & outdoor AC installation with basic setup', 3500);
+
+INSERT INTO service_list (service_name, service_desc, service_cost)
+VALUES ('AC Servicing', 'AC cleaning, gas checking, maintenance & servicing', 1500);
+
+INSERT INTO service_list (service_name, service_desc, service_cost)
+VALUES ('Washing Machine Repair', 'Repair & maintenance of automatic/manual washing machines', 1800);
+
+INSERT INTO service_list (service_name, service_desc, service_cost)
+VALUES ('Microwave Oven Repair', 'Heating problem / board problem repair service', 1200);
+
+INSERT INTO service_list (service_name, service_desc, service_cost)
+VALUES ('Laptop / Computer Repair', 'Hardware, software, OS & chip level checkup', 2000);
+
+INSERT INTO service_list (service_name, service_desc, service_cost)
+VALUES ('Mobile Service & Repair', 'Smartphone software & hardware problem fixing', 1000);
+
+INSERT INTO service_list (service_name, service_desc, service_cost)
+VALUES ('Home Appliance Diagnosis', 'General diagnosis & checking charge for appliances', 500);
+
+INSERT INTO expense_list (expense_code, type_name, description, default_amount)
+VALUES ('OFF', 'Office Rent', 'Monthly office/shop rent expense', 30000);
+
+INSERT INTO expense_list (expense_code, type_name, description, default_amount)
+VALUES ('SAL', 'Staff Salary', 'Technician, sales & support staff salary expense', 80000);
+
+INSERT INTO expense_list (expense_code, type_name, description, default_amount)
+VALUES ('UTL', 'Utility Bills', 'Electricity, gas & water bill payment', 15000);
+
+INSERT INTO expense_list (expense_code, type_name, description, default_amount)
+VALUES ('INT', 'Internet & Telephone Bill', 'Office internet and phone bills', 5000);
+
+INSERT INTO expense_list (expense_code, type_name, description, default_amount)
+VALUES ('TRN', 'Transport & Delivery Cost', 'Product delivery & technician transport', 12000);
+
+INSERT INTO expense_list (expense_code, type_name, description, default_amount)
+VALUES ('MKT', 'Marketing & Promotion', 'Advertisement, banner & promotion expense', 10000);
+
+INSERT INTO expense_list (expense_code, type_name, description, default_amount)
+VALUES ('REP', 'Office Repair & Maintenance', 'Shop/office repairing & maintenance', 7000);
+
+INSERT INTO expense_list (expense_code, type_name, description, default_amount)
+VALUES ('PUR', 'Purchase Misc Expense', 'Unplanned purchase, packaging, loading', 6000);
+
+INSERT INTO expense_list (expense_code, type_name, description, default_amount)
+VALUES ('TEC', 'Technician Allowance', 'On-site service allowance for technicians', 8000);
+
+INSERT INTO expense_list (expense_code, type_name, description, default_amount)
+VALUES ('OTH', 'Other General Expenses', 'Miscellaneous office related expenses', 3000);
+
+----------
+INSERT INTO sub_categories (sub_cat_name, product_cat_id)
+VALUES ('Smart LED TV', 'LED11');
+INSERT INTO sub_categories (sub_cat_name, product_cat_id)
+VALUES ('Android TV', 'LED11');
+
+INSERT INTO sub_categories (sub_cat_name, product_cat_id)
+VALUES ('Double Door Refrigerator', 'REF12');
+INSERT INTO sub_categories (sub_cat_name, product_cat_id)
+VALUES ('Deep Freezer', 'REF12');
+
+INSERT INTO sub_categories (sub_cat_name, product_cat_id)
+VALUES ('Split AC', 'AIR13');
+INSERT INTO sub_categories (sub_cat_name, product_cat_id)
+VALUES ('Window AC', 'AIR13');
+
+INSERT INTO sub_categories (sub_cat_name, product_cat_id)
+VALUES ('Front Load Washing Machine', 'WAS14');
+INSERT INTO sub_categories (sub_cat_name, product_cat_id)
+VALUES ('Top Load Washing Machine', 'WAS14');
+
+INSERT INTO sub_categories (sub_cat_name, product_cat_id)
+VALUES ('Convection Microwave Oven', 'MIC15');
+INSERT INTO sub_categories (sub_cat_name, product_cat_id)
+VALUES ('Solo Microwave Oven', 'MIC15');
+
+INSERT INTO sub_categories (sub_cat_name, product_cat_id)
+VALUES ('Android Smartphone', 'SMA16');
+INSERT INTO sub_categories (sub_cat_name, product_cat_id)
+VALUES ('Feature Phone', 'SMA19');
+
+
+--------------------------------------------------------------------------------
+-- 11. PRODUCTS (Populated with your specific Foreign Keys)
+--------------------------------------------------------------------------------
+INSERT INTO products (product_code, product_name, supplier_id, category_id, sub_cat_id, brand_id, uom, mrp, purchase_price, warranty) 
+VALUES ('SAM-S24-01', 'Samsung Galaxy S24', 'SAM2', 'SMA16', 'SMA13', 'SAM3', 'Pcs', 95000, 82000, 12);
+
+INSERT INTO products (product_code, product_name, supplier_id, category_id, sub_cat_id, brand_id, uom, mrp, purchase_price, warranty) 
+VALUES ('IPH-15-02', 'iPhone 15 Pro', 'CIT10', 'SMA19', 'AND23', 'WAL1', 'Pcs', 145000, 130000, 12);
+
+INSERT INTO products (product_code, product_name, supplier_id, category_id, sub_cat_id, brand_id, uom, mrp, purchase_price, warranty) 
+VALUES ('DEL-LAT-03', 'Dell Latitude 5420', 'ASI8', 'LAP17', 'WIN18', 'WAL2', 'Unit', 85000, 75000, 36);
+
+INSERT INTO products (product_code, product_name, supplier_id, category_id, sub_cat_id, brand_id, uom, mrp, purchase_price, warranty) 
+VALUES ('LG-REF-04', 'LG Double Door Refrigerator', 'LG 3', 'REF12', 'DOU15', 'LG5', 'Unit', 75000, 65000, 24);
+
+INSERT INTO products (product_code, product_name, supplier_id, category_id, sub_cat_id, brand_id, uom, mrp, purchase_price, warranty) 
+VALUES ('WAL-TV-05', 'Walton 42 Inch LED', 'WAL1', 'LED11', 'SOL22', 'WAL1', 'Unit', 35000, 28000, 60);
+
+INSERT INTO products (product_code, product_name, supplier_id, category_id, sub_cat_id, brand_id, uom, mrp, purchase_price, warranty) 
+VALUES ('MIN-AC-06', 'Midea Split AC 1.5 Ton', 'MIN5', 'AIR13', 'SPL17', 'MIN10', 'Unit', 48000, 42000, 12);
+
+INSERT INTO products (product_code, product_name, supplier_id, category_id, sub_cat_id, brand_id, uom, mrp, purchase_price, warranty) 
+VALUES ('PAN-MIC-07', 'Panasonic Microwave', 'GLO7', 'MIC15', 'SMA13', 'SIN7', 'Pcs', 18000, 15000, 12);
+
+INSERT INTO products (product_code, product_name, supplier_id, category_id, sub_cat_id, brand_id, uom, mrp, purchase_price, warranty) 
+VALUES ('SAM-WASH-08', 'Samsung Front Load Washer', 'SAM2', 'WAS14', 'FRO19', 'SAM4', 'Unit', 55000, 48000, 24);
+
+INSERT INTO products (product_code, product_name, supplier_id, category_id, sub_cat_id, brand_id, uom, mrp, purchase_price, warranty) 
+VALUES ('HIT-GEN-09', 'Hitachi Silent Generator', 'JAM6', 'GEN20', 'CON21', 'HIT8', 'Unit', 120000, 105000, 12);
+
+INSERT INTO products (product_code, product_name, supplier_id, category_id, sub_cat_id, brand_id, uom, mrp, purchase_price, warranty) 
+VALUES ('LG-HOM-10', 'LG Home Theater System', 'LG 3', 'HOM18', 'TOP20', 'LG6', 'Set', 25000, 21000, 12);
+
+COMMIT;
+
+INSERT INTO parts
+(parts_code, parts_name, purchase_price, mrp, parts_cat_id)
+VALUES
+('TV-MB', 'LED TV Motherboard', 2500, 4000,
+ (SELECT parts_cat_id FROM parts_category 
+  WHERE parts_cat_name='Television Spare Parts' AND ROWNUM=1));
+INSERT INTO parts
+(parts_code, parts_name, purchase_price, mrp, parts_cat_id)
+VALUES
+('TV-DSP', 'LED TV Display Panel', 8000, 12000,
+ (SELECT parts_cat_id FROM parts_category 
+  WHERE parts_cat_name='Television Spare Parts' AND ROWNUM=1));
+
+-- Refrigerator Compressor
+INSERT INTO parts (parts_code, parts_name, purchase_price, mrp, parts_cat_id)
+VALUES ('FRG-COMP', 'Refrigerator Compressor Unit', 6500, 9500,
+(SELECT parts_cat_id FROM parts_category WHERE parts_cat_name='Refrigerator Spare Parts' AND ROWNUM=1));
+
+-- Refrigerator Thermostat
+INSERT INTO parts (parts_code, parts_name, purchase_price, mrp, parts_cat_id)
+VALUES ('FRG-THERM', 'Refrigerator Thermostat', 1200, 2000,
+(SELECT parts_cat_id FROM parts_category WHERE parts_cat_name='Refrigerator Spare Parts' AND ROWNUM=1));
+
+-- AC Outdoor Fan Motor
+INSERT INTO parts (parts_code, parts_name, purchase_price, mrp, parts_cat_id)
+VALUES ('AC-FAN', 'AC Outdoor Fan Motor', 3500, 5000,
+(SELECT parts_cat_id FROM parts_category WHERE parts_cat_name='Air Conditioner Spare Parts' AND ROWNUM=1));
+
+-- AC Remote Controller
+INSERT INTO parts (parts_code, parts_name, purchase_price, mrp, parts_cat_id)
+VALUES ('AC-REMOTE', 'AC Remote Controller', 700, 1200,
+(SELECT parts_cat_id FROM parts_category WHERE parts_cat_name='Air Conditioner Spare Parts' AND ROWNUM=1));
+
+-- Washing Machine Drum Belt
+INSERT INTO parts (parts_code, parts_name, purchase_price, mrp, parts_cat_id)
+VALUES ('WM-BELT', 'Washing Machine Drum Belt', 400, 800,
+(SELECT parts_cat_id FROM parts_category WHERE parts_cat_name='Washing Machine Spare Parts' AND ROWNUM=1));
+
+-- Microwave Oven Magnetron
+INSERT INTO parts (parts_code, parts_name, purchase_price, mrp, parts_cat_id)
+VALUES ('MIC-MAG', 'Microwave Oven Magnetron Tube', 2600, 4000,
+(SELECT parts_cat_id FROM parts_category WHERE parts_cat_name='Microwave Oven Spare Parts' AND ROWNUM=1));
+
+-- Laptop Charger Adapter
+INSERT INTO parts (parts_code, parts_name, purchase_price, mrp, parts_cat_id)
+VALUES ('LAP-ADPT', 'Laptop Charger Adapter', 900, 1800,
+(SELECT parts_cat_id FROM parts_category WHERE parts_cat_name='Laptop and Computer Parts' AND ROWNUM=1));
+
+-- Power Supply Board (Generic TV)
+INSERT INTO parts (parts_code, parts_name, purchase_price, mrp, parts_cat_id)
+VALUES ('PWR-BOARD', 'LED TV Power Supply Board', 1500, 2500,
+(SELECT parts_cat_id FROM parts_category WHERE parts_cat_name='Power Supply and Boards' AND ROWNUM=1));
+
+------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+-- 18. PRODUCT_ORDER_MASTER (Using your confirmed FKs)
+--------------------------------------------------------------------------------
+
+-- Order 1: Placed by Hasan (Manager) to Samsung
+INSERT INTO product_order_master (supplier_id, order_by, expected_delivery_date, status)
+VALUES ('SAM2', 'HAS18', SYSDATE + 5, 1);
+
+-- Order 2: Placed by Ariful (IT/Procurement) to LG
+INSERT INTO product_order_master (supplier_id, order_by, expected_delivery_date, status)
+VALUES ('LG 3', 'ISL30', SYSDATE + 7, 1);
+
+-- Order 3: Placed by Fatima (Accounts/Procurement) to Walton
+INSERT INTO product_order_master (supplier_id, order_by, expected_delivery_date, status)
+VALUES ('WAL1', 'ZOH27', SYSDATE + 3, 1);
+
+-- Order 4: Placed by Zahid (Procurement) to Global Tech
+INSERT INTO product_order_master (supplier_id, order_by, expected_delivery_date, status)
+VALUES ('GLO7', 'HAS17', SYSDATE + 10, 1);
+
+-- Order 5: Placed by Tariq (Procurement) to Asian Tech
+INSERT INTO product_order_master (supplier_id, order_by, expected_delivery_date, status)
+VALUES ('ASI8', 'AZI33', SYSDATE + 4, 1);
+
+-- Order 6: Placed by Rumana (Support) to Vision
+INSERT INTO product_order_master (supplier_id, order_by, expected_delivery_date, status)
+VALUES ('VIS4', 'AFR32', SYSDATE + 6, 1);
+
+-- Order 7: Placed by Mominul (Tech) to Singer (JAM6)
+INSERT INTO product_order_master (supplier_id, order_by, expected_delivery_date, status)
+VALUES ('JAM6', 'HAQ29', SYSDATE + 8, 1);
+
+-- Order 8: Placed by Ariful to Midea (MIN5)
+INSERT INTO product_order_master (supplier_id, order_by, expected_delivery_date, status)
+VALUES ('MIN5', 'ISL30', SYSDATE + 2, 1);
+
+-- Order 9: Placed by Fatima to City IT (CIT10)
+INSERT INTO product_order_master (supplier_id, order_by, expected_delivery_date, status)
+VALUES ('CIT10', 'ZOH27', SYSDATE + 9, 1);
+
+-- Order 10: Placed by Zahid to Bangla Tech (BAN9)
+INSERT INTO product_order_master (supplier_id, order_by, expected_delivery_date, status)
+VALUES ('BAN9', 'HAS17', SYSDATE + 12, 1);
+
+COMMIT;
+
+
+--------------------------------------------------------------------------------
+-- 26. PRODUCT_ORDER_DETAIL (Mapped to ORD11 - ORD20)
+--------------------------------------------------------------------------------
+
+-- Order ORD11: Samsung Smartphone
+INSERT INTO product_order_detail (order_id, product_id, mrp, purchase_price, quantity)
+VALUES ('ORD11', 'SAM-S24-018', 95000, 82000, 10);
+
+-- Order ORD12: LG Refrigerator
+INSERT INTO product_order_detail (order_id, product_id, mrp, purchase_price, quantity)
+VALUES ('ORD12', 'LG-REF-0411', 75000, 65000, 5);
+
+-- Order ORD13: Walton TV
+INSERT INTO product_order_detail (order_id, product_id, mrp, purchase_price, quantity)
+VALUES ('ORD13', 'WAL-TV-0512', 35000, 28000, 15);
+
+-- Order ORD14: Samsung Washer
+INSERT INTO product_order_detail (order_id, product_id, mrp, purchase_price, quantity)
+VALUES ('ORD14', 'SAM-WASH-0815', 55000, 48000, 8);
+
+-- Order ORD15: Dell Latitude Laptop
+INSERT INTO product_order_detail (order_id, product_id, mrp, purchase_price, quantity)
+VALUES ('ORD15', 'DEL-LAT-0310', 85000, 75000, 12);
+
+-- Order ORD16: LG Home Theater
+INSERT INTO product_order_detail (order_id, product_id, mrp, purchase_price, quantity)
+VALUES ('ORD16', 'LG-HOM-1017', 25000, 21000, 20);
+
+-- Order ORD17: Hitachi Generator
+INSERT INTO product_order_detail (order_id, product_id, mrp, purchase_price, quantity)
+VALUES ('ORD17', 'HIT-GEN-0916', 120000, 105000, 3);
+
+-- Order ORD18: Midea Split AC
+INSERT INTO product_order_detail (order_id, product_id, mrp, purchase_price, quantity)
+VALUES ('ORD18', 'MIN-AC-0613', 48000, 42000, 10);
+
+-- Order ORD19: iPhone 15 Pro
+INSERT INTO product_order_detail (order_id, product_id, mrp, purchase_price, quantity)
+VALUES ('ORD19', 'IPH-15-029', 145000, 130000, 7);
+
+-- Order ORD20: Panasonic Microwave
+INSERT INTO product_order_detail (order_id, product_id, mrp, purchase_price, quantity)
+VALUES ('ORD20', 'PAN-MIC-0714', 18000, 15000, 10);
+
+COMMIT;
+---------------------------------------------------
+
+--------------------------------------------------------------------------------
+-- 19. PRODUCT_RECEIVE_MASTER (Using your confirmed FKs)
+--------------------------------------------------------------------------------
+
+-- Receiving for Order ORD11 from Samsung
+INSERT INTO product_receive_master (order_id, received_by, supplier_id, sup_invoice_id, status)
+VALUES ('ORD11', 'ISL30', 'SAM2', 'SAM-INV-501', 1);
+
+-- Receiving for Order ORD12 from LG
+INSERT INTO product_receive_master (order_id, received_by, supplier_id, sup_invoice_id, status)
+VALUES ('ORD12', 'KAR19', 'LG 3', 'LG-INV-882', 1);
+
+-- Receiving for Order ORD13 from Walton
+INSERT INTO product_receive_master (order_id, received_by, supplier_id, sup_invoice_id, status)
+VALUES ('ORD13', 'KAB26', 'WAL1', 'WAL-INV-301', 1);
+
+-- Receiving for Order ORD14 from Samsung (again)
+INSERT INTO product_receive_master (order_id, received_by, supplier_id, sup_invoice_id, status)
+VALUES ('ORD14', 'PAY35', 'SAM2', 'SAM-INV-502', 1);
+
+-- Receiving for Order ORD15 from Asian Tech
+INSERT INTO product_receive_master (order_id, received_by, supplier_id, sup_invoice_id, status)
+VALUES ('ORD15', 'ISL30', 'ASI8', 'ASI-INV-109', 1);
+
+-- Receiving for Order ORD16 from LG (again)
+INSERT INTO product_receive_master (order_id, received_by, supplier_id, sup_invoice_id, status)
+VALUES ('ORD16', 'BUL36', 'LG 3', 'LG-INV-885', 1);
+
+-- Receiving for Order ORD17 from Singer (JAM6)
+INSERT INTO product_receive_master (order_id, received_by, supplier_id, sup_invoice_id, status)
+VALUES ('ORD17', 'HAQ29', 'JAM6', 'JAM-INV-441', 1);
+
+-- Receiving for Order ORD18 from Midea (MIN5)
+INSERT INTO product_receive_master (order_id, received_by, supplier_id, sup_invoice_id, status)
+VALUES ('ORD18', 'ISL30', 'MIN5', 'MIN-INV-221', 1);
+
+-- Receiving for Order ORD19 from City IT (CIT10)
+INSERT INTO product_receive_master (order_id, received_by, supplier_id, sup_invoice_id, status)
+VALUES ('ORD19', 'ZOH27', 'CIT10', 'CIT-INV-667', 1);
+
+-- Receiving for Order ORD20 from Bangla Tech (BAN9)
+INSERT INTO product_receive_master (order_id, received_by, supplier_id, sup_invoice_id, status)
+VALUES ('ORD20', 'HAS17', 'BAN9', 'BAN-INV-990', 1);
+
+COMMIT;
+
+--------------------------------------------------------------------------------
+-- 27. PRODUCT_RECEIVE_DETAILS (Mapped to your latest Orders & Receives)
+--------------------------------------------------------------------------------
+
+-- Receiving for ORD11 (Samsung S24s)
+INSERT INTO product_receive_details (receive_id, product_id, mrp, purchase_price, receive_quantity)
+VALUES ((SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'SAM-INV-501'), 'SAM-S24-018', 95000, 82000, 10);
+
+-- Receiving for ORD12 (LG Refrigerator)
+INSERT INTO product_receive_details (receive_id, product_id, mrp, purchase_price, receive_quantity)
+VALUES ((SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'LG-INV-882'), 'LG-REF-0411', 75000, 65000, 5);
+
+-- Receiving for ORD13 (Walton TV)
+INSERT INTO product_receive_details (receive_id, product_id, mrp, purchase_price, receive_quantity)
+VALUES ((SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'WAL-INV-301'), 'WAL-TV-0512', 35000, 28000, 15);
+
+-- Receiving for ORD14 (Samsung Washer)
+INSERT INTO product_receive_details (receive_id, product_id, mrp, purchase_price, receive_quantity)
+VALUES ((SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'SAM-INV-502'), 'SAM-WASH-0815', 55000, 48000, 8);
+
+-- Receiving for ORD15 (Dell Latitude)
+INSERT INTO product_receive_details (receive_id, product_id, mrp, purchase_price, receive_quantity)
+VALUES ((SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'ASI-INV-109'), 'DEL-LAT-0310', 85000, 75000, 12);
+
+-- Receiving for ORD16 (LG Home Theater)
+INSERT INTO product_receive_details (receive_id, product_id, mrp, purchase_price, receive_quantity)
+VALUES ((SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'LG-INV-885'), 'LG-HOM-1017', 25000, 21000, 20);
+
+-- Receiving for ORD17 (Hitachi Generator)
+INSERT INTO product_receive_details (receive_id, product_id, mrp, purchase_price, receive_quantity)
+VALUES ((SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'JAM-INV-441'), 'HIT-GEN-0916', 120000, 105000, 3);
+
+-- Receiving for ORD18 (Midea AC)
+INSERT INTO product_receive_details (receive_id, product_id, mrp, purchase_price, receive_quantity)
+VALUES ((SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'MIN-INV-221'), 'MIN-AC-0613', 48000, 42000, 10);
+
+-- Receiving for ORD19 (iPhone 15 Pro)
+INSERT INTO product_receive_details (receive_id, product_id, mrp, purchase_price, receive_quantity)
+VALUES ((SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'CIT-INV-667'), 'IPH-15-029', 145000, 130000, 7);
+
+-- Receiving for ORD20 (Panasonic Microwave)
+INSERT INTO product_receive_details (receive_id, product_id, mrp, purchase_price, receive_quantity)
+VALUES ((SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'BAN-INV-990'), 'PAN-MIC-0714', 18000, 15000, 10);
+
+COMMIT;
+
+--------------------------------------------------------------------------------
+-- 20. PRODUCT_RETURN_MASTER (Mapped to your latest Receives)
+--------------------------------------------------------------------------------
+
+-- Return 1: Returning items from Samsung shipment (SAM-INV-501)
+INSERT INTO product_return_master (supplier_id, receive_id, return_by, adjusted_vat, status)
+VALUES ('SAM2', 
+       (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'SAM-INV-501'), 
+       'KAB26', 150, 1);
+
+-- Return 2: Returning items from LG shipment (LG-INV-882)
+INSERT INTO product_return_master (supplier_id, receive_id, return_by, adjusted_vat, status)
+VALUES ('LG 3', 
+       (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'LG-INV-882'), 
+       'KAR19', 200, 1);
+
+-- Return 3: Returning items from Walton shipment (WAL-INV-301)
+INSERT INTO product_return_master (supplier_id, receive_id, return_by, adjusted_vat, status)
+VALUES ('WAL1', 
+       (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'WAL-INV-301'), 
+       'KAB26', 50, 1);
+
+-- Return 4: Returning items from second Samsung shipment (SAM-INV-502)
+INSERT INTO product_return_master (supplier_id, receive_id, return_by, adjusted_vat, status)
+VALUES ('SAM2', 
+       (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'SAM-INV-502'), 
+       'PAY35', 100, 1);
+
+-- Return 5: Returning items from Asian Tech (ASI-INV-109)
+INSERT INTO product_return_master (supplier_id, receive_id, return_by, adjusted_vat, status)
+VALUES ('ASI8', 
+       (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'ASI-INV-109'), 
+       'ISL30', 300, 1);
+
+-- Return 6: Returning items from second LG shipment (LG-INV-885)
+INSERT INTO product_return_master (supplier_id, receive_id, return_by, adjusted_vat, status)
+VALUES ('LG 3', 
+       (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'LG-INV-885'), 
+       'BUL36', 180, 1);
+
+-- Return 7: Returning items from Singer (JAM-INV-441)
+INSERT INTO product_return_master (supplier_id, receive_id, return_by, adjusted_vat, status)
+VALUES ('JAM6', 
+       (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'JAM-INV-441'), 
+       'HAQ29', 400, 1);
+
+-- Return 8: Returning items from Midea (MIN-INV-221)
+INSERT INTO product_return_master (supplier_id, receive_id, return_by, adjusted_vat, status)
+VALUES ('MIN5', 
+       (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'MIN-INV-221'), 
+       'ISL30', 120, 1);
+
+-- Return 9: Returning items from City IT (CIT-INV-667)
+INSERT INTO product_return_master (supplier_id, receive_id, return_by, adjusted_vat, status)
+VALUES ('CIT10', 
+       (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'CIT-INV-667'), 
+       'ZOH27', 250, 1);
+
+-- Return 10: Returning items from Bangla Tech (BAN-INV-990)
+INSERT INTO product_return_master (supplier_id, receive_id, return_by, adjusted_vat, status)
+VALUES ('BAN9', 
+       (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'BAN-INV-990'), 
+       'HAS17', 90, 1);
+
+COMMIT;
+
+--------------------------------------------------------------------------------
+-- 28. PRODUCT_RETURN_DETAILS (Mapped to your latest Return Masters)
+--------------------------------------------------------------------------------
+
+-- Returning 2 Samsung S24s (Linked to first return master)
+INSERT INTO product_return_details (return_id, product_id, mrp, purchase_price, return_quantity, reason)
+VALUES ('PRT1', 'SAM-S24-018', 95000, 82000, 2, 'Damaged screen during transit');
+
+-- Returning 1 LG Refrigerator
+INSERT INTO product_return_details (return_id, product_id, mrp, purchase_price, return_quantity, reason)
+VALUES ('PRT2', 'LG-REF-0411', 75000, 65000, 1, 'Compressor noise issue');
+
+-- Returning 3 Walton TVs
+INSERT INTO product_return_details (return_id, product_id, mrp, purchase_price, return_quantity, reason)
+VALUES ('PRT3', 'WAL-TV-0512', 35000, 28000, 3, 'Dead pixels on panel');
+
+-- Returning 1 Samsung Washer
+INSERT INTO product_return_details (return_id, product_id, mrp, purchase_price, return_quantity, reason)
+VALUES ('PRT4', 'SAM-WASH-0815', 55000, 48000, 1, 'Water leakage from door');
+
+-- Returning 2 Dell Latitude Laptops
+INSERT INTO product_return_details (return_id, product_id, mrp, purchase_price, return_quantity, reason)
+VALUES ('PRT5', 'DEL-LAT-0310', 85000, 75000, 2, 'Motherboard failure');
+
+-- Returning 5 LG Home Theater Systems
+INSERT INTO product_return_details (return_id, product_id, mrp, purchase_price, return_quantity, reason)
+VALUES ('PRT6', 'LG-HOM-1017', 25000, 21000, 5, 'Remote control missing in boxes');
+
+-- Returning 1 Hitachi Generator
+INSERT INTO product_return_details (return_id, product_id, mrp, purchase_price, return_quantity, reason)
+VALUES ('PRT7', 'HIT-GEN-0916', 120000, 105000, 1, 'Fuel tank dented');
+
+-- Returning 2 Midea Split ACs
+INSERT INTO product_return_details (return_id, product_id, mrp, purchase_price, return_quantity, reason)
+VALUES ('PRT8', 'MIN-AC-0613', 48000, 42000, 2, 'Incomplete installation kit');
+
+-- Returning 1 iPhone 15 Pro
+INSERT INTO product_return_details (return_id, product_id, mrp, purchase_price, return_quantity, reason)
+VALUES ('PRT9', 'IPH-15-029', 145000, 130000, 1, 'FaceID sensor not working');
+
+-- Returning 2 Panasonic Microwaves
+INSERT INTO product_return_details (return_id, product_id, mrp, purchase_price, return_quantity, reason)
+VALUES ('PRT10', 'PAN-MIC-0714', 18000, 15000, 2, 'Glass tray broken');
+
+COMMIT;
+
+--------------------------------------------------------------------------------
+-- 13. DEPARTMENTS (Matching Employee FKs)
+--------------------------------------------------------------------------------
+-- Data referenced by first set of employees
+INSERT INTO departments (department_id, department_name, company_id) 
+VALUES ('PRO101', 'Procurement & Sourcing', (SELECT company_id FROM company WHERE ROWNUM = 1));
+
+INSERT INTO departments (department_id, department_name, company_id) 
+VALUES ('LOG116', 'Logistics & Supply Chain', (SELECT company_id FROM company WHERE ROWNUM = 1));
+
+INSERT INTO departments (department_id, department_name, company_id) 
+VALUES ('IT 106', 'IT Operations', (SELECT company_id FROM company WHERE ROWNUM = 1));
+
+INSERT INTO departments (department_id, department_name, company_id) 
+VALUES ('HUM111', 'Human Resources', (SELECT company_id FROM company WHERE ROWNUM = 1));
+
+INSERT INTO departments (department_id, department_name, company_id) 
+VALUES ('ACC96', 'Finance & Accounting', (SELECT company_id FROM company WHERE ROWNUM = 1));
+
+-- Data referenced by second set of employees
+INSERT INTO departments (department_id, department_name, company_id) 
+VALUES ('SAL41', 'Sales Department', (SELECT company_id FROM company WHERE ROWNUM = 1));
+
+INSERT INTO departments (department_id, department_name, company_id) 
+VALUES ('CUS46', 'Customer Support', (SELECT company_id FROM company WHERE ROWNUM = 1));
+
+INSERT INTO departments (department_id, department_name, company_id) 
+VALUES ('SER51', 'After Sales Service', (SELECT company_id FROM company WHERE ROWNUM = 1));
+
+INSERT INTO departments (department_id, department_name, company_id) 
+VALUES ('ACC56', 'Corporate Accounts', (SELECT company_id FROM company WHERE ROWNUM = 1));
+
+INSERT INTO departments (department_id, department_name, company_id) 
+VALUES ('PRO61', 'General Procurement', (SELECT company_id FROM company WHERE ROWNUM = 1));
+
+INSERT INTO departments (department_id, department_name, company_id) 
+VALUES ('IT 66', 'IT Infrastructure', (SELECT company_id FROM company WHERE ROWNUM = 1));
+
+INSERT INTO departments (department_id, department_name, company_id) 
+VALUES ('HUM71', 'Human Capital Management', (SELECT company_id FROM company WHERE ROWNUM = 1));
+
+INSERT INTO departments (department_id, department_name, company_id) 
+VALUES ('LOG76', 'Shipping & Delivery', (SELECT company_id FROM company WHERE ROWNUM = 1));
+
+COMMIT;
+
+--------------------------------------------------------------------------------
+-- 14. EMPLOYEES (Populated with your provided Job and Dept IDs)
+--------------------------------------------------------------------------------
+
+-- 1. The Manager (Insert first so others can reference as manager_id)
+INSERT INTO employees (first_name, last_name, email, phone_no, address, hire_date, salary, job_id, department_id)
+VALUES ('Rafiqul', 'Hasan', 'rafiqul.hasan@walton.com', '01711100001', 'Bashundhara, Dhaka', SYSDATE-800, 60000, 
+        'MGR4', 'SAL41');
+
+-- 2. Procurement Officer (References ASM5)
+INSERT INTO employees (first_name, last_name, email, phone_no, address, hire_date, salary, job_id, department_id)
+VALUES ('Zahid', 'Hasib', 'zahid.hasib@walton.com', '01711110010', 'Banani, Dhaka', SYSDATE-150, 33000, 
+        'ASM5', 'PRO101');
+
+-- 3. Store Keeper (References STOR7)
+INSERT INTO employees (first_name, last_name, email, phone_no, address, hire_date, salary, job_id, department_id)
+VALUES ('Rezaul', 'Karim', 'rezaul.karim@walton.com', '01711110005', 'Badda, Dhaka', SYSDATE-400, 22000, 
+        'STOR7', 'LOG116');
+
+-- 4. IT Support Officer (References IT9)
+INSERT INTO employees (first_name, last_name, email, phone_no, address, hire_date, salary, job_id, department_id)
+VALUES ('Tanvir', 'Rahman', 'tanvir.rahman@walton.com', '01711110006', 'Mohakhali, Dhaka', SYSDATE-350, 40000, 
+        'IT9', 'IT 106');
+
+-- 5. HR Officer (References HR10)
+INSERT INTO employees (first_name, last_name, email, phone_no, address, hire_date, salary, job_id, department_id)
+VALUES ('Sharmin', 'Begum', 'sharmin.begum@walton.com', '01711110007', 'Khilgaon, Dhaka', SYSDATE-300, 45000, 
+        'HR10', 'HUM111');
+
+-- 6. Sales Executive (References SALES1 and Manager Rafiqul)
+INSERT INTO employees (first_name, last_name, email, phone_no, address, hire_date, salary, job_id, department_id, manager_id)
+VALUES ('Sadia', 'Akter', 'sadia.akter@walton.com', '01711100002', 'Mirpur, Dhaka', SYSDATE-500, 25000, 
+        'SALES1', 'SAL41', (SELECT employee_id FROM employees WHERE last_name='Hasan' AND ROWNUM=1));
+
+-- 7. Customer Support (References CSUP2)
+INSERT INTO employees (first_name, last_name, email, phone_no, address, hire_date, salary, job_id, department_id, manager_id)
+VALUES ('Kamal', 'Hossain', 'kamal.hossain@walton.com', '01711100003', 'Banani, Dhaka', SYSDATE-600, 28000, 
+        'CSUP2', 'CUS46', (SELECT employee_id FROM employees WHERE last_name='Hasan' AND ROWNUM=1));
+
+-- 8. Service Technician (References TECH3)
+INSERT INTO employees (first_name, last_name, email, phone_no, address, hire_date, salary, job_id, department_id)
+VALUES ('Nazmul', 'Islam', 'nazmul.islam@walton.com', '01711100004', 'Uttara, Dhaka', SYSDATE-450, 35000, 
+        'TECH3', 'SER51');
+
+-- 9. Accounting Assistant (References ACC6)
+INSERT INTO employees (first_name, last_name, email, phone_no, address, hire_date, salary, job_id, department_id)
+VALUES ('Jannat', 'Ara', 'jannat.ara@walton.com', '01711110009', 'Tejgaon, Dhaka', SYSDATE-180, 26000, 
+        'ACC6', 'ACC96');
+
+-- 10. Delivery Staff (References DLV8)
+INSERT INTO employees (first_name, last_name, email, phone_no, address, hire_date, salary, job_id, department_id)
+VALUES ('Ahsan', 'Kabir', 'ahsan.kabir@walton.com', '01711110008', 'Khilkhet, Dhaka', SYSDATE-200, 15000, 
+        'DLV8', 'LOG76');
+
+COMMIT;
+
+UPDATE employees
+SET manager_id = (SELECT employee_id FROM employees WHERE last_name='Hasan')
+WHERE last_name <> 'Hasan';
+UPDATE departments
+SET manager_id = (SELECT employee_id FROM employees WHERE last_name='Hasan');
+
+
+--------------------------------------------------------------------------------
+-- 14. EMPLOYEES (Additional Data Set)
+--------------------------------------------------------------------------------
+
+-- 11. Senior Accountant
+INSERT INTO employees (first_name, last_name, email, phone_no, address, hire_date, salary, job_id, department_id)
+VALUES ('Fatima', 'Zohra', 'fatima.z@walton.com', '01722200011', 'Lalmatia, Dhaka', SYSDATE-700, 42000, 
+        'ACC6', 'ACC56');
+
+-- 12. Junior Sales Rep (Reporting to Rafiqul Hasan)
+INSERT INTO employees (first_name, last_name, email, phone_no, address, hire_date, salary, job_id, department_id, manager_id)
+VALUES ('Sabbir', 'Ahmed', 'sabbir.a@walton.com', '01722200012', 'Farmgate, Dhaka', SYSDATE-120, 22000, 
+        'SALES1', 'SAL41', (SELECT employee_id FROM employees WHERE last_name='Hasan' AND ROWNUM=1));
+
+-- 13. Senior Technician
+INSERT INTO employees (first_name, last_name, email, phone_no, address, hire_date, salary, job_id, department_id)
+VALUES ('Mominul', 'Haque', 'momin.h@walton.com', '01722200013', 'Tongi, Gazipur', SYSDATE-950, 38000, 
+        'TECH3', 'SER51');
+
+-- 14. IT Security Specialist
+INSERT INTO employees (first_name, last_name, email, phone_no, address, hire_date, salary, job_id, department_id)
+VALUES ('Ariful', 'Islam', 'arif.i@walton.com', '01722200014', 'Dhanmondi, Dhaka', SYSDATE-400, 45000, 
+        'IT9', 'IT 66');
+
+-- 15. HR Assistant
+INSERT INTO employees (first_name, last_name, email, phone_no, address, hire_date, salary, job_id, department_id)
+VALUES ('Lutfur', 'Nahid', 'lutfur.n@walton.com', '01722200015', 'Malibagh, Dhaka', SYSDATE-280, 29000, 
+        'HR10', 'HUM71');
+
+-- 16. Customer Support Lead
+INSERT INTO employees (first_name, last_name, email, phone_no, address, hire_date, salary, job_id, department_id)
+VALUES ('Rumana', 'Afroz', 'rumana.a@walton.com', '01722200016', 'Banani, Dhaka', SYSDATE-550, 31000, 
+        'CSUP2', 'CUS46');
+
+-- 17. Procurement Specialist
+INSERT INTO employees (first_name, last_name, email, phone_no, address, hire_date, salary, job_id, department_id)
+VALUES ('Tariq', 'Aziz', 'tariq.a@walton.com', '01722200017', 'Uttara Sector 4, Dhaka', SYSDATE-320, 37000, 
+        'ASM5', 'PRO61');
+
+-- 18. Warehouse Assistant
+INSERT INTO employees (first_name, last_name, email, phone_no, address, hire_date, salary, job_id, department_id)
+VALUES ('Shohel', 'Rana', 'shohel.r@walton.com', '01722200018', 'Savar, Dhaka', SYSDATE-100, 19000, 
+        'STOR7', 'LOG76');
+
+-- 19. Inventory Controller
+INSERT INTO employees (first_name, last_name, email, phone_no, address, hire_date, salary, job_id, department_id)
+VALUES ('Keya', 'Payel', 'keya.p@walton.com', '01722200019', 'Nikunja, Dhaka', SYSDATE-480, 24000, 
+        'STOR7', 'LOG116');
+
+-- 20. Logistics Coordinator
+INSERT INTO employees (first_name, last_name, email, phone_no, address, hire_date, salary, job_id, department_id)
+VALUES ('Imtiaz', 'Bulbul', 'imtiaz.b@walton.com', '01722200020', 'Rampura, Dhaka', SYSDATE-600, 27000, 
+        'DLV8', 'LOG116');
+
+COMMIT;
+
+
+
