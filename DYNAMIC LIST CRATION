@@ -1,0 +1,63 @@
+--FOR DYNAMIC LIST
+--TRIGGER , WHEN-NEW-FORN-INSTANCE
+DECLARE
+   rg_products   RecordGroup;
+   rg_suppliers  RecordGroup;
+   rg_employees  RecordGroup;
+
+   nDummy        NUMBER;
+BEGIN
+   /* ================= PRODUCT ================= */
+   rg_products := Find_Group('RG_PRODUCTS');
+   IF NOT Id_Null(rg_products) THEN
+      Delete_Group(rg_products);
+   END IF;
+
+   rg_products := Create_Group_From_Query(
+                     'RG_PRODUCTS',
+                     'SELECT product_name, TO_CHAR(product_id)
+                        FROM products
+                        ORDER BY product_name'
+                  );
+
+   Clear_List('PRODUCT_receive_DETAILS.PRODUCT_ID');
+   nDummy := Populate_Group(rg_products);
+   Populate_List('PRODUCT_receive_DETAILS.PRODUCT_ID', rg_products);
+
+
+   /* ================= SUPPLIER ================= */
+   rg_suppliers := Find_Group('RG_SUPPLIERS');
+   IF NOT Id_Null(rg_suppliers) THEN
+      Delete_Group(rg_suppliers);
+   END IF;
+
+   rg_suppliers := Create_Group_From_Query(
+                      'RG_SUPPLIERS',
+                      'SELECT supplier_name, TO_CHAR(supplier_id)
+                         FROM suppliers
+                         ORDER BY supplier_name'
+                   );
+
+   Clear_List('PRODUCT_receive_MASTER.SUPPLIER_ID');
+   nDummy := Populate_Group(rg_suppliers);
+   Populate_List('PRODUCT_receive_MASTER.SUPPLIER_ID', rg_suppliers);
+
+
+   /* ================= EMPLOYEE ================= */
+   rg_employees := Find_Group('RG_EMPLOYEES');
+   IF NOT Id_Null(rg_employees) THEN
+      Delete_Group(rg_employees);
+   END IF;
+
+   rg_employees := Create_Group_From_Query(
+                      'RG_EMPLOYEES',
+                      'SELECT last_name, TO_CHAR(employee_id)
+                         FROM employees
+                         ORDER BY last_name'
+                   );
+
+   Clear_List('PRODUCT_recieve_MASTER.received_BY');
+   nDummy := Populate_Group(rg_employees);
+   Populate_List('PRODUCT_receive_MASTER.received_BY', rg_employees);
+
+END;
