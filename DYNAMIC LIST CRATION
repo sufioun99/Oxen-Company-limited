@@ -1,13 +1,55 @@
---FOR DYNAMIC LIST
---TRIGGER , WHEN-NEW-FORN-INSTANCE
-DECLARE
-   rg_products   RecordGroup;
-   rg_suppliers  RecordGroup;
-   rg_employees  RecordGroup;
+--------------------------------------------------------------------------------
+-- ORACLE FORMS DYNAMIC LIST POPULATION
+-- File: DYNAMIC LIST CRATION
+-- Description: PL/SQL triggers for populating list items in Oracle Forms
+-- Compatible with: Oracle Forms 11g and Oracle 11g Database
+--------------------------------------------------------------------------------
 
-   nDummy        NUMBER;
+--------------------------------------------------------------------------------
+-- TRIGGER: WHEN-NEW-FORM-INSTANCE
+-- Description: Populates all list items when form is opened
+-- Usage: Copy this code to your form's WHEN-NEW-FORM-INSTANCE trigger
+--------------------------------------------------------------------------------
+DECLARE
+   rg_products     RecordGroup;
+   rg_suppliers    RecordGroup;
+   rg_employees    RecordGroup;
+   rg_customers    RecordGroup;
+   rg_departments  RecordGroup;
+   rg_jobs         RecordGroup;
+   rg_categories   RecordGroup;
+   rg_subcategories RecordGroup;
+   rg_brands       RecordGroup;
+   rg_parts        RecordGroup;
+   rg_services     RecordGroup;
+   rg_companies    RecordGroup;
+
+   nDummy          NUMBER;
+   
+   -- Reusable procedure to populate a list item
+   PROCEDURE populate_list_from_query(
+      p_list_name  IN VARCHAR2,
+      p_rg_name    IN VARCHAR2,
+      p_query      IN VARCHAR2
+   ) IS
+      rg RecordGroup;
+   BEGIN
+      rg := Find_Group(p_rg_name);
+      IF NOT Id_Null(rg) THEN
+         Delete_Group(rg);
+      END IF;
+      rg := Create_Group_From_Query(p_rg_name, p_query);
+      Clear_List(p_list_name);
+      nDummy := Populate_Group(rg);
+      Populate_List(p_list_name, rg);
+   EXCEPTION
+      WHEN OTHERS THEN
+         -- Log error but don't stop form loading
+         NULL;
+   END populate_list_from_query;
+
 BEGIN
-   /* ================= PRODUCT ================= */
+   /* ================= PRODUCT (Using LOV View) ================= */
    rg_products := Find_Group('RG_PRODUCTS');
    IF NOT Id_Null(rg_products) THEN
       Delete_Group(rg_products);
@@ -15,17 +57,21 @@ BEGIN
 
    rg_products := Create_Group_From_Query(
                      'RG_PRODUCTS',
-                     'SELECT product_name, TO_CHAR(product_id)
-                        FROM products
-                        ORDER BY product_name'
+                     'SELECT display_value, return_value
+                        FROM v_lov_products
+                        ORDER BY display_value'
                   );
 
-   Clear_List('PRODUCT_receive_DETAILS.PRODUCT_ID');
+   Clear_List('PRODUCT_RECEIVE_DETAILS.PRODUCT_ID');
    nDummy := Populate_Group(rg_products);
-   Populate_List('PRODUCT_receive_DETAILS.PRODUCT_ID', rg_products);
+   Populate_List('PRODUCT_RECEIVE_DETAILS.PRODUCT_ID', rg_products);
+   
+   -- Also populate for other forms that need products
+   -- Populate_List('SALES_DETAIL.PRODUCT_ID', rg_products);
+   -- Populate_List('ORDER_DETAIL.PRODUCT_ID', rg_products);
 
 
-   /* ================= SUPPLIER ================= */
+   /* ================= SUPPLIER (Using LOV View) ================= */
    rg_suppliers := Find_Group('RG_SUPPLIERS');
    IF NOT Id_Null(rg_suppliers) THEN
       Delete_Group(rg_suppliers);
@@ -33,17 +79,17 @@ BEGIN
 
    rg_suppliers := Create_Group_From_Query(
                       'RG_SUPPLIERS',
-                      'SELECT supplier_name, TO_CHAR(supplier_id)
-                         FROM suppliers
-                         ORDER BY supplier_name'
+                      'SELECT display_value, return_value
+                         FROM v_lov_suppliers
+                         ORDER BY display_value'
                    );
 
-   Clear_List('PRODUCT_receive_MASTER.SUPPLIER_ID');
+   Clear_List('PRODUCT_RECEIVE_MASTER.SUPPLIER_ID');
    nDummy := Populate_Group(rg_suppliers);
-   Populate_List('PRODUCT_receive_MASTER.SUPPLIER_ID', rg_suppliers);
+   Populate_List('PRODUCT_RECEIVE_MASTER.SUPPLIER_ID', rg_suppliers);
 
 
-   /* ================= EMPLOYEE ================= */
+   /* ================= EMPLOYEE (Using LOV View) ================= */
    rg_employees := Find_Group('RG_EMPLOYEES');
    IF NOT Id_Null(rg_employees) THEN
       Delete_Group(rg_employees);
@@ -51,13 +97,338 @@ BEGIN
 
    rg_employees := Create_Group_From_Query(
                       'RG_EMPLOYEES',
-                      'SELECT last_name, TO_CHAR(employee_id)
-                         FROM employees
-                         ORDER BY last_name'
+                      'SELECT display_value, return_value
+                         FROM v_lov_employees
+                         ORDER BY display_value'
                    );
 
-   Clear_List('PRODUCT_recieve_MASTER.received_BY');
+   Clear_List('PRODUCT_RECEIVE_MASTER.RECEIVED_BY');
    nDummy := Populate_Group(rg_employees);
-   Populate_List('PRODUCT_receive_MASTER.received_BY', rg_employees);
+   Populate_List('PRODUCT_RECEIVE_MASTER.RECEIVED_BY', rg_employees);
+
+
+   /* ================= CUSTOMER (Using LOV View) ================= */
+   rg_customers := Find_Group('RG_CUSTOMERS');
+   IF NOT Id_Null(rg_customers) THEN
+      Delete_Group(rg_customers);
+   END IF;
+
+   rg_customers := Create_Group_From_Query(
+                      'RG_CUSTOMERS',
+                      'SELECT display_value, return_value
+                         FROM v_lov_customers
+                         ORDER BY display_value'
+                   );
+
+   -- Populate customer lists in relevant forms
+   -- Clear_List('SALES_MASTER.CUSTOMER_ID');
+   nDummy := Populate_Group(rg_customers);
+   -- Populate_List('SALES_MASTER.CUSTOMER_ID', rg_customers);
+
+
+   /* ================= DEPARTMENT (Using LOV View) ================= */
+   rg_departments := Find_Group('RG_DEPARTMENTS');
+   IF NOT Id_Null(rg_departments) THEN
+      Delete_Group(rg_departments);
+   END IF;
+
+   rg_departments := Create_Group_From_Query(
+                        'RG_DEPARTMENTS',
+                        'SELECT display_value, return_value
+                           FROM v_lov_departments
+                           ORDER BY display_value'
+                     );
+
+   nDummy := Populate_Group(rg_departments);
+   -- Populate_List('EMPLOYEES.DEPARTMENT_ID', rg_departments);
+
+
+   /* ================= JOBS (Using LOV View) ================= */
+   rg_jobs := Find_Group('RG_JOBS');
+   IF NOT Id_Null(rg_jobs) THEN
+      Delete_Group(rg_jobs);
+   END IF;
+
+   rg_jobs := Create_Group_From_Query(
+                 'RG_JOBS',
+                 'SELECT display_value, return_value
+                    FROM v_lov_jobs
+                    ORDER BY display_value'
+              );
+
+   nDummy := Populate_Group(rg_jobs);
+   -- Populate_List('EMPLOYEES.JOB_ID', rg_jobs);
+
+
+   /* ================= PRODUCT CATEGORIES (Using LOV View) ================= */
+   rg_categories := Find_Group('RG_CATEGORIES');
+   IF NOT Id_Null(rg_categories) THEN
+      Delete_Group(rg_categories);
+   END IF;
+
+   rg_categories := Create_Group_From_Query(
+                       'RG_CATEGORIES',
+                       'SELECT display_value, return_value
+                          FROM v_lov_product_categories
+                          ORDER BY display_value'
+                    );
+
+   nDummy := Populate_Group(rg_categories);
+   -- Populate_List('PRODUCTS.CATEGORY_ID', rg_categories);
+
+
+   /* ================= SUB CATEGORIES (Using LOV View) ================= */
+   rg_subcategories := Find_Group('RG_SUBCATEGORIES');
+   IF NOT Id_Null(rg_subcategories) THEN
+      Delete_Group(rg_subcategories);
+   END IF;
+
+   rg_subcategories := Create_Group_From_Query(
+                          'RG_SUBCATEGORIES',
+                          'SELECT display_value, return_value
+                             FROM v_lov_sub_categories
+                             ORDER BY display_value'
+                       );
+
+   nDummy := Populate_Group(rg_subcategories);
+   -- Populate_List('PRODUCTS.SUB_CAT_ID', rg_subcategories);
+
+
+   /* ================= BRANDS (Using LOV View) ================= */
+   rg_brands := Find_Group('RG_BRANDS');
+   IF NOT Id_Null(rg_brands) THEN
+      Delete_Group(rg_brands);
+   END IF;
+
+   rg_brands := Create_Group_From_Query(
+                   'RG_BRANDS',
+                   'SELECT display_value, return_value
+                      FROM v_lov_brands
+                      ORDER BY display_value'
+                );
+
+   nDummy := Populate_Group(rg_brands);
+   -- Populate_List('PRODUCTS.BRAND_ID', rg_brands);
+
+
+   /* ================= PARTS (Using LOV View) ================= */
+   rg_parts := Find_Group('RG_PARTS');
+   IF NOT Id_Null(rg_parts) THEN
+      Delete_Group(rg_parts);
+   END IF;
+
+   rg_parts := Create_Group_From_Query(
+                  'RG_PARTS',
+                  'SELECT display_value, return_value
+                     FROM v_lov_parts
+                     ORDER BY display_value'
+               );
+
+   nDummy := Populate_Group(rg_parts);
+   -- Populate_List('SERVICE_DETAILS.PARTS_ID', rg_parts);
+
+
+   /* ================= SERVICES (Using LOV View) ================= */
+   rg_services := Find_Group('RG_SERVICES');
+   IF NOT Id_Null(rg_services) THEN
+      Delete_Group(rg_services);
+   END IF;
+
+   rg_services := Create_Group_From_Query(
+                     'RG_SERVICES',
+                     'SELECT display_value, return_value
+                        FROM v_lov_services
+                        ORDER BY display_value'
+                  );
+
+   nDummy := Populate_Group(rg_services);
+   -- Populate_List('SERVICE_MASTER.SERVICELIST_ID', rg_services);
+
+
+   /* ================= COMPANIES (Using LOV View) ================= */
+   rg_companies := Find_Group('RG_COMPANIES');
+   IF NOT Id_Null(rg_companies) THEN
+      Delete_Group(rg_companies);
+   END IF;
+
+   rg_companies := Create_Group_From_Query(
+                      'RG_COMPANIES',
+                      'SELECT display_value, return_value
+                         FROM v_lov_companies
+                         ORDER BY display_value'
+                   );
+
+   nDummy := Populate_Group(rg_companies);
+   -- Populate_List('DEPARTMENTS.COMPANY_ID', rg_companies);
 
 END;
+
+--------------------------------------------------------------------------------
+-- TRIGGER: WHEN-VALIDATE-ITEM (For Product Selection)
+-- Description: Auto-fills product prices when product is selected
+-- Usage: Copy to WHEN-VALIDATE-ITEM trigger on PRODUCT_ID field
+--------------------------------------------------------------------------------
+/*
+DECLARE
+   v_mrp NUMBER;
+   v_purchase_price NUMBER;
+BEGIN
+   IF :BLOCK.PRODUCT_ID IS NOT NULL THEN
+      SELECT mrp, purchase_price
+      INTO v_mrp, v_purchase_price
+      FROM v_lov_products
+      WHERE return_value = :BLOCK.PRODUCT_ID;
+      
+      :BLOCK.MRP := v_mrp;
+      :BLOCK.PURCHASE_PRICE := v_purchase_price;
+      
+      -- Recalculate line total if quantity exists
+      IF :BLOCK.QUANTITY IS NOT NULL THEN
+         :BLOCK.LINE_TOTAL := :BLOCK.MRP * :BLOCK.QUANTITY;
+      END IF;
+   END IF;
+EXCEPTION
+   WHEN NO_DATA_FOUND THEN
+      MESSAGE('Product not found.');
+      RAISE FORM_TRIGGER_FAILURE;
+END;
+*/
+
+--------------------------------------------------------------------------------
+-- TRIGGER: WHEN-VALIDATE-ITEM (For Service Selection)
+-- Description: Auto-fills service cost when service is selected
+-- Usage: Copy to WHEN-VALIDATE-ITEM trigger on SERVICELIST_ID field
+--------------------------------------------------------------------------------
+/*
+DECLARE
+   v_service_cost NUMBER;
+BEGIN
+   IF :SERVICE_MASTER.SERVICELIST_ID IS NOT NULL THEN
+      SELECT service_cost
+      INTO v_service_cost
+      FROM v_lov_services
+      WHERE return_value = :SERVICE_MASTER.SERVICELIST_ID;
+      
+      :SERVICE_MASTER.SERVICE_CHARGE := v_service_cost;
+   END IF;
+EXCEPTION
+   WHEN NO_DATA_FOUND THEN
+      MESSAGE('Service not found.');
+      RAISE FORM_TRIGGER_FAILURE;
+END;
+*/
+
+--------------------------------------------------------------------------------
+-- TRIGGER: WHEN-VALIDATE-ITEM (For Parts Selection)
+-- Description: Auto-fills parts prices when part is selected
+-- Usage: Copy to WHEN-VALIDATE-ITEM trigger on PARTS_ID field
+--------------------------------------------------------------------------------
+/*
+DECLARE
+   v_mrp NUMBER;
+   v_purchase_price NUMBER;
+BEGIN
+   IF :SERVICE_DETAILS.PARTS_ID IS NOT NULL THEN
+      SELECT mrp, purchase_price
+      INTO v_mrp, v_purchase_price
+      FROM v_lov_parts
+      WHERE return_value = :SERVICE_DETAILS.PARTS_ID;
+      
+      :SERVICE_DETAILS.TOTAL_SERVICE_COST := v_mrp * NVL(:SERVICE_DETAILS.QUANTITY, 1);
+   END IF;
+EXCEPTION
+   WHEN NO_DATA_FOUND THEN
+      MESSAGE('Part not found.');
+      RAISE FORM_TRIGGER_FAILURE;
+END;
+*/
+
+--------------------------------------------------------------------------------
+-- TRIGGER: WHEN-LIST-CHANGED (For Cascading Sub-Categories)
+-- Description: Filters sub-categories based on selected category
+-- Usage: Copy to WHEN-LIST-CHANGED trigger on CATEGORY_ID field
+--------------------------------------------------------------------------------
+/*
+DECLARE
+   rg_subcategories RecordGroup;
+   nDummy NUMBER;
+BEGIN
+   rg_subcategories := Find_Group('RG_SUBCATEGORIES_FILTERED');
+   IF NOT Id_Null(rg_subcategories) THEN
+      Delete_Group(rg_subcategories);
+   END IF;
+
+   rg_subcategories := Create_Group_From_Query(
+                          'RG_SUBCATEGORIES_FILTERED',
+                          'SELECT display_value, return_value
+                             FROM v_lov_sub_categories
+                             WHERE product_cat_id = ''' || :PRODUCTS.CATEGORY_ID || '''
+                             ORDER BY display_value'
+                       );
+
+   Clear_List('PRODUCTS.SUB_CAT_ID');
+   nDummy := Populate_Group(rg_subcategories);
+   Populate_List('PRODUCTS.SUB_CAT_ID', rg_subcategories);
+   
+   -- Clear current selection
+   :PRODUCTS.SUB_CAT_ID := NULL;
+END;
+*/
+
+--------------------------------------------------------------------------------
+-- TRIGGER: PRE-INSERT
+-- Description: Sets audit columns before insert
+-- Usage: Copy to PRE-INSERT trigger on data blocks
+--------------------------------------------------------------------------------
+/*
+BEGIN
+   :BLOCK.CRE_BY := USER;
+   :BLOCK.CRE_DT := SYSDATE;
+   :BLOCK.STATUS := 1;
+END;
+*/
+
+--------------------------------------------------------------------------------
+-- TRIGGER: PRE-UPDATE
+-- Description: Sets audit columns before update
+-- Usage: Copy to PRE-UPDATE trigger on data blocks
+--------------------------------------------------------------------------------
+/*
+BEGIN
+   :BLOCK.UPD_BY := USER;
+   :BLOCK.UPD_DT := SYSDATE;
+END;
+*/
+
+--------------------------------------------------------------------------------
+-- TRIGGER: POST-FORMS-COMMIT (For Master-Detail Total Calculation)
+-- Description: Calls package to recalculate totals after commit
+-- Usage: Copy to POST-FORMS-COMMIT trigger
+--------------------------------------------------------------------------------
+/*
+BEGIN
+   -- For Sales forms
+   IF :SYSTEM.FORM_NAME = 'SALES_FORM' THEN
+      pkg_automation.calc_sales_total(:SALES_MASTER.INVOICE_ID);
+   END IF;
+   
+   -- For Order forms
+   IF :SYSTEM.FORM_NAME = 'ORDER_FORM' THEN
+      pkg_automation.calc_order_total(:PRODUCT_ORDER_MASTER.ORDER_ID);
+   END IF;
+   
+   -- For Receive forms
+   IF :SYSTEM.FORM_NAME = 'RECEIVE_FORM' THEN
+      pkg_automation.calc_receive_total(:PRODUCT_RECEIVE_MASTER.RECEIVE_ID);
+   END IF;
+   
+   -- For Service forms
+   IF :SYSTEM.FORM_NAME = 'SERVICE_FORM' THEN
+      pkg_automation.calc_service_total(:SERVICE_MASTER.SERVICE_ID);
+   END IF;
+END;
+*/
+
+--------------------------------------------------------------------------------
+-- END OF DYNAMIC LIST CREATION FILE
+--------------------------------------------------------------------------------
