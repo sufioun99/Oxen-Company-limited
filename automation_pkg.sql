@@ -10,6 +10,10 @@
 --------------------------------------------------------------------------------
 CREATE OR REPLACE PACKAGE pkg_oxen_automation AS
     
+    -- Constants for configuration
+    c_currency_code CONSTANT VARCHAR2(10) := 'BDT';  -- Currency code for display messages
+    c_low_stock_threshold CONSTANT NUMBER := 5;      -- Default low stock alert threshold
+    
     -- Exception declarations
     e_invalid_input EXCEPTION;
     e_insufficient_stock EXCEPTION;
@@ -458,7 +462,7 @@ CREATE OR REPLACE PACKAGE BODY pkg_oxen_automation AS
         END LOOP;
         
         COMMIT;
-        p_result := 'SUCCESS: Invoice finalized. Total: BDT ' || TO_CHAR(v_total - v_discount);
+        p_result := 'SUCCESS: Invoice finalized. Total: ' || c_currency_code || ' ' || TO_CHAR(v_total - v_discount);
         
     EXCEPTION
         WHEN OTHERS THEN
@@ -555,7 +559,7 @@ CREATE OR REPLACE PACKAGE BODY pkg_oxen_automation AS
         WHERE supplier_id = v_supplier_id;
         
         COMMIT;
-        p_result := 'SUCCESS: Products received and stock updated. Total: BDT ' || TO_CHAR(v_total + v_vat);
+        p_result := 'SUCCESS: Products received and stock updated. Total: ' || c_currency_code || ' ' || TO_CHAR(v_total + v_vat);
         
     EXCEPTION
         WHEN OTHERS THEN
@@ -588,7 +592,7 @@ CREATE OR REPLACE PACKAGE BODY pkg_oxen_automation AS
         WHERE order_id = p_order_id;
         
         COMMIT;
-        p_result := 'SUCCESS: Order totals updated. Grand Total: BDT ' || TO_CHAR(v_total + v_vat);
+        p_result := 'SUCCESS: Order totals updated. Grand Total: ' || c_currency_code || ' ' || TO_CHAR(v_total + v_vat);
         
     EXCEPTION
         WHEN OTHERS THEN
@@ -661,7 +665,7 @@ CREATE OR REPLACE PACKAGE BODY pkg_oxen_automation AS
         WHERE service_id = p_service_id;
         
         COMMIT;
-        p_result := 'SUCCESS: Service completed. Total: BDT ' || TO_CHAR(v_total);
+        p_result := 'SUCCESS: Service completed. Total: ' || c_currency_code || ' ' || TO_CHAR(v_total);
         
     EXCEPTION
         WHEN OTHERS THEN
@@ -698,7 +702,7 @@ CREATE OR REPLACE PACKAGE BODY pkg_oxen_automation AS
         WHERE supplier_id = p_supplier_id;
         
         COMMIT;
-        p_result := 'SUCCESS: Payment ' || p_payment_id || ' recorded. Amount: BDT ' || TO_CHAR(p_amount);
+        p_result := 'SUCCESS: Payment ' || p_payment_id || ' recorded. Amount: ' || c_currency_code || ' ' || TO_CHAR(p_amount);
         
     EXCEPTION
         WHEN OTHERS THEN

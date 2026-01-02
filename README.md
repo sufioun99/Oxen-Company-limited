@@ -11,8 +11,8 @@ This repository contains a comprehensive Oracle database schema for managing an 
 - **33 Database Tables** covering all business operations
 - **Automatic ID Generation** via sequences and triggers
 - **Audit Trail** with created_by, created_date, updated_by, updated_date columns
-- **Oracle 11g Forms Ready** with LOV queries and form triggers
-- **Oracle APEX Ready** with pre-built views for LOV, reports, and dashboards
+- **Oracle Forms 11g Ready** with LOV queries and form triggers (compatible with Oracle Forms 11g Builder and Oracle Database 11g+)
+- **Oracle APEX Ready** with pre-built views for LOV, reports, and dashboards (APEX 5.x and later)
 - **Automation Package** for business logic and stock management
 
 ## File Structure
@@ -79,10 +79,10 @@ This repository contains a comprehensive Oracle database schema for managing an 
 ## Installation
 
 ### Prerequisites
-- Oracle Database 11g or higher
+- Oracle Database 11g Release 2 or higher
 - Oracle SQL*Plus or SQL Developer
-- (Optional) Oracle Forms 11g for Forms features
-- (Optional) Oracle APEX 5.x+ for APEX features
+- (Optional) Oracle Forms 11g (11.1.1.x or later) for Forms features
+- (Optional) Oracle APEX 5.x or later for APEX features
 
 ### Setup Steps
 

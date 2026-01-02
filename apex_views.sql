@@ -440,16 +440,16 @@ WHERE p.status = 1
 AND NVL(s.quantity, 0) < 5
 ORDER BY s.quantity ASC;
 
--- Dashboard: Supplier Due Summary
+-- Dashboard: Supplier Due Summary (uses suppliers_with_due_v to avoid duplication)
 CREATE OR REPLACE VIEW dashboard_supplier_due_v AS
 SELECT supplier_id,
        supplier_name,
        purchase_total,
        pay_total,
-       NVL(purchase_total, 0) - NVL(pay_total, 0) AS due_amount
-FROM suppliers
+       due_amount
+FROM suppliers_with_due_v
 WHERE status = 1
-AND (NVL(purchase_total, 0) - NVL(pay_total, 0)) > 0
+AND due_amount > 0
 ORDER BY due_amount DESC;
 
 -- Dashboard: Service Summary
