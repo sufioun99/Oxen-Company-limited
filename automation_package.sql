@@ -460,7 +460,7 @@ CREATE OR REPLACE PACKAGE BODY pkg_automation AS
         WHERE invoice_id = p_invoice_id;
     EXCEPTION
         WHEN OTHERS THEN
-            RAISE_APPLICATION_ERROR(-20001, 'Error calculating sales total: ' || SQLERRM);
+            RAISE_APPLICATION_ERROR(-20001, 'Error calculating sales total for invoice: ' || p_invoice_id);
     END calc_sales_total;
 
     -- Calculate and update order master totals
@@ -480,7 +480,7 @@ CREATE OR REPLACE PACKAGE BODY pkg_automation AS
         WHERE order_id = p_order_id;
     EXCEPTION
         WHEN OTHERS THEN
-            RAISE_APPLICATION_ERROR(-20002, 'Error calculating order total: ' || SQLERRM);
+            RAISE_APPLICATION_ERROR(-20002, 'Error calculating order total for order: ' || p_order_id);
     END calc_order_total;
 
     -- Calculate and update receive master totals
@@ -500,7 +500,7 @@ CREATE OR REPLACE PACKAGE BODY pkg_automation AS
         WHERE receive_id = p_receive_id;
     EXCEPTION
         WHEN OTHERS THEN
-            RAISE_APPLICATION_ERROR(-20003, 'Error calculating receive total: ' || SQLERRM);
+            RAISE_APPLICATION_ERROR(-20003, 'Error calculating receive total for receive: ' || p_receive_id);
     END calc_receive_total;
 
     -- Calculate and update return master totals
@@ -520,7 +520,7 @@ CREATE OR REPLACE PACKAGE BODY pkg_automation AS
         WHERE return_id = p_return_id;
     EXCEPTION
         WHEN OTHERS THEN
-            RAISE_APPLICATION_ERROR(-20004, 'Error calculating return total: ' || SQLERRM);
+            RAISE_APPLICATION_ERROR(-20004, 'Error calculating return total for return: ' || p_return_id);
     END calc_return_total;
 
     -- Calculate and update service master totals
@@ -540,14 +540,16 @@ CREATE OR REPLACE PACKAGE BODY pkg_automation AS
         WHERE service_id = p_service_id;
     EXCEPTION
         WHEN OTHERS THEN
-            RAISE_APPLICATION_ERROR(-20005, 'Error calculating service total: ' || SQLERRM);
+            RAISE_APPLICATION_ERROR(-20005, 'Error calculating service total for service: ' || p_service_id);
     END calc_service_total;
 
     -- Update stock on product receive
+    -- p_supplier_id can be NULL when restoring stock from returns
     PROCEDURE update_stock_on_receive(p_product_id IN VARCHAR2, p_quantity IN NUMBER, p_supplier_id IN VARCHAR2) IS
         v_stock_exists NUMBER;
         v_product_cat_id VARCHAR2(50);
         v_sub_cat_id VARCHAR2(50);
+        v_existing_supplier_id VARCHAR2(50);
     BEGIN
         -- Get product category info
         SELECT category_id, sub_cat_id 
@@ -562,17 +564,26 @@ CREATE OR REPLACE PACKAGE BODY pkg_automation AS
         IF v_stock_exists > 0 THEN
             UPDATE stock
             SET quantity = quantity + p_quantity,
-                last_update = SYSTIMESTAMP,
+                last_update = SYSDATE,
                 upd_dt = SYSDATE,
                 upd_by = USER
             WHERE product_id = p_product_id;
         ELSE
+            -- For new stock entry, try to get supplier from product if not provided
+            IF p_supplier_id IS NULL THEN
+                SELECT supplier_id INTO v_existing_supplier_id
+                FROM products
+                WHERE product_id = p_product_id;
+            ELSE
+                v_existing_supplier_id := p_supplier_id;
+            END IF;
+            
             INSERT INTO stock (product_id, supplier_id, product_cat_id, sub_cat_id, quantity)
-            VALUES (p_product_id, p_supplier_id, v_product_cat_id, v_sub_cat_id, p_quantity);
+            VALUES (p_product_id, v_existing_supplier_id, v_product_cat_id, v_sub_cat_id, p_quantity);
         END IF;
     EXCEPTION
         WHEN OTHERS THEN
-            RAISE_APPLICATION_ERROR(-20006, 'Error updating stock on receive: ' || SQLERRM);
+            RAISE_APPLICATION_ERROR(-20006, 'Error updating stock for product: ' || p_product_id);
     END update_stock_on_receive;
 
     -- Update stock on sale
@@ -686,14 +697,27 @@ CREATE OR REPLACE PACKAGE BODY pkg_automation AS
     END update_supplier_on_payment;
 
     -- Get next sequence value with prefix
+    -- Note: p_seq_name must be a valid sequence name without special characters
     FUNCTION get_next_id(p_seq_name IN VARCHAR2, p_prefix IN VARCHAR2) RETURN VARCHAR2 IS
         v_next_val NUMBER;
-        v_sql VARCHAR2(200);
+        v_valid_seq_name VARCHAR2(128);
     BEGIN
-        v_sql := 'SELECT ' || p_seq_name || '.NEXTVAL FROM DUAL';
-        EXECUTE IMMEDIATE v_sql INTO v_next_val;
+        -- Validate sequence name: only allow alphanumeric and underscore
+        -- This prevents SQL injection attacks
+        IF NOT REGEXP_LIKE(p_seq_name, '^[A-Za-z][A-Za-z0-9_]*$') THEN
+            RAISE_APPLICATION_ERROR(-20020, 'Invalid sequence name format');
+        END IF;
+        
+        -- Additional check: verify sequence exists in user_sequences
+        SELECT sequence_name INTO v_valid_seq_name
+        FROM user_sequences
+        WHERE sequence_name = UPPER(p_seq_name);
+        
+        EXECUTE IMMEDIATE 'SELECT ' || v_valid_seq_name || '.NEXTVAL FROM DUAL' INTO v_next_val;
         RETURN p_prefix || TO_CHAR(v_next_val);
     EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            RAISE_APPLICATION_ERROR(-20021, 'Sequence does not exist');
         WHEN OTHERS THEN
             RETURN NULL;
     END get_next_id;
@@ -751,7 +775,7 @@ CREATE OR REPLACE PACKAGE BODY pkg_automation AS
         NULL; -- Placeholder
     EXCEPTION
         WHEN OTHERS THEN
-            RAISE_APPLICATION_ERROR(-20018, 'Error calculating expense total: ' || SQLERRM);
+            RAISE_APPLICATION_ERROR(-20018, 'Error calculating expense total for expense: ' || p_expense_id);
     END calc_expense_total;
 
 END pkg_automation;
@@ -774,7 +798,9 @@ BEGIN
     END IF;
 EXCEPTION
     WHEN OTHERS THEN
-        NULL; -- Suppress errors to avoid transaction issues
+        -- Suppress calculation errors to prevent blocking DML operations
+        -- The master total can be recalculated manually if needed
+        NULL;
 END;
 /
 
@@ -790,6 +816,7 @@ BEGIN
     END IF;
 EXCEPTION
     WHEN OTHERS THEN
+        -- Suppress calculation errors to prevent blocking DML operations
         NULL;
 END;
 /
@@ -843,6 +870,8 @@ END;
 CREATE OR REPLACE TRIGGER trg_return_detail_calc
 AFTER INSERT OR UPDATE OR DELETE ON product_return_details
 FOR EACH ROW
+DECLARE
+    v_supplier_id VARCHAR2(50);
 BEGIN
     IF INSERTING THEN
         pkg_automation.update_stock_on_product_return(:NEW.product_id, :NEW.return_quantity);
@@ -853,13 +882,30 @@ BEGIN
             IF :NEW.return_quantity > :OLD.return_quantity THEN
                 pkg_automation.update_stock_on_product_return(:NEW.product_id, :NEW.return_quantity - :OLD.return_quantity);
             ELSE
-                pkg_automation.update_stock_on_receive(:OLD.product_id, :OLD.return_quantity - :NEW.return_quantity, NULL);
+                -- Get supplier from master when restoring stock
+                BEGIN
+                    SELECT supplier_id INTO v_supplier_id
+                    FROM product_return_master
+                    WHERE return_id = :OLD.return_id;
+                EXCEPTION
+                    WHEN NO_DATA_FOUND THEN
+                        v_supplier_id := NULL;
+                END;
+                pkg_automation.update_stock_on_receive(:OLD.product_id, :OLD.return_quantity - :NEW.return_quantity, v_supplier_id);
             END IF;
         END IF;
         pkg_automation.calc_return_total(:NEW.return_id);
     ELSIF DELETING THEN
-        -- Restore stock
-        pkg_automation.update_stock_on_receive(:OLD.product_id, :OLD.return_quantity, NULL);
+        -- Restore stock - get supplier from master
+        BEGIN
+            SELECT supplier_id INTO v_supplier_id
+            FROM product_return_master
+            WHERE return_id = :OLD.return_id;
+        EXCEPTION
+            WHEN NO_DATA_FOUND THEN
+                v_supplier_id := NULL;
+        END;
+        pkg_automation.update_stock_on_receive(:OLD.product_id, :OLD.return_quantity, v_supplier_id);
         pkg_automation.calc_return_total(:OLD.return_id);
     END IF;
 EXCEPTION
