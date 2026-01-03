@@ -74,7 +74,7 @@ BEGIN
       nDummy := Populate_Group(rg_customers);
       
       -- Populate Customer LOV in Master block
-      IF Find_Item('SERVICE_MASTER.CUSTOMER_ID') IS NOT NULL THEN
+      IF NOT ID_NULL(Find_Item('SERVICE_MASTER.CUSTOMER_ID')) THEN
          Clear_List('SERVICE_MASTER.CUSTOMER_ID');
          Populate_List('SERVICE_MASTER.CUSTOMER_ID', rg_customers);
       END IF;
@@ -110,7 +110,7 @@ BEGIN
 
       nDummy := Populate_Group(rg_services);
       
-      IF Find_Item('SERVICE_MASTER.SERVICELIST_ID') IS NOT NULL THEN
+      IF NOT ID_NULL(Find_Item('SERVICE_MASTER.SERVICELIST_ID')) THEN
          Clear_List('SERVICE_MASTER.SERVICELIST_ID');
          Populate_List('SERVICE_MASTER.SERVICELIST_ID', rg_services);
       END IF;
@@ -148,7 +148,7 @@ BEGIN
 
       nDummy := Populate_Group(rg_technicians);
       
-      IF Find_Item('SERVICE_MASTER.SERVICE_BY') IS NOT NULL THEN
+      IF NOT ID_NULL(Find_Item('SERVICE_MASTER.SERVICE_BY')) THEN
          Clear_List('SERVICE_MASTER.SERVICE_BY');
          Populate_List('SERVICE_MASTER.SERVICE_BY', rg_technicians);
       END IF;
@@ -186,7 +186,7 @@ BEGIN
 
       nDummy := Populate_Group(rg_invoices);
       
-      IF Find_Item('SERVICE_MASTER.INVOICE_ID') IS NOT NULL THEN
+      IF NOT ID_NULL(Find_Item('SERVICE_MASTER.INVOICE_ID')) THEN
          Clear_List('SERVICE_MASTER.INVOICE_ID');
          Populate_List('SERVICE_MASTER.INVOICE_ID', rg_invoices);
       END IF;
@@ -222,7 +222,7 @@ BEGIN
 
       nDummy := Populate_Group(rg_products);
       
-      IF Find_Item('SERVICE_DETAILS.PRODUCT_ID') IS NOT NULL THEN
+      IF NOT ID_NULL(Find_Item('SERVICE_DETAILS.PRODUCT_ID')) THEN
          Clear_List('SERVICE_DETAILS.PRODUCT_ID');
          Populate_List('SERVICE_DETAILS.PRODUCT_ID', rg_products);
       END IF;
@@ -258,7 +258,7 @@ BEGIN
 
       nDummy := Populate_Group(rg_parts);
       
-      IF Find_Item('SERVICE_DETAILS.PARTS_ID') IS NOT NULL THEN
+      IF NOT ID_NULL(Find_Item('SERVICE_DETAILS.PARTS_ID')) THEN
          Clear_List('SERVICE_DETAILS.PARTS_ID');
          Populate_List('SERVICE_DETAILS.PARTS_ID', rg_parts);
       END IF;
@@ -323,7 +323,7 @@ BEGIN
 
       nDummy := Populate_Group(rg_customer_invoices);
       
-      IF Find_Item('SERVICE_MASTER.INVOICE_ID') IS NOT NULL THEN
+      IF NOT ID_NULL(Find_Item('SERVICE_MASTER.INVOICE_ID')) THEN
          Clear_List('SERVICE_MASTER.INVOICE_ID');
          Populate_List('SERVICE_MASTER.INVOICE_ID', rg_customer_invoices);
       END IF;
