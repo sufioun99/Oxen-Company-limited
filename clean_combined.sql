@@ -766,9 +766,16 @@ CREATE SEQUENCE receive_seq START WITH 1 INCREMENT BY 1 NOCACHE NOCYCLE;
 
 CREATE OR REPLACE TRIGGER trg_prod_recv_bi
 BEFORE INSERT OR UPDATE ON product_receive_master FOR EACH ROW
+DECLARE
+    v_seq NUMBER;
 BEGIN
     IF INSERTING AND :NEW.receive_id IS NULL THEN
-        :NEW.receive_id := 'RCV' || TO_CHAR(receive_seq.NEXTVAL);
+        v_seq := receive_seq.NEXTVAL;
+        :NEW.receive_id := 'RCV' || TO_CHAR(v_seq);
+        -- Auto-generate supplier invoice ID if not provided
+        IF :NEW.sup_invoice_id IS NULL THEN
+            :NEW.sup_invoice_id := 'SINV' || TO_CHAR(v_seq);
+        END IF;
         IF :NEW.status IS NULL THEN :NEW.status := 1; END IF;
         IF :NEW.cre_by IS NULL THEN :NEW.cre_by := USER; END IF;
         IF :NEW.cre_dt IS NULL THEN :NEW.cre_dt := SYSDATE; END IF;
@@ -785,7 +792,8 @@ END;
 CREATE TABLE product_return_master (
     return_id       VARCHAR2(50) PRIMARY KEY,
     supplier_id     VARCHAR2(50) NULL,
-    receive_id      VARCHAR2(50) NULL, 
+    receive_id      VARCHAR2(50) NULL,
+    order_id        VARCHAR2(50) NULL,
     return_date     DATE DEFAULT SYSDATE,
     return_by       VARCHAR2(50) NULL, 
     total_amount    NUMBER(20,4)DEFAULT 0,
@@ -798,6 +806,7 @@ CREATE TABLE product_return_master (
     upd_dt          DATE,
     CONSTRAINT fk_pre_sup FOREIGN KEY (supplier_id) REFERENCES suppliers(supplier_id),
     CONSTRAINT fk_pre_rcv FOREIGN KEY (receive_id) REFERENCES product_receive_master(receive_id),
+    CONSTRAINT fk_pre_order FOREIGN KEY (order_id) REFERENCES product_order_master(order_id),
     CONSTRAINT fk_pre_emp FOREIGN KEY (return_by) REFERENCES employees(employee_id)
 );
 
@@ -1010,6 +1019,41 @@ BEGIN
 IF INSERTING AND :NEW.receive_det_id IS NULL THEN
  :NEW.receive_det_id := 'RDT' || TO_CHAR(recv_det_seq.NEXTVAL); 
 END IF;
+END;
+/
+
+CREATE OR REPLACE TRIGGER trg_validate_receive_direct
+BEFORE INSERT OR UPDATE ON product_receive_details
+FOR EACH ROW
+DECLARE
+    v_order_qty NUMBER := 0;
+    v_order_id VARCHAR2(50);
+BEGIN
+    -- 1. Get the order_id for this receive
+    SELECT order_id INTO v_order_id
+    FROM product_receive_master
+    WHERE receive_id = :NEW.receive_id
+    AND ROWNUM = 1;
+
+    -- 2. Sum all quantities for this product in the order (handles multiple line items)
+    SELECT NVL(SUM(quantity), 0)
+    INTO   v_order_qty
+    FROM   product_order_detail
+    WHERE  order_id = v_order_id
+    AND    product_id = :NEW.product_id;
+
+    -- 3. Validate quantity
+    IF v_order_qty = 0 THEN
+        RAISE_APPLICATION_ERROR(-20003, 'Error: This product was not found in the original order.');
+    ELSIF :NEW.receive_quantity > v_order_qty THEN
+        RAISE_APPLICATION_ERROR(-20002,
+            'Invalid Quantity! You cannot receive ' || :NEW.receive_quantity ||
+            ' because the original order was only for ' || v_order_qty);
+    END IF;
+
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        RAISE_APPLICATION_ERROR(-20004, 'Error: Receive record or order not found.');
 END;
 /
 
@@ -2197,91 +2241,101 @@ COMMIT;
 --------------------------------------------------------------------------------
 
 -- Return 1: Returning items from Samsung shipment (SAM-INV-501)
-INSERT INTO product_return_master (supplier_id, receive_id, return_by, adjusted_vat, status)
+INSERT INTO product_return_master (supplier_id, receive_id, order_id, return_by, adjusted_vat, status)
 VALUES (
     (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Samsung Authorized Distributor' AND ROWNUM = 1),
     (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'SAM-INV-501'),
+    (SELECT order_id FROM product_receive_master WHERE sup_invoice_id = 'SAM-INV-501'),
     (SELECT employee_id FROM employees WHERE first_name = 'Ahsan' AND last_name = 'Kabir' AND ROWNUM = 1),
     150, 1
 );
 
 -- Return 2: Returning items from LG shipment (LG-INV-882)
-INSERT INTO product_return_master (supplier_id, receive_id, return_by, adjusted_vat, status)
+INSERT INTO product_return_master (supplier_id, receive_id, order_id, return_by, adjusted_vat, status)
 VALUES (
     (SELECT supplier_id FROM suppliers WHERE supplier_name = 'LG Electronics Supplier' AND ROWNUM = 1),
     (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'LG-INV-882'),
+    (SELECT order_id FROM product_receive_master WHERE sup_invoice_id = 'LG-INV-882'),
     (SELECT employee_id FROM employees WHERE first_name = 'Rezaul' AND last_name = 'Karim' AND ROWNUM = 1),
     200, 1
 );
 
 -- Return 3: Returning items from Walton shipment (WAL-INV-301)
-INSERT INTO product_return_master (supplier_id, receive_id, return_by, adjusted_vat, status)
+INSERT INTO product_return_master (supplier_id, receive_id, order_id, return_by, adjusted_vat, status)
 VALUES (
     (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Walton Spare Parts Division' AND ROWNUM = 1),
     (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'WAL-INV-301'),
+    (SELECT order_id FROM product_receive_master WHERE sup_invoice_id = 'WAL-INV-301'),
     (SELECT employee_id FROM employees WHERE first_name = 'Ahsan' AND last_name = 'Kabir' AND ROWNUM = 1),
     50, 1
 );
 
 -- Return 4: Returning items from second Samsung shipment (SAM-INV-502)
-INSERT INTO product_return_master (supplier_id, receive_id, return_by, adjusted_vat, status)
+INSERT INTO product_return_master (supplier_id, receive_id, order_id, return_by, adjusted_vat, status)
 VALUES (
     (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Samsung Authorized Distributor' AND ROWNUM = 1),
     (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'SAM-INV-502'),
+    (SELECT order_id FROM product_receive_master WHERE sup_invoice_id = 'SAM-INV-502'),
     (SELECT employee_id FROM employees WHERE first_name = 'Keya' AND last_name = 'Payel' AND ROWNUM = 1),
     100, 1
 );
 
 -- Return 5: Returning items from Asian Tech (ASI-INV-109)
-INSERT INTO product_return_master (supplier_id, receive_id, return_by, adjusted_vat, status)
+INSERT INTO product_return_master (supplier_id, receive_id, order_id, return_by, adjusted_vat, status)
 VALUES (
     (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Asian Spare Parts House' AND ROWNUM = 1),
     (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'ASI-INV-109'),
+    (SELECT order_id FROM product_receive_master WHERE sup_invoice_id = 'ASI-INV-109'),
     (SELECT employee_id FROM employees WHERE first_name = 'Ariful' AND last_name = 'Islam' AND ROWNUM = 1),
     300, 1
 );
 
 -- Return 6: Returning items from second LG shipment (LG-INV-885)
-INSERT INTO product_return_master (supplier_id, receive_id, return_by, adjusted_vat, status)
+INSERT INTO product_return_master (supplier_id, receive_id, order_id, return_by, adjusted_vat, status)
 VALUES (
     (SELECT supplier_id FROM suppliers WHERE supplier_name = 'LG Electronics Supplier' AND ROWNUM = 1),
     (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'LG-INV-885'),
+    (SELECT order_id FROM product_receive_master WHERE sup_invoice_id = 'LG-INV-885'),
     (SELECT employee_id FROM employees WHERE first_name = 'Imtiaz' AND last_name = 'Bulbul' AND ROWNUM = 1),
     180, 1
 );
 
 -- Return 7: Returning items from Singer (JAM-INV-441)
-INSERT INTO product_return_master (supplier_id, receive_id, return_by, adjusted_vat, status)
+INSERT INTO product_return_master (supplier_id, receive_id, order_id, return_by, adjusted_vat, status)
 VALUES (
     (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Jamuna Electronics Supplier' AND ROWNUM = 1),
     (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'JAM-INV-441'),
+    (SELECT order_id FROM product_receive_master WHERE sup_invoice_id = 'JAM-INV-441'),
     (SELECT employee_id FROM employees WHERE first_name = 'Mominul' AND last_name = 'Haque' AND ROWNUM = 1),
     400, 1
 );
 
 -- Return 8: Returning items from Midea (MIN-INV-221)
-INSERT INTO product_return_master (supplier_id, receive_id, return_by, adjusted_vat, status)
+INSERT INTO product_return_master (supplier_id, receive_id, order_id, return_by, adjusted_vat, status)
 VALUES (
     (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Minister Hi-Tech Supplier' AND ROWNUM = 1),
     (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'MIN-INV-221'),
+    (SELECT order_id FROM product_receive_master WHERE sup_invoice_id = 'MIN-INV-221'),
     (SELECT employee_id FROM employees WHERE first_name = 'Ariful' AND last_name = 'Islam' AND ROWNUM = 1),
     120, 1
 );
 
 -- Return 9: Returning items from City IT (CIT-INV-667)
-INSERT INTO product_return_master (supplier_id, receive_id, return_by, adjusted_vat, status)
+INSERT INTO product_return_master (supplier_id, receive_id, order_id, return_by, adjusted_vat, status)
 VALUES (
     (SELECT supplier_id FROM suppliers WHERE supplier_name = 'City Electronics Parts Supplier' AND ROWNUM = 1),
     (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'CIT-INV-667'),
+    (SELECT order_id FROM product_receive_master WHERE sup_invoice_id = 'CIT-INV-667'),
     (SELECT employee_id FROM employees WHERE first_name = 'Fatima' AND last_name = 'Zohra' AND ROWNUM = 1),
     250, 1
 );
 
 -- Return 10: Returning items from Bangla Tech (BAN-INV-990)
-INSERT INTO product_return_master (supplier_id, receive_id, return_by, adjusted_vat, status)
+INSERT INTO product_return_master (supplier_id, receive_id, order_id, return_by, adjusted_vat, status)
 VALUES (
     (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Bangladesh Electronics Wholesale' AND ROWNUM = 1),
     (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'BAN-INV-990'),
+    (SELECT order_id FROM product_receive_master WHERE sup_invoice_id = 'BAN-INV-990'),
     (SELECT employee_id FROM employees WHERE first_name = 'Zahid' AND last_name = 'Hasib' AND ROWNUM = 1),
     90, 1
 );
@@ -2943,91 +2997,101 @@ COMMIT;
 --------------------------------------------------------------------------------
 
 -- Return 1: Returning items from Samsung shipment (SAM-INV-501)
-INSERT INTO product_return_master (supplier_id, receive_id, return_by, adjusted_vat, status)
+INSERT INTO product_return_master (supplier_id, receive_id, order_id, return_by, adjusted_vat, status)
 VALUES (
     (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Samsung Authorized Distributor' AND ROWNUM = 1),
     (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'SAM-INV-501' AND ROWNUM = 1),
+    (SELECT order_id FROM product_receive_master WHERE sup_invoice_id = 'SAM-INV-501' AND ROWNUM = 1),
     (SELECT employee_id FROM employees WHERE first_name = 'Ahsan' AND last_name = 'Kabir' AND ROWNUM = 1),
     150, 1
 );
 
 -- Return 2: Returning items from LG shipment (LG-INV-882)
-INSERT INTO product_return_master (supplier_id, receive_id, return_by, adjusted_vat, status)
+INSERT INTO product_return_master (supplier_id, receive_id, order_id, return_by, adjusted_vat, status)
 VALUES (
     (SELECT supplier_id FROM suppliers WHERE supplier_name = 'LG Electronics Supplier' AND ROWNUM = 1),
     (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'LG-INV-882' AND ROWNUM = 1),
+    (SELECT order_id FROM product_receive_master WHERE sup_invoice_id = 'LG-INV-882' AND ROWNUM = 1),
     (SELECT employee_id FROM employees WHERE first_name = 'Rezaul' AND last_name = 'Karim' AND ROWNUM = 1),
     200, 1
 );
 
 -- Return 3: Returning items from Walton shipment (WAL-INV-301)
-INSERT INTO product_return_master (supplier_id, receive_id, return_by, adjusted_vat, status)
+INSERT INTO product_return_master (supplier_id, receive_id, order_id, return_by, adjusted_vat, status)
 VALUES (
     (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Walton Spare Parts Division' AND ROWNUM = 1),
     (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'WAL-INV-301' AND ROWNUM = 1),
+    (SELECT order_id FROM product_receive_master WHERE sup_invoice_id = 'WAL-INV-301' AND ROWNUM = 1),
     (SELECT employee_id FROM employees WHERE first_name = 'Ahsan' AND last_name = 'Kabir' AND ROWNUM = 1),
     50, 1
 );
 
 -- Return 4: Returning items from second Samsung shipment (SAM-INV-502)
-INSERT INTO product_return_master (supplier_id, receive_id, return_by, adjusted_vat, status)
+INSERT INTO product_return_master (supplier_id, receive_id, order_id, return_by, adjusted_vat, status)
 VALUES (
     (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Samsung Authorized Distributor' AND ROWNUM = 1),
     (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'SAM-INV-502' AND ROWNUM = 1),
+    (SELECT order_id FROM product_receive_master WHERE sup_invoice_id = 'SAM-INV-502' AND ROWNUM = 1),
     (SELECT employee_id FROM employees WHERE first_name = 'Keya' AND last_name = 'Payel' AND ROWNUM = 1),
     100, 1
 );
 
 -- Return 5: Returning items from Asian Tech (ASI-INV-109)
-INSERT INTO product_return_master (supplier_id, receive_id, return_by, adjusted_vat, status)
+INSERT INTO product_return_master (supplier_id, receive_id, order_id, return_by, adjusted_vat, status)
 VALUES (
     (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Asian Spare Parts House' AND ROWNUM = 1),
     (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'ASI-INV-109' AND ROWNUM = 1),
+    (SELECT order_id FROM product_receive_master WHERE sup_invoice_id = 'ASI-INV-109' AND ROWNUM = 1),
     (SELECT employee_id FROM employees WHERE first_name = 'Ariful' AND last_name = 'Islam' AND ROWNUM = 1),
     300, 1
 );
 
 -- Return 6: Returning items from second LG shipment (LG-INV-885)
-INSERT INTO product_return_master (supplier_id, receive_id, return_by, adjusted_vat, status)
+INSERT INTO product_return_master (supplier_id, receive_id, order_id, return_by, adjusted_vat, status)
 VALUES (
     (SELECT supplier_id FROM suppliers WHERE supplier_name = 'LG Electronics Supplier' AND ROWNUM = 1),
     (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'LG-INV-885' AND ROWNUM = 1),
+    (SELECT order_id FROM product_receive_master WHERE sup_invoice_id = 'LG-INV-885' AND ROWNUM = 1),
     (SELECT employee_id FROM employees WHERE first_name = 'Imtiaz' AND last_name = 'Bulbul' AND ROWNUM = 1),
     180, 1
 );
 
 -- Return 7: Returning items from Singer (JAM-INV-441)
-INSERT INTO product_return_master (supplier_id, receive_id, return_by, adjusted_vat, status)
+INSERT INTO product_return_master (supplier_id, receive_id, order_id, return_by, adjusted_vat, status)
 VALUES (
     (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Jamuna Electronics Supplier' AND ROWNUM = 1),
     (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'JAM-INV-441' AND ROWNUM = 1),
+    (SELECT order_id FROM product_receive_master WHERE sup_invoice_id = 'JAM-INV-441' AND ROWNUM = 1),
     (SELECT employee_id FROM employees WHERE first_name = 'Mominul' AND last_name = 'Haque' AND ROWNUM = 1),
     400, 1
 );
 
 -- Return 8: Returning items from Midea (MIN-INV-221)
-INSERT INTO product_return_master (supplier_id, receive_id, return_by, adjusted_vat, status)
+INSERT INTO product_return_master (supplier_id, receive_id, order_id, return_by, adjusted_vat, status)
 VALUES (
     (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Minister Hi-Tech Supplier' AND ROWNUM = 1),
     (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'MIN-INV-221' AND ROWNUM = 1),
+    (SELECT order_id FROM product_receive_master WHERE sup_invoice_id = 'MIN-INV-221' AND ROWNUM = 1),
     (SELECT employee_id FROM employees WHERE first_name = 'Ariful' AND last_name = 'Islam' AND ROWNUM = 1),
     120, 1
 );
 
 -- Return 9: Returning items from City IT (CIT-INV-667)
-INSERT INTO product_return_master (supplier_id, receive_id, return_by, adjusted_vat, status)
+INSERT INTO product_return_master (supplier_id, receive_id, order_id, return_by, adjusted_vat, status)
 VALUES (
     (SELECT supplier_id FROM suppliers WHERE supplier_name = 'City Electronics Parts Supplier' AND ROWNUM = 1),
     (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'CIT-INV-667' AND ROWNUM = 1),
+    (SELECT order_id FROM product_receive_master WHERE sup_invoice_id = 'CIT-INV-667' AND ROWNUM = 1),
     (SELECT employee_id FROM employees WHERE first_name = 'Fatima' AND last_name = 'Zohra' AND ROWNUM = 1),
     250, 1
 );
 
 -- Return 10: Returning items from Bangla Tech (BAN-INV-990)
-INSERT INTO product_return_master (supplier_id, receive_id, return_by, adjusted_vat, status)
+INSERT INTO product_return_master (supplier_id, receive_id, order_id, return_by, adjusted_vat, status)
 VALUES (
     (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Bangladesh Electronics Wholesale' AND ROWNUM = 1),
     (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'BAN-INV-990' AND ROWNUM = 1),
+    (SELECT order_id FROM product_receive_master WHERE sup_invoice_id = 'BAN-INV-990' AND ROWNUM = 1),
     (SELECT employee_id FROM employees WHERE first_name = 'Zahid' AND last_name = 'Hasib' AND ROWNUM = 1),
     90, 1
 );
