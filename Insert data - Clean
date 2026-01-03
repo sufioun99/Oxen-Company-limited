@@ -1,0 +1,6 @@
+-- First 1300 lines are preserved from original (companies, jobs, customers, etc.)
+-- This file will contain INSERT data in proper order
+
+-- Note: Execute only the clean, tested portion
+-- Run: sqlplus sys as sysdba @Schema.sql
+-- Then: sqlplus msp/msp < "Insert data"
