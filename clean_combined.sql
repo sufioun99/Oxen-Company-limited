@@ -57,8 +57,8 @@ BEGIN
         IF :NEW.cre_by IS NULL THEN :NEW.cre_by := USER; END IF;
         IF :NEW.cre_dt IS NULL THEN :NEW.cre_dt := SYSDATE; END IF;
     ELSIF UPDATING THEN
-        IF :NEW.upd_by IS NULL THEN :NEW.upd_by := USER; END IF;
-        IF :NEW.upd_dt IS NULL THEN :NEW.upd_dt := SYSDATE; END IF;
+        :NEW.upd_by := USER;
+        :NEW.upd_dt := SYSDATE;
     END IF;
 END;
 /
@@ -97,8 +97,8 @@ BEGIN
         IF :NEW.cre_by IS NULL THEN :NEW.cre_by := USER; END IF;
         IF :NEW.cre_dt IS NULL THEN :NEW.cre_dt := SYSDATE; END IF;
     ELSIF UPDATING THEN
-        IF :NEW.upd_by IS NULL THEN :NEW.upd_by := USER; END IF;
-        IF :NEW.upd_dt IS NULL THEN :NEW.upd_dt := SYSDATE; END IF;
+        :NEW.upd_by := USER;
+        :NEW.upd_dt := SYSDATE;
     END IF;
 END;
 /
@@ -147,8 +147,8 @@ BEGIN
         IF :NEW.cre_by IS NULL THEN :NEW.cre_by := USER; END IF;
         IF :NEW.cre_dt IS NULL THEN :NEW.cre_dt := SYSDATE; END IF;
     ELSIF UPDATING THEN
-        IF :NEW.upd_by IS NULL THEN :NEW.upd_by := USER; END IF;
-        IF :NEW.upd_dt IS NULL THEN :NEW.upd_dt := SYSDATE; END IF;
+        :NEW.upd_by := USER;
+        :NEW.upd_dt := SYSDATE;
     END IF;
 END;
 /
@@ -184,8 +184,8 @@ BEGIN
         IF :NEW.cre_by IS NULL THEN :NEW.cre_by := USER; END IF;
         IF :NEW.cre_dt IS NULL THEN :NEW.cre_dt := SYSDATE; END IF;
     ELSIF UPDATING THEN
-        IF :NEW.upd_by IS NULL THEN :NEW.upd_by := USER; END IF;
-        IF :NEW.upd_dt IS NULL THEN :NEW.upd_dt := SYSDATE; END IF;
+        :NEW.upd_by := USER;
+        :NEW.upd_dt := SYSDATE;
     END IF;
 END;
 /
@@ -217,8 +217,8 @@ BEGIN
         IF :NEW.cre_by IS NULL THEN :NEW.cre_by := USER; END IF;
         IF :NEW.cre_dt IS NULL THEN :NEW.cre_dt := SYSDATE; END IF;
     ELSIF UPDATING THEN
-        IF :NEW.upd_by IS NULL THEN :NEW.upd_by := USER; END IF;
-        IF :NEW.upd_dt IS NULL THEN :NEW.upd_dt := SYSDATE; END IF;
+        :NEW.upd_by := USER;
+        :NEW.upd_dt := SYSDATE;
     END IF;
 END;
 /
@@ -253,8 +253,8 @@ BEGIN
         IF :NEW.cre_by IS NULL THEN :NEW.cre_by := USER; END IF;
         IF :NEW.cre_dt IS NULL THEN :NEW.cre_dt := SYSDATE; END IF;
     ELSIF UPDATING THEN
-        IF :NEW.upd_by IS NULL THEN :NEW.upd_by := USER; END IF;
-        IF :NEW.upd_dt IS NULL THEN :NEW.upd_dt := SYSDATE; END IF;
+        :NEW.upd_by := USER;
+        :NEW.upd_dt := SYSDATE;
     END IF;
 END;
 /
@@ -295,8 +295,8 @@ BEGIN
         IF :NEW.cre_by IS NULL THEN :NEW.cre_by := USER; END IF;
         IF :NEW.cre_dt IS NULL THEN :NEW.cre_dt := SYSDATE; END IF;
     ELSIF UPDATING THEN
-        IF :NEW.upd_by IS NULL THEN :NEW.upd_by := USER; END IF;
-        IF :NEW.upd_dt IS NULL THEN :NEW.upd_dt := SYSDATE; END IF;
+        :NEW.upd_by := USER;
+        :NEW.upd_dt := SYSDATE;
     END IF;
 END;
 /
@@ -330,8 +330,8 @@ BEGIN
         IF :NEW.cre_by IS NULL THEN :NEW.cre_by := USER; END IF;
         IF :NEW.cre_dt IS NULL THEN :NEW.cre_dt := SYSDATE; END IF;
     ELSIF UPDATING THEN
-        IF :NEW.upd_by IS NULL THEN :NEW.upd_by := USER; END IF;
-        IF :NEW.upd_dt IS NULL THEN :NEW.upd_dt := SYSDATE; END IF;
+        :NEW.upd_by := USER;
+        :NEW.upd_dt := SYSDATE;
     END IF;
 END;
 /
@@ -368,8 +368,8 @@ BEGIN
         IF :NEW.cre_by IS NULL THEN :NEW.cre_by := USER; END IF;
         IF :NEW.cre_dt IS NULL THEN :NEW.cre_dt := SYSDATE; END IF;
     ELSIF UPDATING THEN
-        IF :NEW.upd_by IS NULL THEN :NEW.upd_by := USER; END IF;
-        IF :NEW.upd_dt IS NULL THEN :NEW.upd_dt := SYSDATE; END IF;
+        :NEW.upd_by := USER;
+        :NEW.upd_dt := SYSDATE;
     END IF;
 END;
 /
@@ -403,8 +403,8 @@ BEGIN
         IF :NEW.cre_by IS NULL THEN :NEW.cre_by := USER; END IF;
         IF :NEW.cre_dt IS NULL THEN :NEW.cre_dt := SYSDATE; END IF;
     ELSIF UPDATING THEN
-        IF :NEW.upd_by IS NULL THEN :NEW.upd_by := USER; END IF;
-        IF :NEW.upd_dt IS NULL THEN :NEW.upd_dt := SYSDATE; END IF;
+        :NEW.upd_by := USER;
+        :NEW.upd_dt := SYSDATE;
     END IF;
 END;
 /
@@ -459,8 +459,8 @@ BEGIN
         IF :NEW.cre_by IS NULL THEN :NEW.cre_by := USER; END IF;
         IF :NEW.cre_dt IS NULL THEN :NEW.cre_dt := SYSDATE; END IF;
     ELSIF UPDATING THEN
-        IF :NEW.upd_by IS NULL THEN :NEW.upd_by := USER; END IF;
-        IF :NEW.upd_dt IS NULL THEN :NEW.upd_dt := SYSDATE; END IF;
+        :NEW.upd_by := USER;
+        :NEW.upd_dt := SYSDATE;
     END IF;
 END;
 /
@@ -500,8 +500,8 @@ BEGIN
         IF :NEW.cre_by IS NULL THEN :NEW.cre_by := USER; END IF;
         IF :NEW.cre_dt IS NULL THEN :NEW.cre_dt := SYSDATE; END IF;
     ELSIF UPDATING THEN
-        IF :NEW.upd_by IS NULL THEN :NEW.upd_by := USER; END IF;
-        IF :NEW.upd_dt IS NULL THEN :NEW.upd_dt := SYSDATE; END IF;
+        :NEW.upd_by := USER;
+        :NEW.upd_dt := SYSDATE;
     END IF;
 END;
 /
@@ -570,8 +570,8 @@ BEGIN
         IF :NEW.cre_by IS NULL THEN :NEW.cre_by := USER; END IF;
         IF :NEW.cre_dt IS NULL THEN :NEW.cre_dt := SYSDATE; END IF;
     ELSIF UPDATING THEN
-        IF :NEW.upd_by IS NULL THEN :NEW.upd_by := USER; END IF;
-        IF :NEW.upd_dt IS NULL THEN :NEW.upd_dt := SYSDATE; END IF;
+        :NEW.upd_by := USER;
+        :NEW.upd_dt := SYSDATE;
     END IF;
 END;
 /
@@ -588,8 +588,8 @@ BEGIN
         IF :NEW.cre_by IS NULL THEN :NEW.cre_by := USER; END IF;
         IF :NEW.cre_dt IS NULL THEN :NEW.cre_dt := SYSDATE; END IF;
     ELSIF UPDATING THEN
-        IF :NEW.upd_by IS NULL THEN :NEW.upd_by := USER; END IF;
-        IF :NEW.upd_dt IS NULL THEN :NEW.upd_dt := SYSDATE; END IF;
+        :NEW.upd_by := USER;
+        :NEW.upd_dt := SYSDATE;
     END IF;
 END;
 /
@@ -630,8 +630,8 @@ BEGIN
         IF :NEW.cre_by IS NULL THEN :NEW.cre_by := USER; END IF;
         IF :NEW.cre_dt IS NULL THEN :NEW.cre_dt := SYSDATE; END IF;
     ELSIF UPDATING THEN
-        IF :NEW.upd_by IS NULL THEN :NEW.upd_by := USER; END IF;
-        IF :NEW.upd_dt IS NULL THEN :NEW.upd_dt := SYSDATE; END IF;
+        :NEW.upd_by := USER;
+        :NEW.upd_dt := SYSDATE;
     END IF;
 END;
 /
@@ -666,8 +666,8 @@ BEGIN
         IF :NEW.cre_by IS NULL THEN :NEW.cre_by := USER; END IF;
         IF :NEW.cre_dt IS NULL THEN :NEW.cre_dt := SYSDATE; END IF;
     ELSIF UPDATING THEN
-        IF :NEW.upd_by IS NULL THEN :NEW.upd_by := USER; END IF;
-        IF :NEW.upd_dt IS NULL THEN :NEW.upd_dt := SYSDATE; END IF;
+        :NEW.upd_by := USER;
+        :NEW.upd_dt := SYSDATE;
     END IF;
 END;
 /
@@ -733,8 +733,8 @@ BEGIN
         IF :NEW.cre_by IS NULL THEN :NEW.cre_by := USER; END IF;
         IF :NEW.cre_dt IS NULL THEN :NEW.cre_dt := SYSDATE; END IF;
     ELSIF UPDATING THEN
-        IF :NEW.upd_by IS NULL THEN :NEW.upd_by := USER; END IF;
-        IF :NEW.upd_dt IS NULL THEN :NEW.upd_dt := SYSDATE; END IF;
+        :NEW.upd_by := USER;
+        :NEW.upd_dt := SYSDATE;
     END IF;
 END;
 /
@@ -773,8 +773,8 @@ BEGIN
         IF :NEW.cre_by IS NULL THEN :NEW.cre_by := USER; END IF;
         IF :NEW.cre_dt IS NULL THEN :NEW.cre_dt := SYSDATE; END IF;
     ELSIF UPDATING THEN
-        IF :NEW.upd_by IS NULL THEN :NEW.upd_by := USER; END IF;
-        IF :NEW.upd_dt IS NULL THEN :NEW.upd_dt := SYSDATE; END IF;
+        :NEW.upd_by := USER;
+        :NEW.upd_dt := SYSDATE;
     END IF;
 END;
 /
@@ -812,8 +812,8 @@ BEGIN
         IF :NEW.cre_by IS NULL THEN :NEW.cre_by := USER; END IF;
         IF :NEW.cre_dt IS NULL THEN :NEW.cre_dt := SYSDATE; END IF;
     ELSIF UPDATING THEN
-        IF :NEW.upd_by IS NULL THEN :NEW.upd_by := USER; END IF;
-        IF :NEW.upd_dt IS NULL THEN :NEW.upd_dt := SYSDATE; END IF;
+        :NEW.upd_by := USER;
+        :NEW.upd_dt := SYSDATE;
     END IF;
 END;
 /
@@ -843,8 +843,8 @@ BEGIN
         IF :NEW.cre_by IS NULL THEN :NEW.cre_by := USER; END IF;
         IF :NEW.cre_dt IS NULL THEN :NEW.cre_dt := SYSDATE; END IF;
     ELSIF UPDATING THEN
-        IF :NEW.upd_by IS NULL THEN :NEW.upd_by := USER; END IF;
-        IF :NEW.upd_dt IS NULL THEN :NEW.upd_dt := SYSDATE; END IF;
+        :NEW.upd_by := USER;
+        :NEW.upd_dt := SYSDATE;
     END IF;
 END;
 /
@@ -883,8 +883,8 @@ BEGIN
         IF :NEW.cre_dt IS NULL THEN :NEW.cre_dt := SYSDATE; END IF; 
     ELSIF UPDATING THEN
         :NEW.last_update := SYSTIMESTAMP; 
-        IF :NEW.upd_by IS NULL THEN :NEW.upd_by := USER; END IF;
-        IF :NEW.upd_dt IS NULL THEN :NEW.upd_dt := SYSDATE; END IF;
+        :NEW.upd_by := USER;
+        :NEW.upd_dt := SYSDATE;
     END IF;
 END;
 /
@@ -1065,8 +1065,8 @@ BEGIN
         IF :NEW.cre_by IS NULL THEN :NEW.cre_by := USER; END IF;
         IF :NEW.cre_dt IS NULL THEN :NEW.cre_dt := SYSDATE; END IF;
     ELSIF UPDATING THEN
-        IF :NEW.upd_by IS NULL THEN :NEW.upd_by := USER; END IF;
-        IF :NEW.upd_dt IS NULL THEN :NEW.upd_dt := SYSDATE; END IF;
+        :NEW.upd_by := USER;
+        :NEW.upd_dt := SYSDATE;
     END IF;
 END;
 /
@@ -1202,8 +1202,8 @@ BEGIN
         IF :NEW.cre_by IS NULL THEN :NEW.cre_by := USER; END IF;
         IF :NEW.cre_dt IS NULL THEN :NEW.cre_dt := SYSDATE; END IF;
     ELSIF UPDATING THEN
-        IF :NEW.upd_by IS NULL THEN :NEW.upd_by := USER; END IF;
-        IF :NEW.upd_dt IS NULL THEN :NEW.upd_dt := SYSDATE; END IF;
+        :NEW.upd_by := USER;
+        :NEW.upd_dt := SYSDATE;
     END IF;
 
     -- Warranty logic (SAFE)
