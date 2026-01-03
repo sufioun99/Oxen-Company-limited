@@ -2879,46 +2879,46 @@ INSERT INTO service_list (service_name, service_desc, service_cost)
 VALUES ('Refrigerator Repair', 'Cooling issue, compressor issue, gas refill and repair', 2000);
 
 INSERT INTO service_list (service_name, service_desc, service_cost)
-VALUES ('AC Installation', 'Indoor & outdoor AC installation with basic setup', 3500);
+VALUES ('AC Installation', 'Indoor and outdoor AC installation with basic setup', 3500);
 
 INSERT INTO service_list (service_name, service_desc, service_cost)
-VALUES ('AC Servicing', 'AC cleaning, gas checking, maintenance & servicing', 1500);
+VALUES ('AC Servicing', 'AC cleaning, gas checking, maintenance and servicing', 1500);
 
 INSERT INTO service_list (service_name, service_desc, service_cost)
-VALUES ('Washing Machine Repair', 'Repair & maintenance of automatic/manual washing machines', 1800);
+VALUES ('Washing Machine Repair', 'Repair and maintenance of automatic/manual washing machines', 1800);
 
 INSERT INTO service_list (service_name, service_desc, service_cost)
 VALUES ('Microwave Oven Repair', 'Heating problem / board problem repair service', 1200);
 
 INSERT INTO service_list (service_name, service_desc, service_cost)
-VALUES ('Laptop / Computer Repair', 'Hardware, software, OS & chip level checkup', 2000);
+VALUES ('Laptop / Computer Repair', 'Hardware, software, OS and chip level checkup', 2000);
 
 INSERT INTO service_list (service_name, service_desc, service_cost)
-VALUES ('Mobile Service & Repair', 'Smartphone software & hardware problem fixing', 1000);
+VALUES ('Mobile Service and Repair', 'Smartphone software and hardware problem fixing', 1000);
 
 INSERT INTO service_list (service_name, service_desc, service_cost)
-VALUES ('Home Appliance Diagnosis', 'General diagnosis & checking charge for appliances', 500);
+VALUES ('Home Appliance Diagnosis', 'General diagnosis and checking charge for appliances', 500);
 
 INSERT INTO expense_list (expense_code, type_name, description, default_amount)
 VALUES ('OFF', 'Office Rent', 'Monthly office/shop rent expense', 30000);
 
 INSERT INTO expense_list (expense_code, type_name, description, default_amount)
-VALUES ('SAL', 'Staff Salary', 'Technician, sales & support staff salary expense', 80000);
+VALUES ('SAL', 'Staff Salary', 'Technician, sales and support staff salary expense', 80000);
 
 INSERT INTO expense_list (expense_code, type_name, description, default_amount)
-VALUES ('UTL', 'Utility Bills', 'Electricity, gas & water bill payment', 15000);
+VALUES ('UTL', 'Utility Bills', 'Electricity, gas and water bill payment', 15000);
 
 INSERT INTO expense_list (expense_code, type_name, description, default_amount)
-VALUES ('INT', 'Internet & Telephone Bill', 'Office internet and phone bills', 5000);
+VALUES ('INT', 'Internet and Telephone Bill', 'Office internet and phone bills', 5000);
 
 INSERT INTO expense_list (expense_code, type_name, description, default_amount)
-VALUES ('TRN', 'Transport & Delivery Cost', 'Product delivery & technician transport', 12000);
+VALUES ('TRN', 'Transport and Delivery Cost', 'Product delivery and technician transport', 12000);
 
 INSERT INTO expense_list (expense_code, type_name, description, default_amount)
-VALUES ('MKT', 'Marketing & Promotion', 'Advertisement, banner & promotion expense', 10000);
+VALUES ('MKT', 'Marketing and Promotion', 'Advertisement, banner and promotion expense', 10000);
 
 INSERT INTO expense_list (expense_code, type_name, description, default_amount)
-VALUES ('REP', 'Office Repair & Maintenance', 'Shop/office repairing & maintenance', 7000);
+VALUES ('REP', 'Office Repair and Maintenance', 'Shop/office repairing and maintenance', 7000);
 
 INSERT INTO expense_list (expense_code, type_name, description, default_amount)
 VALUES ('PUR', 'Purchase Misc Expense', 'Unplanned purchase, packaging, loading', 6000);
@@ -3151,52 +3151,6 @@ INSERT INTO parts (parts_code, parts_name, purchase_price, mrp, parts_cat_id)
 VALUES ('PWR-BOARD', 'LED TV Power Supply Board', 1500, 2500,
  (SELECT parts_cat_id FROM parts_category 
   WHERE parts_cat_name='Power Supply and Boards' AND ROWNUM=1));
-
-
---------------------------------------------------------------------------------
--- 13. DEPARTMENTS (Matching Employee FKs)
---------------------------------------------------------------------------------
--- Data referenced by first set of employees
-INSERT INTO departments (department_id, department_name, company_id) 
-VALUES ('PRO101', 'Procurement & Sourcing', (SELECT company_id FROM company WHERE ROWNUM = 1));
-
-INSERT INTO departments (department_id, department_name, company_id) 
-VALUES ('LOG116', 'Logistics & Supply Chain', (SELECT company_id FROM company WHERE ROWNUM = 1));
-
-INSERT INTO departments (department_id, department_name, company_id) 
-VALUES ('IT 106', 'IT Operations', (SELECT company_id FROM company WHERE ROWNUM = 1));
-
-INSERT INTO departments (department_id, department_name, company_id) 
-VALUES ('HUM111', 'Human Resources', (SELECT company_id FROM company WHERE ROWNUM = 1));
-
-INSERT INTO departments (department_id, department_name, company_id) 
-VALUES ('ACC96', 'Finance & Accounting', (SELECT company_id FROM company WHERE ROWNUM = 1));
-
--- Data referenced by second set of employees
-INSERT INTO departments (department_id, department_name, company_id) 
-VALUES ('SAL41', 'Sales Department', (SELECT company_id FROM company WHERE ROWNUM = 1));
-
-INSERT INTO departments (department_id, department_name, company_id) 
-VALUES ('CUS46', 'Customer Support', (SELECT company_id FROM company WHERE ROWNUM = 1));
-
-INSERT INTO departments (department_id, department_name, company_id) 
-VALUES ('SER51', 'After Sales Service', (SELECT company_id FROM company WHERE ROWNUM = 1));
-
-INSERT INTO departments (department_id, department_name, company_id) 
-VALUES ('ACC56', 'Corporate Accounts', (SELECT company_id FROM company WHERE ROWNUM = 1));
-
-INSERT INTO departments (department_id, department_name, company_id) 
-VALUES ('PRO61', 'General Procurement', (SELECT company_id FROM company WHERE ROWNUM = 1));
-
-INSERT INTO departments (department_id, department_name, company_id) 
-VALUES ('IT 66', 'IT Infrastructure', (SELECT company_id FROM company WHERE ROWNUM = 1));
-
-INSERT INTO departments (department_id, department_name, company_id) 
-VALUES ('HUM71', 'Human Capital Management', (SELECT company_id FROM company WHERE ROWNUM = 1));
-
-INSERT INTO departments (department_id, department_name, company_id) 
-VALUES ('LOG76', 'Shipping & Delivery', (SELECT company_id FROM company WHERE ROWNUM = 1));
-
 
 
 --------------------------------------------------------------------------------
