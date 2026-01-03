@@ -1737,7 +1737,7 @@ VALUES (
     'DEL-LAT-0310', 'Dell Latitude 5420', 
     (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Asian Spare Parts House'),
     (SELECT product_cat_id FROM product_categories WHERE product_cat_name = 'Laptop and Computer'),
-    (SELECT sub_cat_id FROM sub_categories WHERE sub_cat_name = 'Android TV'), -- Placeholder subcat as per logic
+    NULL, -- No laptop sub-category exists in current schema
     (SELECT brand_id FROM brand WHERE model_name = 'WTM-RT240'),
     'Unit', 85000, 75000, 36
 );
@@ -3446,7 +3446,7 @@ COMMIT;
 
 INSERT INTO sales_master (customer_id, sales_by, invoice_date, discount)
 VALUES (
-    (SELECT customer_id FROM customers WHERE phone_no = '01711111001' AND ROWNUM = 1),
+    (SELECT customer_id FROM customers WHERE phone_no = '01810000001' AND ROWNUM = 1),
     (SELECT employee_id FROM employees WHERE first_name = 'Rafiqul' AND last_name = 'Hasan' AND ROWNUM = 1),
     SYSDATE - 12,
     2000
@@ -3454,7 +3454,7 @@ VALUES (
 
 INSERT INTO sales_master (customer_id, sales_by, invoice_date, discount)
 VALUES (
-    (SELECT customer_id FROM customers WHERE phone_no = '01711111002' AND ROWNUM = 1),
+    (SELECT customer_id FROM customers WHERE phone_no = '01810000002' AND ROWNUM = 1),
     (SELECT employee_id FROM employees WHERE first_name = 'Ariful' AND last_name = 'Islam' AND ROWNUM = 1),
     SYSDATE - 10,
     3000
@@ -3462,7 +3462,7 @@ VALUES (
 
 INSERT INTO sales_master (customer_id, sales_by, invoice_date, discount)
 VALUES (
-    (SELECT customer_id FROM customers WHERE phone_no = '01711111003' AND ROWNUM = 1),
+    (SELECT customer_id FROM customers WHERE phone_no = '01810000003' AND ROWNUM = 1),
     (SELECT employee_id FROM employees WHERE first_name = 'Fatima' AND last_name = 'Zohra' AND ROWNUM = 1),
     SYSDATE - 8,
     1500
@@ -3470,7 +3470,7 @@ VALUES (
 
 INSERT INTO sales_master (customer_id, sales_by, invoice_date, discount)
 VALUES (
-    (SELECT customer_id FROM customers WHERE phone_no = '01711111004' AND ROWNUM = 1),
+    (SELECT customer_id FROM customers WHERE phone_no = '01810000004' AND ROWNUM = 1),
     (SELECT employee_id FROM employees WHERE first_name = 'Zahid' AND last_name = 'Hasib' AND ROWNUM = 1),
     SYSDATE - 6,
     5000
@@ -3478,7 +3478,7 @@ VALUES (
 
 INSERT INTO sales_master (customer_id, sales_by, invoice_date, discount)
 VALUES (
-    (SELECT customer_id FROM customers WHERE phone_no = '01711111005' AND ROWNUM = 1),
+    (SELECT customer_id FROM customers WHERE phone_no = '01810000005' AND ROWNUM = 1),
     (SELECT employee_id FROM employees WHERE first_name = 'Tariq' AND last_name = 'Aziz' AND ROWNUM = 1),
     SYSDATE - 4,
     2500
@@ -3486,7 +3486,7 @@ VALUES (
 
 INSERT INTO sales_master (customer_id, sales_by, invoice_date, discount)
 VALUES (
-    (SELECT customer_id FROM customers WHERE phone_no = '01711111006' AND ROWNUM = 1),
+    (SELECT customer_id FROM customers WHERE phone_no = '01810000006' AND ROWNUM = 1),
     (SELECT employee_id FROM employees WHERE first_name = 'Rumana' AND last_name = 'Afroz' AND ROWNUM = 1),
     SYSDATE - 3,
     1000
@@ -3494,7 +3494,7 @@ VALUES (
 
 INSERT INTO sales_master (customer_id, sales_by, invoice_date, discount)
 VALUES (
-    (SELECT customer_id FROM customers WHERE phone_no = '01711111007' AND ROWNUM = 1),
+    (SELECT customer_id FROM customers WHERE phone_no = '01810000007' AND ROWNUM = 1),
     (SELECT employee_id FROM employees WHERE first_name = 'Mominul' AND last_name = 'Haque' AND ROWNUM = 1),
     SYSDATE - 2,
     3000
@@ -3502,7 +3502,7 @@ VALUES (
 
 INSERT INTO sales_master (customer_id, sales_by, invoice_date, discount)
 VALUES (
-    (SELECT customer_id FROM customers WHERE phone_no = '01711111008' AND ROWNUM = 1),
+    (SELECT customer_id FROM customers WHERE phone_no = '01810000008' AND ROWNUM = 1),
     (SELECT employee_id FROM employees WHERE first_name = 'Rafiqul' AND last_name = 'Hasan' AND ROWNUM = 1),
     SYSDATE - 1,
     2000
@@ -3510,7 +3510,7 @@ VALUES (
 
 INSERT INTO sales_master (customer_id, sales_by, invoice_date, discount)
 VALUES (
-    (SELECT customer_id FROM customers WHERE phone_no = '01711111009' AND ROWNUM = 1),
+    (SELECT customer_id FROM customers WHERE phone_no = '01810000009' AND ROWNUM = 1),
     (SELECT employee_id FROM employees WHERE first_name = 'Ariful' AND last_name = 'Islam' AND ROWNUM = 1),
     SYSDATE,
     500
@@ -3518,7 +3518,7 @@ VALUES (
 
 INSERT INTO sales_master (customer_id, sales_by, invoice_date, discount)
 VALUES (
-    (SELECT customer_id FROM customers WHERE phone_no = '01711111010' AND ROWNUM = 1),
+    (SELECT customer_id FROM customers WHERE phone_no = '01810000010' AND ROWNUM = 1),
     (SELECT employee_id FROM employees WHERE first_name = 'Fatima' AND last_name = 'Zohra' AND ROWNUM = 1),
     SYSDATE,
     8000
