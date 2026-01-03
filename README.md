@@ -1,181 +1,222 @@
-# Oxen-Company-limited
-An Electronics sales and service provider company
+# Oxen Company Limited
 
-## Database Overview
+An Electronics Sales and Service Provider Company Database System
 
-This repository contains the Oracle database schema and automation scripts for a comprehensive Electronics Sales and Service Management System. The schema is designed to be compatible with **Oracle 11g**, **Oracle Forms 11g**, and **Oracle APEX**.
+## Overview
 
-## Files Description
+This repository contains a comprehensive Oracle database schema for managing an electronics sales and service business. The system is designed to be compatible with both **Oracle 11g Forms** and **Oracle APEX**, with maximum automation features.
+
+## Features
+
+- **33 Database Tables** covering all business operations
+- **Automatic ID Generation** via sequences and triggers
+- **Audit Trail** with created_by, created_date, updated_by, updated_date columns
+- **Oracle Forms 11g Ready** with LOV queries and form triggers (compatible with Oracle Forms 11g Builder and Oracle Database 11g+)
+- **Oracle APEX Ready** with pre-built views for LOV, reports, and dashboards (APEX 5.x and later)
+- **Automation Package** for business logic and stock management
+
+## File Structure
 
 | File | Description |
 |------|-------------|
-| `Schema.sql` | Complete database schema with 33 tables, sequences, triggers, and sample data |
-| `Insert data` | Sample data insertion scripts (standalone) |
-| `automation_package.sql` | Automation package with LOV views, report views, dashboard views, and business logic |
-| `DYNAMIC LIST CRATION` | Oracle Forms trigger code for dynamic list population |
-| `combined schema with insert data` | Combined file with schema and insert data |
+| `Schema.sql` | Original database schema with 33 tables |
+| `combined schema with insert data` | Full schema with sample data (combined file) |
+| `Insert data` | Sample data insertion scripts |
+| `DYNAMIC LIST CRATION` | Oracle Forms dynamic list creation trigger |
+| `apex_views.sql` | **NEW** - Oracle APEX ready views for LOV, reports, dashboards |
+| `automation_pkg.sql` | **NEW** - PL/SQL package for business automation |
+| `forms_lov.sql` | **NEW** - Oracle 11g Forms LOV queries and triggers |
 
-## Database Structure
+## Database Tables
 
-### Tables (33 Total)
+### Master Tables
+1. **company** - Company information
+2. **jobs** - Job positions and grades
+3. **customers** - Customer management
+4. **suppliers** - Supplier management
+5. **employees** - Employee records
+6. **departments** - Department structure
 
-#### Master Tables
-- `company` - Company information
-- `jobs` - Job positions and grades
-- `customers` - Customer master data
-- `suppliers` - Supplier master data
-- `employees` - Employee records
-- `departments` - Department structure
-- `products` - Product catalog
-- `parts` - Spare parts inventory
-- `brand` - Brand and model information
-- `product_categories` - Product category master
-- `sub_categories` - Product sub-categories
-- `parts_category` - Spare parts categories
-- `service_list` - Available services
-- `expense_list` - Expense types
-- `stock` - Inventory stock levels
+### Product Management
+7. **product_categories** - Product category master
+8. **sub_categories** - Product sub-categories
+9. **brand** - Brand and model information
+10. **products** - Product catalog
+11. **stock** - Inventory management
+12. **parts_category** - Spare parts categories
+13. **parts** - Spare parts catalog
 
-#### Transaction Tables
-- `sales_master` / `sales_detail` - Sales invoices
-- `sales_return_master` / `sales_return_details` - Sales returns
-- `service_master` / `service_details` - Service records
-- `product_order_master` / `product_order_detail` - Purchase orders
-- `product_receive_master` / `product_receive_details` - Goods receiving
-- `product_return_master` / `product_return_details` - Supplier returns
-- `expense_master` / `expense_details` - Expense tracking
-- `damage` / `damage_detail` - Damage records
-- `payments` - Supplier payments
-- `com_users` - Application users
+### Sales & Returns
+14. **sales_master** - Sales invoice header
+15. **sales_detail** - Sales invoice line items
+16. **sales_return_master** - Sales return header
+17. **sales_return_details** - Sales return line items
+
+### Purchasing
+18. **product_order_master** - Purchase order header
+19. **product_order_detail** - Purchase order line items
+20. **product_receive_master** - Goods receipt header
+21. **product_receive_details** - Goods receipt line items
+22. **product_return_master** - Purchase return header
+23. **product_return_details** - Purchase return line items
+
+### Service Management
+24. **service_list** - Service types and pricing
+25. **service_master** - Service ticket header
+26. **service_details** - Service ticket details
+
+### Finance
+27. **expense_list** - Expense types
+28. **expense_master** - Expense header
+29. **expense_details** - Expense line items
+30. **payments** - Supplier payments
+
+### Other
+31. **damage** - Damaged goods header
+32. **damage_detail** - Damaged goods details
+33. **com_users** - Application users
 
 ## Installation
 
 ### Prerequisites
-- Oracle Database 11g or higher
+- Oracle Database 11g Release 2 or higher
 - Oracle SQL*Plus or SQL Developer
+- (Optional) Oracle Forms 11g (11.1.1.x or later) for Forms features
+- (Optional) Oracle APEX 5.x or later for APEX features
 
-### Step 1: Create Database Schema
+### Setup Steps
+
+1. **Create Database User**
 ```sql
 -- Connect as SYSDBA
-@Schema.sql
+CREATE USER msp IDENTIFIED BY msp
+DEFAULT TABLESPACE users
+TEMPORARY TABLESPACE temp
+QUOTA UNLIMITED ON users;
+
+GRANT CONNECT, RESOURCE, CREATE VIEW, CREATE PROCEDURE TO msp;
 ```
 
-### Step 2: Install Automation Package
+2. **Run Schema Script**
 ```sql
--- Connect as schema owner (msp)
-CONNECT msp/msp;
-@automation_package.sql
+-- Connect as msp user
+@Schema.sql
+-- OR for combined schema with data:
+@"combined schema with insert data"
 ```
 
-## Automation Features
+3. **Install APEX Views (Optional)**
+```sql
+@apex_views.sql
+```
+
+4. **Install Automation Package (Optional)**
+```sql
+@automation_pkg.sql
+```
+
+## Oracle APEX Usage
 
 ### LOV (List of Values) Views
-Pre-built views for Oracle Forms and APEX dropdowns:
-- `v_lov_customers` - Customer selection
-- `v_lov_suppliers` - Supplier selection
-- `v_lov_products` - Product selection with prices
-- `v_lov_employees` - Employee selection
-- `v_lov_departments` - Department selection
-- `v_lov_jobs` - Job position selection
-- `v_lov_product_categories` - Category selection
-- `v_lov_sub_categories` - Sub-category selection (filterable)
-- `v_lov_brands` - Brand selection
-- `v_lov_parts` - Spare parts selection
-- `v_lov_services` - Service selection with costs
-- `v_lov_expense_types` - Expense type selection
+All LOV views are prefixed with `lov_` and return two columns:
+- `return_value` - The ID to store
+- `display_value` - The text to display
+
+Example usage in APEX:
+```sql
+SELECT display_value AS d, return_value AS r
+FROM lov_products_v
+ORDER BY 1
+```
+
+### Dashboard Views
+Dashboard views are prefixed with `dashboard_` and provide pre-aggregated data:
+- `dashboard_sales_summary_v` - Daily sales summary
+- `dashboard_sales_monthly_v` - Monthly sales trends
+- `dashboard_top_products_v` - Top selling products
+- `dashboard_top_customers_v` - Top customers by revenue
+- `dashboard_stock_alerts_v` - Low stock alerts
+- `dashboard_supplier_due_v` - Supplier payment dues
+- `dashboard_kpi_v` - Key performance indicators
 
 ### Report Views
-Ready-to-use views for APEX Interactive Reports:
-- `v_rpt_product_inventory` - Product inventory with stock status
-- `v_rpt_sales_summary` - Sales transaction summary
-- `v_rpt_service_tracking` - Service order tracking
-- `v_rpt_supplier_ledger` - Supplier accounts with dues
-- `v_rpt_employee_directory` - Employee listing
-- `v_rpt_purchase_orders` - Purchase order summary
-- `v_rpt_daily_sales` - Daily sales aggregation
-- `v_rpt_expense_summary` - Expense tracking
-- `v_rpt_stock_movement` - Stock level monitoring
+Report views are suffixed with `_report_v`:
+- `sales_invoice_report_v` - Sales invoice listing
+- `sales_detail_report_v` - Sales detail with calculations
+- `purchase_order_report_v` - Purchase orders
+- `product_receive_report_v` - Goods receipts
+- `service_report_v` - Service tickets
+- `stock_report_v` - Stock status with valuation
 
-### Dashboard Views (For APEX)
-- `v_dash_sales_overview` - Sales KPIs (Today/Week/Month)
-- `v_dash_low_stock` - Low stock alerts
-- `v_dash_top_products` - Top selling products
-- `v_dash_pending_orders` - Pending purchase orders
-- `v_dash_service_stats` - Service statistics
-- `v_dash_supplier_dues` - Supplier payment dues
+## Oracle Forms Usage
 
-### Automation Package (pkg_automation)
-Business logic procedures:
-- `calc_sales_total()` - Auto-calculate invoice totals
-- `calc_order_total()` - Auto-calculate order totals
-- `calc_receive_total()` - Auto-calculate receive totals
-- `calc_return_total()` - Auto-calculate return totals
-- `calc_service_total()` - Auto-calculate service totals
-- `update_stock_on_receive()` - Update stock after receiving
-- `update_stock_on_sale()` - Reduce stock after sales
-- `update_stock_on_sales_return()` - Restore stock on returns
-- `update_stock_on_damage()` - Reduce stock for damages
-- `update_supplier_on_payment()` - Update supplier payment totals
-- `is_in_stock()` - Check stock availability
-- `get_stock_quantity()` - Get current stock level
+### Dynamic LOV Initialization
+Copy the trigger code from `forms_lov.sql` into your form's `WHEN-NEW-FORM-INSTANCE` trigger to automatically populate all LOVs.
 
-### Automation Triggers
-Auto-triggered operations:
-- Master-detail total calculations
-- Stock updates on receive/sale/return/damage
-- Supplier purchase total updates
-- Audit column population (cre_by, cre_dt, upd_by, upd_dt)
+### Cascading LOVs
+The file includes code for cascading LOVs (e.g., sub-categories based on category selection).
 
-## Oracle Forms Integration
+### Form Triggers
+Pre-built triggers for:
+- Product price auto-population
+- Stock availability checking
+- Invoice total calculation
+- Service charge auto-fill
 
-### Dynamic List Population
-Use the `DYNAMIC LIST CRATION` file for populating LOVs in Forms:
-```plsql
--- In WHEN-NEW-FORM-INSTANCE trigger
--- Copy code from 'DYNAMIC LIST CRATION' file
-```
+## Automation Package
 
-### Using LOV Views in Forms
-```plsql
--- Create Record Group from LOV view
-rg := Create_Group_From_Query('RG_PRODUCTS',
-   'SELECT display_value, return_value FROM v_lov_products');
-Populate_List('BLOCK.PRODUCT_ID', rg);
-```
-
-## Oracle APEX Integration
-
-### Creating LOVs
-1. Go to Shared Components > List of Values
-2. Create from SQL Query
-3. Use: `SELECT display_value d, return_value r FROM v_lov_products`
-
-### Creating Interactive Reports
-1. Create new page with Interactive Report
-2. Select source as SQL Query
-3. Use: `SELECT * FROM v_rpt_sales_summary`
-
-### Dashboard Regions
-Use dashboard views for chart and report regions:
+### Stock Management
 ```sql
-SELECT * FROM v_dash_sales_overview
-SELECT * FROM v_dash_low_stock
+-- Add stock
+pkg_oxen_automation.add_stock(p_product_id, p_supplier_id, p_quantity, v_result);
+
+-- Reduce stock
+pkg_oxen_automation.reduce_stock(p_product_id, p_quantity, v_result);
+
+-- Check stock
+v_qty := pkg_oxen_automation.check_stock(p_product_id);
 ```
 
-## Key Features
+### Sales Processing
+```sql
+-- Create invoice
+pkg_oxen_automation.create_sales_invoice(p_customer_id, p_sales_by, p_discount, v_invoice_id, v_result);
 
-- **Oracle 11g Compatible** - Uses features available in Oracle 11g
-- **Audit Columns** - Automatic tracking of created/updated by and date
-- **Auto ID Generation** - Sequences and triggers for primary keys
-- **Referential Integrity** - Foreign key constraints with proper relationships
-- **Virtual Columns** - Calculated columns (e.g., supplier due amount)
-- **Stock Management** - Automatic stock updates via triggers
-- **Master-Detail Automation** - Auto-calculation of totals
+-- Add item
+pkg_oxen_automation.add_sales_item(v_invoice_id, p_product_id, p_quantity, p_mrp, p_vat, v_result);
+
+-- Finalize (updates totals and reduces stock)
+pkg_oxen_automation.finalize_sales(v_invoice_id, v_result);
+```
+
+### Supplier Payments
+```sql
+-- Record payment
+pkg_oxen_automation.record_supplier_payment(p_supplier_id, p_amount, v_payment_id, v_result);
+
+-- Check due
+v_due := pkg_oxen_automation.get_supplier_due(p_supplier_id);
+```
+
+## Sample Data
+
+The repository includes sample data for testing:
+- 10 Companies (Walton, Samsung, LG, etc.)
+- 10 Jobs
+- 10 Customers
+- 10 Suppliers
+- 10 Products
+- 20 Employees
+- Sample purchase orders, receipts, and returns
 
 ## License
 
-This project is proprietary to Oxen Company Limited.
+This project is provided for educational and commercial use.
 
-## Support
+## Contributing
 
-For support and customization requests, contact the IT department.
+Contributions are welcome. Please submit pull requests for any improvements.
+
+## Contact
+
+For questions or support, please open an issue in this repository.
