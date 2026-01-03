@@ -1,5 +1,9 @@
 ----------------------------------------------------------------------------------
 -- DATABASE SETUP SCRIPT (33 TABLES)
+-- IMPORTANT: Run this script as the MSP user (already created and connected)
+-- If the user doesn't exist, connect as sys/sysdba first and execute:
+--   CREATE USER msp IDENTIFIED BY msp DEFAULT TABLESPACE users QUOTA UNLIMITED ON users;
+--   GRANT CONNECT, RESOURCE TO msp;
 --------------------------------------------------------------------------------
 
 DROP USER msp CASCADE;
