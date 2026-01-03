@@ -1,5 +1,9 @@
 ----------------------------------------------------------------------------------
 -- DATABASE SETUP SCRIPT (33 TABLES)
+-- IMPORTANT: Run this script as the MSP user (already created and connected)
+-- If the user doesn't exist, connect as sys/sysdba first and execute:
+--   CREATE USER msp IDENTIFIED BY msp DEFAULT TABLESPACE users QUOTA UNLIMITED ON users;
+--   GRANT CONNECT, RESOURCE TO msp;
 --------------------------------------------------------------------------------
 
 DROP USER msp CASCADE;
@@ -53,8 +57,8 @@ BEGIN
         IF :NEW.cre_by IS NULL THEN :NEW.cre_by := USER; END IF;
         IF :NEW.cre_dt IS NULL THEN :NEW.cre_dt := SYSDATE; END IF;
     ELSIF UPDATING THEN
-        IF :NEW.upd_by IS NULL THEN :NEW.upd_by := USER; END IF;
-        IF :NEW.upd_dt IS NULL THEN :NEW.upd_dt := SYSDATE; END IF;
+        :NEW.upd_by := USER;
+        :NEW.upd_dt := SYSDATE;
     END IF;
 END;
 /
@@ -93,8 +97,8 @@ BEGIN
         IF :NEW.cre_by IS NULL THEN :NEW.cre_by := USER; END IF;
         IF :NEW.cre_dt IS NULL THEN :NEW.cre_dt := SYSDATE; END IF;
     ELSIF UPDATING THEN
-        IF :NEW.upd_by IS NULL THEN :NEW.upd_by := USER; END IF;
-        IF :NEW.upd_dt IS NULL THEN :NEW.upd_dt := SYSDATE; END IF;
+        :NEW.upd_by := USER;
+        :NEW.upd_dt := SYSDATE;
     END IF;
 END;
 /
@@ -143,8 +147,8 @@ BEGIN
         IF :NEW.cre_by IS NULL THEN :NEW.cre_by := USER; END IF;
         IF :NEW.cre_dt IS NULL THEN :NEW.cre_dt := SYSDATE; END IF;
     ELSIF UPDATING THEN
-        IF :NEW.upd_by IS NULL THEN :NEW.upd_by := USER; END IF;
-        IF :NEW.upd_dt IS NULL THEN :NEW.upd_dt := SYSDATE; END IF;
+        :NEW.upd_by := USER;
+        :NEW.upd_dt := SYSDATE;
     END IF;
 END;
 /
@@ -180,8 +184,8 @@ BEGIN
         IF :NEW.cre_by IS NULL THEN :NEW.cre_by := USER; END IF;
         IF :NEW.cre_dt IS NULL THEN :NEW.cre_dt := SYSDATE; END IF;
     ELSIF UPDATING THEN
-        IF :NEW.upd_by IS NULL THEN :NEW.upd_by := USER; END IF;
-        IF :NEW.upd_dt IS NULL THEN :NEW.upd_dt := SYSDATE; END IF;
+        :NEW.upd_by := USER;
+        :NEW.upd_dt := SYSDATE;
     END IF;
 END;
 /
@@ -213,8 +217,8 @@ BEGIN
         IF :NEW.cre_by IS NULL THEN :NEW.cre_by := USER; END IF;
         IF :NEW.cre_dt IS NULL THEN :NEW.cre_dt := SYSDATE; END IF;
     ELSIF UPDATING THEN
-        IF :NEW.upd_by IS NULL THEN :NEW.upd_by := USER; END IF;
-        IF :NEW.upd_dt IS NULL THEN :NEW.upd_dt := SYSDATE; END IF;
+        :NEW.upd_by := USER;
+        :NEW.upd_dt := SYSDATE;
     END IF;
 END;
 /
@@ -249,8 +253,8 @@ BEGIN
         IF :NEW.cre_by IS NULL THEN :NEW.cre_by := USER; END IF;
         IF :NEW.cre_dt IS NULL THEN :NEW.cre_dt := SYSDATE; END IF;
     ELSIF UPDATING THEN
-        IF :NEW.upd_by IS NULL THEN :NEW.upd_by := USER; END IF;
-        IF :NEW.upd_dt IS NULL THEN :NEW.upd_dt := SYSDATE; END IF;
+        :NEW.upd_by := USER;
+        :NEW.upd_dt := SYSDATE;
     END IF;
 END;
 /
@@ -291,8 +295,8 @@ BEGIN
         IF :NEW.cre_by IS NULL THEN :NEW.cre_by := USER; END IF;
         IF :NEW.cre_dt IS NULL THEN :NEW.cre_dt := SYSDATE; END IF;
     ELSIF UPDATING THEN
-        IF :NEW.upd_by IS NULL THEN :NEW.upd_by := USER; END IF;
-        IF :NEW.upd_dt IS NULL THEN :NEW.upd_dt := SYSDATE; END IF;
+        :NEW.upd_by := USER;
+        :NEW.upd_dt := SYSDATE;
     END IF;
 END;
 /
@@ -326,8 +330,8 @@ BEGIN
         IF :NEW.cre_by IS NULL THEN :NEW.cre_by := USER; END IF;
         IF :NEW.cre_dt IS NULL THEN :NEW.cre_dt := SYSDATE; END IF;
     ELSIF UPDATING THEN
-        IF :NEW.upd_by IS NULL THEN :NEW.upd_by := USER; END IF;
-        IF :NEW.upd_dt IS NULL THEN :NEW.upd_dt := SYSDATE; END IF;
+        :NEW.upd_by := USER;
+        :NEW.upd_dt := SYSDATE;
     END IF;
 END;
 /
@@ -364,8 +368,8 @@ BEGIN
         IF :NEW.cre_by IS NULL THEN :NEW.cre_by := USER; END IF;
         IF :NEW.cre_dt IS NULL THEN :NEW.cre_dt := SYSDATE; END IF;
     ELSIF UPDATING THEN
-        IF :NEW.upd_by IS NULL THEN :NEW.upd_by := USER; END IF;
-        IF :NEW.upd_dt IS NULL THEN :NEW.upd_dt := SYSDATE; END IF;
+        :NEW.upd_by := USER;
+        :NEW.upd_dt := SYSDATE;
     END IF;
 END;
 /
@@ -399,8 +403,8 @@ BEGIN
         IF :NEW.cre_by IS NULL THEN :NEW.cre_by := USER; END IF;
         IF :NEW.cre_dt IS NULL THEN :NEW.cre_dt := SYSDATE; END IF;
     ELSIF UPDATING THEN
-        IF :NEW.upd_by IS NULL THEN :NEW.upd_by := USER; END IF;
-        IF :NEW.upd_dt IS NULL THEN :NEW.upd_dt := SYSDATE; END IF;
+        :NEW.upd_by := USER;
+        :NEW.upd_dt := SYSDATE;
     END IF;
 END;
 /
@@ -455,8 +459,8 @@ BEGIN
         IF :NEW.cre_by IS NULL THEN :NEW.cre_by := USER; END IF;
         IF :NEW.cre_dt IS NULL THEN :NEW.cre_dt := SYSDATE; END IF;
     ELSIF UPDATING THEN
-        IF :NEW.upd_by IS NULL THEN :NEW.upd_by := USER; END IF;
-        IF :NEW.upd_dt IS NULL THEN :NEW.upd_dt := SYSDATE; END IF;
+        :NEW.upd_by := USER;
+        :NEW.upd_dt := SYSDATE;
     END IF;
 END;
 /
@@ -496,8 +500,8 @@ BEGIN
         IF :NEW.cre_by IS NULL THEN :NEW.cre_by := USER; END IF;
         IF :NEW.cre_dt IS NULL THEN :NEW.cre_dt := SYSDATE; END IF;
     ELSIF UPDATING THEN
-        IF :NEW.upd_by IS NULL THEN :NEW.upd_by := USER; END IF;
-        IF :NEW.upd_dt IS NULL THEN :NEW.upd_dt := SYSDATE; END IF;
+        :NEW.upd_by := USER;
+        :NEW.upd_dt := SYSDATE;
     END IF;
 END;
 /
@@ -566,8 +570,8 @@ BEGIN
         IF :NEW.cre_by IS NULL THEN :NEW.cre_by := USER; END IF;
         IF :NEW.cre_dt IS NULL THEN :NEW.cre_dt := SYSDATE; END IF;
     ELSIF UPDATING THEN
-        IF :NEW.upd_by IS NULL THEN :NEW.upd_by := USER; END IF;
-        IF :NEW.upd_dt IS NULL THEN :NEW.upd_dt := SYSDATE; END IF;
+        :NEW.upd_by := USER;
+        :NEW.upd_dt := SYSDATE;
     END IF;
 END;
 /
@@ -584,8 +588,8 @@ BEGIN
         IF :NEW.cre_by IS NULL THEN :NEW.cre_by := USER; END IF;
         IF :NEW.cre_dt IS NULL THEN :NEW.cre_dt := SYSDATE; END IF;
     ELSIF UPDATING THEN
-        IF :NEW.upd_by IS NULL THEN :NEW.upd_by := USER; END IF;
-        IF :NEW.upd_dt IS NULL THEN :NEW.upd_dt := SYSDATE; END IF;
+        :NEW.upd_by := USER;
+        :NEW.upd_dt := SYSDATE;
     END IF;
 END;
 /
@@ -626,8 +630,8 @@ BEGIN
         IF :NEW.cre_by IS NULL THEN :NEW.cre_by := USER; END IF;
         IF :NEW.cre_dt IS NULL THEN :NEW.cre_dt := SYSDATE; END IF;
     ELSIF UPDATING THEN
-        IF :NEW.upd_by IS NULL THEN :NEW.upd_by := USER; END IF;
-        IF :NEW.upd_dt IS NULL THEN :NEW.upd_dt := SYSDATE; END IF;
+        :NEW.upd_by := USER;
+        :NEW.upd_dt := SYSDATE;
     END IF;
 END;
 /
@@ -662,8 +666,8 @@ BEGIN
         IF :NEW.cre_by IS NULL THEN :NEW.cre_by := USER; END IF;
         IF :NEW.cre_dt IS NULL THEN :NEW.cre_dt := SYSDATE; END IF;
     ELSIF UPDATING THEN
-        IF :NEW.upd_by IS NULL THEN :NEW.upd_by := USER; END IF;
-        IF :NEW.upd_dt IS NULL THEN :NEW.upd_dt := SYSDATE; END IF;
+        :NEW.upd_by := USER;
+        :NEW.upd_dt := SYSDATE;
     END IF;
 END;
 /
@@ -729,8 +733,8 @@ BEGIN
         IF :NEW.cre_by IS NULL THEN :NEW.cre_by := USER; END IF;
         IF :NEW.cre_dt IS NULL THEN :NEW.cre_dt := SYSDATE; END IF;
     ELSIF UPDATING THEN
-        IF :NEW.upd_by IS NULL THEN :NEW.upd_by := USER; END IF;
-        IF :NEW.upd_dt IS NULL THEN :NEW.upd_dt := SYSDATE; END IF;
+        :NEW.upd_by := USER;
+        :NEW.upd_dt := SYSDATE;
     END IF;
 END;
 /
@@ -762,15 +766,22 @@ CREATE SEQUENCE receive_seq START WITH 1 INCREMENT BY 1 NOCACHE NOCYCLE;
 
 CREATE OR REPLACE TRIGGER trg_prod_recv_bi
 BEFORE INSERT OR UPDATE ON product_receive_master FOR EACH ROW
+DECLARE
+    v_seq NUMBER;
 BEGIN
     IF INSERTING AND :NEW.receive_id IS NULL THEN
-        :NEW.receive_id := 'RCV' || TO_CHAR(receive_seq.NEXTVAL);
+        v_seq := receive_seq.NEXTVAL;
+        :NEW.receive_id := 'RCV' || TO_CHAR(v_seq);
+        -- Auto-generate supplier invoice ID if not provided
+        IF :NEW.sup_invoice_id IS NULL THEN
+            :NEW.sup_invoice_id := 'SINV' || TO_CHAR(v_seq);
+        END IF;
         IF :NEW.status IS NULL THEN :NEW.status := 1; END IF;
         IF :NEW.cre_by IS NULL THEN :NEW.cre_by := USER; END IF;
         IF :NEW.cre_dt IS NULL THEN :NEW.cre_dt := SYSDATE; END IF;
     ELSIF UPDATING THEN
-        IF :NEW.upd_by IS NULL THEN :NEW.upd_by := USER; END IF;
-        IF :NEW.upd_dt IS NULL THEN :NEW.upd_dt := SYSDATE; END IF;
+        :NEW.upd_by := USER;
+        :NEW.upd_dt := SYSDATE;
     END IF;
 END;
 /
@@ -781,7 +792,8 @@ END;
 CREATE TABLE product_return_master (
     return_id       VARCHAR2(50) PRIMARY KEY,
     supplier_id     VARCHAR2(50) NULL,
-    receive_id      VARCHAR2(50) NULL, 
+    receive_id      VARCHAR2(50) NULL,
+    order_id        VARCHAR2(50) NULL,
     return_date     DATE DEFAULT SYSDATE,
     return_by       VARCHAR2(50) NULL, 
     total_amount    NUMBER(20,4)DEFAULT 0,
@@ -794,6 +806,7 @@ CREATE TABLE product_return_master (
     upd_dt          DATE,
     CONSTRAINT fk_pre_sup FOREIGN KEY (supplier_id) REFERENCES suppliers(supplier_id),
     CONSTRAINT fk_pre_rcv FOREIGN KEY (receive_id) REFERENCES product_receive_master(receive_id),
+    CONSTRAINT fk_pre_order FOREIGN KEY (order_id) REFERENCES product_order_master(order_id),
     CONSTRAINT fk_pre_emp FOREIGN KEY (return_by) REFERENCES employees(employee_id)
 );
 
@@ -808,8 +821,8 @@ BEGIN
         IF :NEW.cre_by IS NULL THEN :NEW.cre_by := USER; END IF;
         IF :NEW.cre_dt IS NULL THEN :NEW.cre_dt := SYSDATE; END IF;
     ELSIF UPDATING THEN
-        IF :NEW.upd_by IS NULL THEN :NEW.upd_by := USER; END IF;
-        IF :NEW.upd_dt IS NULL THEN :NEW.upd_dt := SYSDATE; END IF;
+        :NEW.upd_by := USER;
+        :NEW.upd_dt := SYSDATE;
     END IF;
 END;
 /
@@ -839,8 +852,8 @@ BEGIN
         IF :NEW.cre_by IS NULL THEN :NEW.cre_by := USER; END IF;
         IF :NEW.cre_dt IS NULL THEN :NEW.cre_dt := SYSDATE; END IF;
     ELSIF UPDATING THEN
-        IF :NEW.upd_by IS NULL THEN :NEW.upd_by := USER; END IF;
-        IF :NEW.upd_dt IS NULL THEN :NEW.upd_dt := SYSDATE; END IF;
+        :NEW.upd_by := USER;
+        :NEW.upd_dt := SYSDATE;
     END IF;
 END;
 /
@@ -879,8 +892,8 @@ BEGIN
         IF :NEW.cre_dt IS NULL THEN :NEW.cre_dt := SYSDATE; END IF; 
     ELSIF UPDATING THEN
         :NEW.last_update := SYSTIMESTAMP; 
-        IF :NEW.upd_by IS NULL THEN :NEW.upd_by := USER; END IF;
-        IF :NEW.upd_dt IS NULL THEN :NEW.upd_dt := SYSDATE; END IF;
+        :NEW.upd_by := USER;
+        :NEW.upd_dt := SYSDATE;
     END IF;
 END;
 /
@@ -1009,6 +1022,41 @@ END IF;
 END;
 /
 
+CREATE OR REPLACE TRIGGER trg_validate_receive_direct
+BEFORE INSERT OR UPDATE ON product_receive_details
+FOR EACH ROW
+DECLARE
+    v_order_qty NUMBER := 0;
+    v_order_id VARCHAR2(50);
+BEGIN
+    -- 1. Get the order_id for this receive
+    SELECT order_id INTO v_order_id
+    FROM product_receive_master
+    WHERE receive_id = :NEW.receive_id
+    AND ROWNUM = 1;
+
+    -- 2. Sum all quantities for this product in the order (handles multiple line items)
+    SELECT NVL(SUM(quantity), 0)
+    INTO   v_order_qty
+    FROM   product_order_detail
+    WHERE  order_id = v_order_id
+    AND    product_id = :NEW.product_id;
+
+    -- 3. Validate quantity
+    IF v_order_qty = 0 THEN
+        RAISE_APPLICATION_ERROR(-20003, 'Error: This product was not found in the original order.');
+    ELSIF :NEW.receive_quantity > v_order_qty THEN
+        RAISE_APPLICATION_ERROR(-20002,
+            'Invalid Quantity! You cannot receive ' || :NEW.receive_quantity ||
+            ' because the original order was only for ' || v_order_qty);
+    END IF;
+
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        RAISE_APPLICATION_ERROR(-20004, 'Error: Receive record or order not found.');
+END;
+/
+
 --------------------------------------------------------------------------------
 -- 28. PRODUCT_RETURN_DETAILS
 --------------------------------------------------------------------------------
@@ -1061,8 +1109,8 @@ BEGIN
         IF :NEW.cre_by IS NULL THEN :NEW.cre_by := USER; END IF;
         IF :NEW.cre_dt IS NULL THEN :NEW.cre_dt := SYSDATE; END IF;
     ELSIF UPDATING THEN
-        IF :NEW.upd_by IS NULL THEN :NEW.upd_by := USER; END IF;
-        IF :NEW.upd_dt IS NULL THEN :NEW.upd_dt := SYSDATE; END IF;
+        :NEW.upd_by := USER;
+        :NEW.upd_dt := SYSDATE;
     END IF;
 END;
 /
@@ -1198,8 +1246,8 @@ BEGIN
         IF :NEW.cre_by IS NULL THEN :NEW.cre_by := USER; END IF;
         IF :NEW.cre_dt IS NULL THEN :NEW.cre_dt := SYSDATE; END IF;
     ELSIF UPDATING THEN
-        IF :NEW.upd_by IS NULL THEN :NEW.upd_by := USER; END IF;
-        IF :NEW.upd_dt IS NULL THEN :NEW.upd_dt := SYSDATE; END IF;
+        :NEW.upd_by := USER;
+        :NEW.upd_dt := SYSDATE;
     END IF;
 
     -- Warranty logic (SAFE)
@@ -2193,91 +2241,101 @@ COMMIT;
 --------------------------------------------------------------------------------
 
 -- Return 1: Returning items from Samsung shipment (SAM-INV-501)
-INSERT INTO product_return_master (supplier_id, receive_id, return_by, adjusted_vat, status)
+INSERT INTO product_return_master (supplier_id, receive_id, order_id, return_by, adjusted_vat, status)
 VALUES (
     (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Samsung Authorized Distributor' AND ROWNUM = 1),
     (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'SAM-INV-501'),
+    (SELECT order_id FROM product_receive_master WHERE sup_invoice_id = 'SAM-INV-501'),
     (SELECT employee_id FROM employees WHERE first_name = 'Ahsan' AND last_name = 'Kabir' AND ROWNUM = 1),
     150, 1
 );
 
 -- Return 2: Returning items from LG shipment (LG-INV-882)
-INSERT INTO product_return_master (supplier_id, receive_id, return_by, adjusted_vat, status)
+INSERT INTO product_return_master (supplier_id, receive_id, order_id, return_by, adjusted_vat, status)
 VALUES (
     (SELECT supplier_id FROM suppliers WHERE supplier_name = 'LG Electronics Supplier' AND ROWNUM = 1),
     (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'LG-INV-882'),
+    (SELECT order_id FROM product_receive_master WHERE sup_invoice_id = 'LG-INV-882'),
     (SELECT employee_id FROM employees WHERE first_name = 'Rezaul' AND last_name = 'Karim' AND ROWNUM = 1),
     200, 1
 );
 
 -- Return 3: Returning items from Walton shipment (WAL-INV-301)
-INSERT INTO product_return_master (supplier_id, receive_id, return_by, adjusted_vat, status)
+INSERT INTO product_return_master (supplier_id, receive_id, order_id, return_by, adjusted_vat, status)
 VALUES (
     (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Walton Spare Parts Division' AND ROWNUM = 1),
     (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'WAL-INV-301'),
+    (SELECT order_id FROM product_receive_master WHERE sup_invoice_id = 'WAL-INV-301'),
     (SELECT employee_id FROM employees WHERE first_name = 'Ahsan' AND last_name = 'Kabir' AND ROWNUM = 1),
     50, 1
 );
 
 -- Return 4: Returning items from second Samsung shipment (SAM-INV-502)
-INSERT INTO product_return_master (supplier_id, receive_id, return_by, adjusted_vat, status)
+INSERT INTO product_return_master (supplier_id, receive_id, order_id, return_by, adjusted_vat, status)
 VALUES (
     (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Samsung Authorized Distributor' AND ROWNUM = 1),
     (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'SAM-INV-502'),
+    (SELECT order_id FROM product_receive_master WHERE sup_invoice_id = 'SAM-INV-502'),
     (SELECT employee_id FROM employees WHERE first_name = 'Keya' AND last_name = 'Payel' AND ROWNUM = 1),
     100, 1
 );
 
 -- Return 5: Returning items from Asian Tech (ASI-INV-109)
-INSERT INTO product_return_master (supplier_id, receive_id, return_by, adjusted_vat, status)
+INSERT INTO product_return_master (supplier_id, receive_id, order_id, return_by, adjusted_vat, status)
 VALUES (
     (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Asian Spare Parts House' AND ROWNUM = 1),
     (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'ASI-INV-109'),
+    (SELECT order_id FROM product_receive_master WHERE sup_invoice_id = 'ASI-INV-109'),
     (SELECT employee_id FROM employees WHERE first_name = 'Ariful' AND last_name = 'Islam' AND ROWNUM = 1),
     300, 1
 );
 
 -- Return 6: Returning items from second LG shipment (LG-INV-885)
-INSERT INTO product_return_master (supplier_id, receive_id, return_by, adjusted_vat, status)
+INSERT INTO product_return_master (supplier_id, receive_id, order_id, return_by, adjusted_vat, status)
 VALUES (
     (SELECT supplier_id FROM suppliers WHERE supplier_name = 'LG Electronics Supplier' AND ROWNUM = 1),
     (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'LG-INV-885'),
+    (SELECT order_id FROM product_receive_master WHERE sup_invoice_id = 'LG-INV-885'),
     (SELECT employee_id FROM employees WHERE first_name = 'Imtiaz' AND last_name = 'Bulbul' AND ROWNUM = 1),
     180, 1
 );
 
 -- Return 7: Returning items from Singer (JAM-INV-441)
-INSERT INTO product_return_master (supplier_id, receive_id, return_by, adjusted_vat, status)
+INSERT INTO product_return_master (supplier_id, receive_id, order_id, return_by, adjusted_vat, status)
 VALUES (
     (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Jamuna Electronics Supplier' AND ROWNUM = 1),
     (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'JAM-INV-441'),
+    (SELECT order_id FROM product_receive_master WHERE sup_invoice_id = 'JAM-INV-441'),
     (SELECT employee_id FROM employees WHERE first_name = 'Mominul' AND last_name = 'Haque' AND ROWNUM = 1),
     400, 1
 );
 
 -- Return 8: Returning items from Midea (MIN-INV-221)
-INSERT INTO product_return_master (supplier_id, receive_id, return_by, adjusted_vat, status)
+INSERT INTO product_return_master (supplier_id, receive_id, order_id, return_by, adjusted_vat, status)
 VALUES (
     (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Minister Hi-Tech Supplier' AND ROWNUM = 1),
     (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'MIN-INV-221'),
+    (SELECT order_id FROM product_receive_master WHERE sup_invoice_id = 'MIN-INV-221'),
     (SELECT employee_id FROM employees WHERE first_name = 'Ariful' AND last_name = 'Islam' AND ROWNUM = 1),
     120, 1
 );
 
 -- Return 9: Returning items from City IT (CIT-INV-667)
-INSERT INTO product_return_master (supplier_id, receive_id, return_by, adjusted_vat, status)
+INSERT INTO product_return_master (supplier_id, receive_id, order_id, return_by, adjusted_vat, status)
 VALUES (
     (SELECT supplier_id FROM suppliers WHERE supplier_name = 'City Electronics Parts Supplier' AND ROWNUM = 1),
     (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'CIT-INV-667'),
+    (SELECT order_id FROM product_receive_master WHERE sup_invoice_id = 'CIT-INV-667'),
     (SELECT employee_id FROM employees WHERE first_name = 'Fatima' AND last_name = 'Zohra' AND ROWNUM = 1),
     250, 1
 );
 
 -- Return 10: Returning items from Bangla Tech (BAN-INV-990)
-INSERT INTO product_return_master (supplier_id, receive_id, return_by, adjusted_vat, status)
+INSERT INTO product_return_master (supplier_id, receive_id, order_id, return_by, adjusted_vat, status)
 VALUES (
     (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Bangladesh Electronics Wholesale' AND ROWNUM = 1),
     (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'BAN-INV-990'),
+    (SELECT order_id FROM product_receive_master WHERE sup_invoice_id = 'BAN-INV-990'),
     (SELECT employee_id FROM employees WHERE first_name = 'Zahid' AND last_name = 'Hasib' AND ROWNUM = 1),
     90, 1
 );
@@ -2544,434 +2602,6 @@ VALUES (
 
 COMMIT;
 
--- Infrastructure (01, 02, 13, 14)
-INSERT INTO company
-(company_name, company_proprietor, phone_no, email, address, website,
- contact_person, cp_designation, cp_phone_no, tag_line, mission_vision, status)
-VALUES
-('Walton Plaza', 'Walton Hi-Tech Industries Ltd.', '01711000001', 'info@waltonplaza.com',
- 'Plot-1088, Block-I, Bashundhara R/A, Dhaka', 'https://www.waltonplaza.com',
- 'Rafiqul Islam', 'Regional Manager', '01711000091',
- 'Your Trusted Electronics Partner',
- 'To deliver advanced technology and reliable service nationwide.', 1);
-
-INSERT INTO company
-(company_name, company_proprietor, phone_no, email, address, website,
- contact_person, cp_designation, cp_phone_no, tag_line, mission_vision, status)
-VALUES
-('Singer Bangladesh', 'Singer Bangladesh Ltd.', '01711000002', 'contact@singerbd.com',
- '89 Gulshan Avenue, Dhaka', 'https://www.singerbd.com',
- 'Mahmud Hasan', 'Sales Manager', '01711000092',
- 'Trusted Since 1905',
- 'Providing quality electronics with after-sales excellence.', 1);
-
-INSERT INTO company
-(company_name, company_proprietor, phone_no, email, address, website,
- contact_person, cp_designation, cp_phone_no, tag_line, mission_vision, status)
-VALUES
-('Vision Electronics', 'RFL Group', '01711000003', 'support@vision.com.bd',
- 'PRAN-RFL Center, Badda, Dhaka', 'https://www.vision.com.bd',
- 'Sajjad Hossain', 'Service Head', '01711000093',
- 'Smart Life Smart Vision',
- 'To bring innovative electronics to every home.', 1);
-
-INSERT INTO company
-(company_name, company_proprietor, phone_no, email, address, website,
- contact_person, cp_designation, cp_phone_no, tag_line, mission_vision, status)
-VALUES
-('Jamuna Electronics', 'Jamuna Group', '01711000004', 'info@jamunaelectronics.com',
- 'Jamuna Future Park, Dhaka', 'https://www.jamunaelectronics.com',
- 'Abdul Karim', 'Area Manager', '01711000094',
- 'Innovation for Better Life',
- 'Expanding electronics solutions with nationwide coverage.', 1);
-
-INSERT INTO company
-(company_name, company_proprietor, phone_no, email, address, website,
- contact_person, cp_designation, cp_phone_no, tag_line, mission_vision, status)
-VALUES
-('Minister Hi-Tech Park', 'Minister Group', '01711000005', 'service@ministerbd.com',
- 'House-47, Road-35, Gulshan-2, Dhaka', 'https://www.ministerbd.com',
- 'Shariful Islam', 'Service Coordinator', '01711000095',
- 'Desh er TV',
- 'To ensure quality electronics Made in Bangladesh.', 1);
-
-INSERT INTO company
-(company_name, company_proprietor, phone_no, email, address, website,
- contact_person, cp_designation, cp_phone_no, tag_line, mission_vision, status)
-VALUES
-('LG Electronics Bangladesh', 'LG Corporation', '01711000006', 'bd.info@lge.com',
- 'Gulshan 1, Dhaka', 'https://www.lg.com/bd',
- 'Tanvir Ahmed', 'Corporate Sales', '01711000096',
- 'Life’s Good',
- 'Enhancing lifestyle with smart electronics.', 1);
-
-INSERT INTO company
-(company_name, company_proprietor, phone_no, email, address, website,
- contact_person, cp_designation, cp_phone_no, tag_line, mission_vision, status)
-VALUES
-('Samsung Consumer Electronics', 'Samsung Bangladesh', '01711000007', 'support@samsungbd.com',
- 'Banani, Dhaka', 'https://www.samsung.com/bd',
- 'Naeem Rahman', 'Channel Manager', '01711000097',
- 'Inspire the World',
- 'Delivering innovation and premium technology.', 1);
-
-INSERT INTO company
-(company_name, company_proprietor, phone_no, email, address, website,
- contact_person, cp_designation, cp_phone_no, tag_line, mission_vision, status)
-VALUES
-('Sharp Electronics BD', 'Esquire Electronics Ltd.', '01711000008', 'info@sharpelectronics.com.bd',
- 'Tejgaon I/A, Dhaka', 'https://www.sharpelectronicsbd.com',
- 'Rezaul Karim', 'Service Manager', '01711000098',
- 'Technology You Can Trust',
- 'Delivering reliable consumer electronics nationwide.', 1);
-
-INSERT INTO company
-(company_name, company_proprietor, phone_no, email, address, website,
- contact_person, cp_designation, cp_phone_no, tag_line, mission_vision, status)
-VALUES
-('Hitachi Home Appliances', 'Hitachi Bangladesh', '01711000009', 'contact@hitachibd.com',
- 'Kawran Bazar, Dhaka', 'https://www.hitachibd.com',
- 'Masud Rana', 'Key Account Manager', '01711000099',
- 'Inspire the Next',
- 'Delivering durable appliances with best service support.', 1);
-
-INSERT INTO company
-(company_name, company_proprietor, phone_no, email, address, website,
- contact_person, cp_designation, cp_phone_no, tag_line, mission_vision, status)
-VALUES
-('Transtec Electronics', 'Bangladesh Lamps Ltd.', '01711000010', 'info@transtec.com.bd',
- 'Tejgaon Industrial Area, Dhaka', 'https://www.transtec.com.bd',
- 'Ahsan Kabir', 'Regional Supervisor', '01711000100',
- 'Powering Everyday Life',
- 'Providing affordable and quality electronics.', 1);
-
---JOBS
-
-INSERT INTO jobs (job_code, job_title, job_grade, min_salary, max_salary)
-VALUES ('SALES', 'Sales Executive', 'B', 18000, 30000);
-
-INSERT INTO jobs (job_code, job_title, job_grade, min_salary, max_salary)
-VALUES ('CSUP', 'Customer Support Officer', 'B', 20000, 35000);
-
-INSERT INTO jobs (job_code, job_title, job_grade, min_salary, max_salary)
-VALUES ('TECH', 'Service Technician', 'B', 22000, 40000);
-
-INSERT INTO jobs (job_code, job_title, job_grade, min_salary, max_salary)
-VALUES ('MGR', 'Branch Manager', 'A', 40000, 65000);
-
-INSERT INTO jobs (job_code, job_title, job_grade, min_salary, max_salary)
-VALUES ('ASM', 'Assistant Manager', 'A', 32000, 50000);
-
-INSERT INTO jobs (job_code, job_title, job_grade, min_salary, max_salary)
-VALUES ('ACC', 'Accounts Officer', 'B', 25000, 42000);
-
-INSERT INTO jobs (job_code, job_title, job_grade, min_salary, max_salary)
-VALUES ('STOR', 'Store Keeper', 'C', 15000, 25000);
-
-INSERT INTO jobs (job_code, job_title, job_grade, min_salary, max_salary)
-VALUES ('DLV', 'Delivery Man', 'C', 12000, 20000);
-
-INSERT INTO jobs (job_code, job_title, job_grade, min_salary, max_salary)
-VALUES ('IT', 'IT Support Officer', 'B', 28000, 45000);
-
-INSERT INTO jobs (job_code, job_title, job_grade, min_salary, max_salary)
-VALUES ('HR', 'HR and Admin Officer', 'A', 35000, 55000);
-
-----
-INSERT INTO customers (phone_no, customer_name, alt_phone_no, email, address, city, remarks)
-VALUES ('01810000001','Md. Rakib Hasan','01820000001','rakib01@gmail.com','Mirpur-10, Dhaka','Dhaka','Regular customer');
-
-INSERT INTO customers (phone_no, customer_name, alt_phone_no, email, address, city)
-VALUES ('01810000002','Sadia Akter','01820000002','sadia.bd@gmail.com','Dhanmondi 32','Dhaka');
-
-INSERT INTO customers (phone_no, customer_name, alt_phone_no, email, address, city)
-VALUES ('01810000003','Mahmudul Hasan',NULL,'mahmud.hasan@yahoo.com','Uttara Sector 7','Dhaka');
-
-INSERT INTO customers (phone_no, customer_name, email, address, city, remarks)
-VALUES ('01810000004','Shafiq Ahmed','shafiq454@gmail.com','Nandan Park Road','Savar','Buys TV frequently');
-
-INSERT INTO customers (phone_no, customer_name, email, address, city)
-VALUES ('01810000005','Rumi Chowdhury','rumi.c@gmail.com','Halishahar','Chattogram');
-
-INSERT INTO customers (phone_no, customer_name, alt_phone_no, email, address, city)
-VALUES ('01810000006','Nazmul Islam','01820000006','nazmul_bd@gmail.com','Rajshahi City','Rajshahi');
-
-INSERT INTO customers (phone_no, customer_name, email, address, city, remarks)
-VALUES ('01810000007','Kamal Hossain','kamal.h@gmail.com','Khulna Sadar','Khulna','Warranty service user');
-
-INSERT INTO customers (phone_no, customer_name, email, address, city)
-VALUES ('01810000008','Farhana Yasmin','farhana88@gmail.com','Sylhet Ambarkhana','Sylhet');
-
-INSERT INTO customers (phone_no, customer_name, email, address, city)
-VALUES ('01810000009','Arif Mahmud','arifm@gmail.com','Cumilla Town','Cumilla');
-
-INSERT INTO customers (phone_no, customer_name, email, address, city, remarks)
-VALUES ('01810000010','Majedul Karim','majed.karim@gmail.com','Barisal Notun Bazar','Barisal','VIP Customer');
---------------------------------------------------------------------------------
--- 04. Parts_CATEGORIES (Master)
---------------------------------------------------------------------------------
-INSERT INTO parts_category (parts_cat_code, parts_cat_name)
-VALUES ('TV', 'Television Spare Parts');
-
-INSERT INTO parts_category (parts_cat_code, parts_cat_name)
-VALUES ('FRG', 'Refrigerator Spare Parts');
-
-INSERT INTO parts_category (parts_cat_code, parts_cat_name)
-VALUES ('AC', 'Air Conditioner Spare Parts');
-
-INSERT INTO parts_category (parts_cat_code, parts_cat_name)
-VALUES ('WM', 'Washing Machine Spare Parts');
-
-INSERT INTO parts_category (parts_cat_code, parts_cat_name)
-VALUES ('MIC', 'Microwave Oven Spare Parts');
-
-INSERT INTO parts_category (parts_cat_code, parts_cat_name)
-VALUES ('MOB', 'Mobile Accessories and Parts');
-
-INSERT INTO parts_category (parts_cat_code, parts_cat_name)
-VALUES ('LAP', 'Laptop and Computer Parts');
-
-INSERT INTO parts_category (parts_cat_code, parts_cat_name)
-VALUES ('AUDIO', 'Audio System Spare Parts');
-
-INSERT INTO parts_category (parts_cat_code, parts_cat_name)
-VALUES ('PWR', 'Power Supply and Boards');
-
-INSERT INTO parts_category (parts_cat_code, parts_cat_name)
-VALUES ('GEN', 'General Electronic Components');
-
---------------------------------------------------------------------------------
--- 05. PRODUCT_CATEGORIES (Master)
---------------------------------------------------------------------------------
-
-INSERT INTO product_categories (product_cat_name)
-VALUES ('LED Television');
-
-INSERT INTO product_categories (product_cat_name)
-VALUES ('Refrigerator and Freezer');
-
-INSERT INTO product_categories (product_cat_name)
-VALUES ('Air Conditioner');
-
-INSERT INTO product_categories (product_cat_name)
-VALUES ('Washing Machine');
-
-INSERT INTO product_categories (product_cat_name)
-VALUES ('Microwave Oven');
-
-INSERT INTO product_categories (product_cat_name)
-VALUES ('Smart Phone');
-
-INSERT INTO product_categories (product_cat_name)
-VALUES ('Laptop and Computer');
-
-INSERT INTO product_categories (product_cat_name)
-VALUES ('Home Theater and Sound System');
-
-INSERT INTO product_categories (product_cat_name)
-VALUES ('Small Home Appliances');
-
-INSERT INTO product_categories (product_cat_name)
-VALUES ('Generator and Power Products');
-
-INSERT INTO brand (brand_name, model_name, brand_size, color)
-VALUES ('Walton', 'WD-LED32F', '32 Inch', 'Black');
-
-INSERT INTO brand (brand_name, model_name, brand_size, color)
-VALUES ('Walton', 'WTM-RT240', '240 Liter', 'Silver');
-
-INSERT INTO brand (brand_name, model_name, brand_size, color)
-VALUES ('Samsung', 'UA43T5400', '43 Inch', 'Black');
-
-INSERT INTO brand (brand_name, model_name, brand_size, color)
-VALUES ('Samsung', 'AR12MVF', '1 Ton', 'White');
-
-INSERT INTO brand (brand_name, model_name, brand_size, color)
-VALUES ('LG', 'GL-B201SLBB', '190 Liter', 'Silver');
-
-INSERT INTO brand (brand_name, model_name, brand_size, color)
-VALUES ('LG', 'LG-WM140', '8 Kg', 'White');
-
-INSERT INTO brand (brand_name, model_name, brand_size, color)
-VALUES ('Singer', 'Singer Smart 32', '32 Inch', 'Black');
-
-INSERT INTO brand (brand_name, model_name, brand_size, color)
-VALUES ('Hitachi', 'RAS-F13CF', '1 Ton', 'White');
-
-INSERT INTO brand (brand_name, model_name, brand_size, color)
-VALUES ('Vision', 'VIS-24UD', '24 Inch', 'Black');
-
-INSERT INTO brand (brand_name, model_name, brand_size, color)
-VALUES ('Minister', 'M-DFR-240', '240 Liter', 'Red');
-
-
-INSERT INTO suppliers
-(supplier_name, phone_no, email, address, contact_person, cp_phone_no, cp_email, purchase_total, pay_total)
-VALUES
-('Walton Spare Parts Division','01715000001','spares@waltonbd.com','Bashundhara Industrial Area, Dhaka',
- 'Abdul Karim','01716000001','karim@waltonbd.com', 500000, 350000);
-
-INSERT INTO suppliers
-(supplier_name, phone_no, email, address, contact_person, cp_phone_no, cp_email, purchase_total, pay_total)
-VALUES
-('Samsung Authorized Distributor','01715000002','dist@samsungbd.com','Banani, Dhaka',
- 'Tanvir Ahmed','01716000002','tanvir@samsungbd.com', 650000, 400000);
-
-INSERT INTO suppliers
-(supplier_name, phone_no, email, address, contact_person, cp_phone_no, cp_email, purchase_total, pay_total)
-VALUES
-('LG Electronics Supplier','01715000003','supplier@lgbd.com','Gulshan-1, Dhaka',
- 'Ruhul Amin','01716000003','amin@lgbd.com', 300000, 200000);
-
-INSERT INTO suppliers
-(supplier_name, phone_no, email, address, contact_person, cp_phone_no, cp_email, purchase_total, pay_total)
-VALUES
-('Vision / RFL Parts Supplier','01715000004','vision.parts@rfl.com','Badda, Dhaka',
- 'Shahadat Hossain','01716000004','shahadat@rfl.com', 250000, 150000);
-
-INSERT INTO suppliers
-(supplier_name, phone_no, email, address, contact_person, cp_phone_no, cp_email, purchase_total, pay_total)
-VALUES
-('Minister Hi-Tech Supplier','01715000005','supplier@minister.com','Gulshan-2, Dhaka',
- 'Nazmul Islam','01716000005','nazmul@minister.com', 180000, 70000);
-
-INSERT INTO suppliers
-(supplier_name, phone_no, email, address, contact_person, cp_phone_no, cp_email, purchase_total, pay_total)
-VALUES
-('Jamuna Electronics Supplier','01715000006','jamuna.supplier@gmail.com','Jamuna Future Park, Dhaka',
- 'Faruk Ahmed','01716000006','faruk@jamuna.com', 200000, 120000);
-
-INSERT INTO suppliers
-(supplier_name, phone_no, email, address, contact_person, cp_phone_no, cp_email, purchase_total, pay_total)
-VALUES
-('Global Electronics Importer','01715000007','import@globalelec.com','Chawk Bazar, Dhaka',
- 'Kamal Uddin','01716000007','kamal@globalelec.com', 450000, 250000);
-
-INSERT INTO suppliers
-(supplier_name, phone_no, email, address, contact_person, cp_phone_no, cp_email, purchase_total, pay_total)
-VALUES
-('Asian Spare Parts House','01715000008','asianparts@gmail.com','Elephant Road, Dhaka',
- 'Sharif Al Mamun','01716000008','sharif@asparts.com', 120000, 60000);
-
-INSERT INTO suppliers
-(supplier_name, phone_no, email, address, contact_person, cp_phone_no, cp_email, purchase_total, pay_total)
-VALUES
-('Bangladesh Electronics Wholesale','01715000009','info@bdwholesale.com','Station Road, Chattogram',
- 'Jahangir Alam','01716000009','jahangir@bdwholesale.com', 350000, 230000);
-
-INSERT INTO suppliers
-(supplier_name, phone_no, email, address, contact_person, cp_phone_no, cp_email, purchase_total, pay_total)
-VALUES
-('City Electronics Parts Supplier','01715000010','cityparts@gmail.com','Sylhet Amberkhana',
- 'Shafiq Rahman','01716000010','shafiq@cityparts.com', 160000, 100000);
-
-INSERT INTO service_list (service_name, service_desc, service_cost)
-VALUES ('TV Installation', 'Wall mount / table stand TV installation service', 800);
-
-INSERT INTO service_list (service_name, service_desc, service_cost)
-VALUES ('TV Repair Service', 'LED/LCD television diagnosis and repair service', 1500);
-
-INSERT INTO service_list (service_name, service_desc, service_cost)
-VALUES ('Refrigerator Repair', 'Cooling issue, compressor issue, gas refill and repair', 2000);
-
-INSERT INTO service_list (service_name, service_desc, service_cost)
-VALUES ('AC Installation', 'Indoor & outdoor AC installation with basic setup', 3500);
-
-INSERT INTO service_list (service_name, service_desc, service_cost)
-VALUES ('AC Servicing', 'AC cleaning, gas checking, maintenance & servicing', 1500);
-
-INSERT INTO service_list (service_name, service_desc, service_cost)
-VALUES ('Washing Machine Repair', 'Repair & maintenance of automatic/manual washing machines', 1800);
-
-INSERT INTO service_list (service_name, service_desc, service_cost)
-VALUES ('Microwave Oven Repair', 'Heating problem / board problem repair service', 1200);
-
-INSERT INTO service_list (service_name, service_desc, service_cost)
-VALUES ('Laptop / Computer Repair', 'Hardware, software, OS & chip level checkup', 2000);
-
-INSERT INTO service_list (service_name, service_desc, service_cost)
-VALUES ('Mobile Service & Repair', 'Smartphone software & hardware problem fixing', 1000);
-
-INSERT INTO service_list (service_name, service_desc, service_cost)
-VALUES ('Home Appliance Diagnosis', 'General diagnosis & checking charge for appliances', 500);
-
-INSERT INTO expense_list (expense_code, type_name, description, default_amount)
-VALUES ('OFF', 'Office Rent', 'Monthly office/shop rent expense', 30000);
-
-INSERT INTO expense_list (expense_code, type_name, description, default_amount)
-VALUES ('SAL', 'Staff Salary', 'Technician, sales & support staff salary expense', 80000);
-
-INSERT INTO expense_list (expense_code, type_name, description, default_amount)
-VALUES ('UTL', 'Utility Bills', 'Electricity, gas & water bill payment', 15000);
-
-INSERT INTO expense_list (expense_code, type_name, description, default_amount)
-VALUES ('INT', 'Internet & Telephone Bill', 'Office internet and phone bills', 5000);
-
-INSERT INTO expense_list (expense_code, type_name, description, default_amount)
-VALUES ('TRN', 'Transport & Delivery Cost', 'Product delivery & technician transport', 12000);
-
-INSERT INTO expense_list (expense_code, type_name, description, default_amount)
-VALUES ('MKT', 'Marketing & Promotion', 'Advertisement, banner & promotion expense', 10000);
-
-INSERT INTO expense_list (expense_code, type_name, description, default_amount)
-VALUES ('REP', 'Office Repair & Maintenance', 'Shop/office repairing & maintenance', 7000);
-
-INSERT INTO expense_list (expense_code, type_name, description, default_amount)
-VALUES ('PUR', 'Purchase Misc Expense', 'Unplanned purchase, packaging, loading', 6000);
-
-INSERT INTO expense_list (expense_code, type_name, description, default_amount)
-VALUES ('TEC', 'Technician Allowance', 'On-site service allowance for technicians', 8000);
-
-INSERT INTO expense_list (expense_code, type_name, description, default_amount)
-VALUES ('OTH', 'Other General Expenses', 'Miscellaneous office related expenses', 3000);
-
-
-
--------------------------------------error free------------------------------
-
---------------------------------------------------------------------------------
--- 10. SUB_CATEGORIES (Automatic FK Linkage)
---------------------------------------------------------------------------------
-
--- LED Television Links
-INSERT INTO sub_categories (sub_cat_name, product_cat_id) 
-VALUES ('Smart LED TV', (SELECT product_cat_id FROM product_categories WHERE product_cat_name = 'LED Television'));
-INSERT INTO sub_categories (sub_cat_name, product_cat_id) 
-VALUES ('Android TV', (SELECT product_cat_id FROM product_categories WHERE product_cat_name = 'LED Television'));
-
--- Refrigerator Links
-INSERT INTO sub_categories (sub_cat_name, product_cat_id) 
-VALUES ('Double Door Refrigerator', (SELECT product_cat_id FROM product_categories WHERE product_cat_name = 'Refrigerator and Freezer'));
-INSERT INTO sub_categories (sub_cat_name, product_cat_id) 
-VALUES ('Deep Freezer', (SELECT product_cat_id FROM product_categories WHERE product_cat_name = 'Refrigerator and Freezer'));
-
--- Air Conditioner Links
-INSERT INTO sub_categories (sub_cat_name, product_cat_id) 
-VALUES ('Split AC', (SELECT product_cat_id FROM product_categories WHERE product_cat_name = 'Air Conditioner'));
-INSERT INTO sub_categories (sub_cat_name, product_cat_id) 
-VALUES ('Window AC', (SELECT product_cat_id FROM product_categories WHERE product_cat_name = 'Air Conditioner'));
-
--- Washing Machine Links
-INSERT INTO sub_categories (sub_cat_name, product_cat_id) 
-VALUES ('Front Load Washing Machine', (SELECT product_cat_id FROM product_categories WHERE product_cat_name = 'Washing Machine'));
-INSERT INTO sub_categories (sub_cat_name, product_cat_id) 
-VALUES ('Top Load Washing Machine', (SELECT product_cat_id FROM product_categories WHERE product_cat_name = 'Washing Machine'));
-
--- Microwave Oven Links
-INSERT INTO sub_categories (sub_cat_name, product_cat_id) 
-VALUES ('Convection Microwave Oven', (SELECT product_cat_id FROM product_categories WHERE product_cat_name = 'Microwave Oven'));
-INSERT INTO sub_categories (sub_cat_name, product_cat_id) 
-VALUES ('Solo Microwave Oven', (SELECT product_cat_id FROM product_categories WHERE product_cat_name = 'Microwave Oven'));
-
--- Smart Phone Links
-INSERT INTO sub_categories (sub_cat_name, product_cat_id) 
-VALUES ('Android Smartphone', (SELECT product_cat_id FROM product_categories WHERE product_cat_name = 'Smart Phone'));
-INSERT INTO sub_categories (sub_cat_name, product_cat_id) 
-VALUES ('Feature Phone', (SELECT product_cat_id FROM product_categories WHERE product_cat_name = 'Smart Phone'));
-
-COMMIT;
-
---------------------------------------------------------------------------------
 -- 11. PRODUCTS (Dynamic FK Mapping to ensure Integrity)
 --------------------------------------------------------------------------------
 
@@ -2979,10 +2609,10 @@ COMMIT;
 INSERT INTO products (product_code, product_name, supplier_id, category_id, sub_cat_id, brand_id, uom, mrp, purchase_price, warranty) 
 VALUES (
     'SAM-S24-018', 'Samsung Galaxy S24', 
-    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Samsung Authorized Distributor'),
-    (SELECT product_cat_id FROM product_categories WHERE product_cat_name = 'Smart Phone'),
-    (SELECT sub_cat_id FROM sub_categories WHERE sub_cat_name = 'Android Smartphone'),
-    (SELECT brand_id FROM brand WHERE model_name = 'UA43T5400'),
+    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Samsung Authorized Distributor' AND ROWNUM = 1),
+    (SELECT product_cat_id FROM product_categories WHERE product_cat_name = 'Smart Phone' AND ROWNUM = 1),
+    (SELECT sub_cat_id FROM sub_categories WHERE sub_cat_name = 'Android Smartphone' AND ROWNUM = 1),
+    (SELECT brand_id FROM brand WHERE model_name = 'UA43T5400' AND ROWNUM = 1),
     'Pcs', 95000, 82000, 12
 );
 
@@ -2990,10 +2620,10 @@ VALUES (
 INSERT INTO products (product_code, product_name, supplier_id, category_id, sub_cat_id, brand_id, uom, mrp, purchase_price, warranty) 
 VALUES (
     'IPH-15-029', 'iPhone 15 Pro', 
-    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'City Electronics Parts Supplier'),
-    (SELECT product_cat_id FROM product_categories WHERE product_cat_name = 'Smart Phone'),
-    (SELECT sub_cat_id FROM sub_categories WHERE sub_cat_name = 'Android Smartphone'),
-    (SELECT brand_id FROM brand WHERE model_name = 'WD-LED32F'),
+    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'City Electronics Parts Supplier' AND ROWNUM = 1),
+    (SELECT product_cat_id FROM product_categories WHERE product_cat_name = 'Smart Phone' AND ROWNUM = 1),
+    (SELECT sub_cat_id FROM sub_categories WHERE sub_cat_name = 'Android Smartphone' AND ROWNUM = 1),
+    (SELECT brand_id FROM brand WHERE model_name = 'WD-LED32F' AND ROWNUM = 1),
     'Pcs', 145000, 130000, 12
 );
 
@@ -3001,10 +2631,10 @@ VALUES (
 INSERT INTO products (product_code, product_name, supplier_id, category_id, sub_cat_id, brand_id, uom, mrp, purchase_price, warranty) 
 VALUES (
     'DEL-LAT-0310', 'Dell Latitude 5420', 
-    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Asian Spare Parts House'),
-    (SELECT product_cat_id FROM product_categories WHERE product_cat_name = 'Laptop and Computer'),
-    (SELECT sub_cat_id FROM sub_categories WHERE sub_cat_name = 'Android TV'), -- Placeholder subcat as per logic
-    (SELECT brand_id FROM brand WHERE model_name = 'WTM-RT240'),
+    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Asian Spare Parts House' AND ROWNUM = 1),
+    (SELECT product_cat_id FROM product_categories WHERE product_cat_name = 'Laptop and Computer' AND ROWNUM = 1),
+    (SELECT sub_cat_id FROM sub_categories WHERE sub_cat_name = 'Laptop' AND ROWNUM = 1),
+    (SELECT brand_id FROM brand WHERE model_name = 'WTM-RT240' AND ROWNUM = 1),
     'Unit', 85000, 75000, 36
 );
 
@@ -3012,10 +2642,10 @@ VALUES (
 INSERT INTO products (product_code, product_name, supplier_id, category_id, sub_cat_id, brand_id, uom, mrp, purchase_price, warranty) 
 VALUES (
     'LG-REF-0411', 'LG Double Door Refrigerator', 
-    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'LG Electronics Supplier'),
-    (SELECT product_cat_id FROM product_categories WHERE product_cat_name = 'Refrigerator and Freezer'),
-    (SELECT sub_cat_id FROM sub_categories WHERE sub_cat_name = 'Double Door Refrigerator'),
-    (SELECT brand_id FROM brand WHERE model_name = 'GL-B201SLBB'),
+    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'LG Electronics Supplier' AND ROWNUM = 1),
+    (SELECT product_cat_id FROM product_categories WHERE product_cat_name = 'Refrigerator and Freezer' AND ROWNUM = 1),
+    (SELECT sub_cat_id FROM sub_categories WHERE sub_cat_name = 'Double Door Refrigerator' AND ROWNUM = 1),
+    (SELECT brand_id FROM brand WHERE model_name = 'GL-B201SLBB' AND ROWNUM = 1),
     'Unit', 75000, 65000, 24
 );
 
@@ -3023,10 +2653,10 @@ VALUES (
 INSERT INTO products (product_code, product_name, supplier_id, category_id, sub_cat_id, brand_id, uom, mrp, purchase_price, warranty) 
 VALUES (
     'WAL-TV-0512', 'Walton 42 Inch LED', 
-    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Walton Spare Parts Division'),
-    (SELECT product_cat_id FROM product_categories WHERE product_cat_name = 'LED Television'),
-    (SELECT sub_cat_id FROM sub_categories WHERE sub_cat_name = 'Smart LED TV'),
-    (SELECT brand_id FROM brand WHERE model_name = 'WD-LED32F'),
+    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Walton Spare Parts Division' AND ROWNUM = 1),
+    (SELECT product_cat_id FROM product_categories WHERE product_cat_name = 'LED Television' AND ROWNUM = 1),
+    (SELECT sub_cat_id FROM sub_categories WHERE sub_cat_name = 'Smart LED TV' AND ROWNUM = 1),
+    (SELECT brand_id FROM brand WHERE model_name = 'WD-LED32F' AND ROWNUM = 1),
     'Unit', 35000, 28000, 60
 );
 
@@ -3034,10 +2664,10 @@ VALUES (
 INSERT INTO products (product_code, product_name, supplier_id, category_id, sub_cat_id, brand_id, uom, mrp, purchase_price, warranty) 
 VALUES (
     'MIN-AC-0613', 'Midea Split AC 1.5 Ton', 
-    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Minister Hi-Tech Supplier'),
-    (SELECT product_cat_id FROM product_categories WHERE product_cat_name = 'Air Conditioner'),
-    (SELECT sub_cat_id FROM sub_categories WHERE sub_cat_name = 'Split AC'),
-    (SELECT brand_id FROM brand WHERE model_name = 'M-DFR-240'),
+    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Minister Hi-Tech Supplier' AND ROWNUM = 1),
+    (SELECT product_cat_id FROM product_categories WHERE product_cat_name = 'Air Conditioner' AND ROWNUM = 1),
+    (SELECT sub_cat_id FROM sub_categories WHERE sub_cat_name = 'Split AC' AND ROWNUM = 1),
+    (SELECT brand_id FROM brand WHERE model_name = 'M-DFR-240' AND ROWNUM = 1),
     'Unit', 48000, 42000, 12
 );
 
@@ -3045,10 +2675,10 @@ VALUES (
 INSERT INTO products (product_code, product_name, supplier_id, category_id, sub_cat_id, brand_id, uom, mrp, purchase_price, warranty) 
 VALUES (
     'PAN-MIC-0714', 'Panasonic Microwave', 
-    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Global Electronics Importer'),
-    (SELECT product_cat_id FROM product_categories WHERE product_cat_name = 'Microwave Oven'),
-    (SELECT sub_cat_id FROM sub_categories WHERE sub_cat_name = 'Android Smartphone'),
-    (SELECT brand_id FROM brand WHERE model_name = 'Singer Smart 32'),
+    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Global Electronics Importer' AND ROWNUM = 1),
+    (SELECT product_cat_id FROM product_categories WHERE product_cat_name = 'Microwave Oven' AND ROWNUM = 1),
+    (SELECT sub_cat_id FROM sub_categories WHERE sub_cat_name = 'Android Smartphone' AND ROWNUM = 1),
+    (SELECT brand_id FROM brand WHERE model_name = 'Singer Smart 32' AND ROWNUM = 1),
     'Pcs', 18000, 15000, 12
 );
 
@@ -3056,10 +2686,10 @@ VALUES (
 INSERT INTO products (product_code, product_name, supplier_id, category_id, sub_cat_id, brand_id, uom, mrp, purchase_price, warranty) 
 VALUES (
     'SAM-WASH-0815', 'Samsung Front Load Washer', 
-    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Samsung Authorized Distributor'),
-    (SELECT product_cat_id FROM product_categories WHERE product_cat_name = 'Washing Machine'),
-    (SELECT sub_cat_id FROM sub_categories WHERE sub_cat_name = 'Front Load Washing Machine'),
-    (SELECT brand_id FROM brand WHERE model_name = 'AR12MVF'),
+    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Samsung Authorized Distributor' AND ROWNUM = 1),
+    (SELECT product_cat_id FROM product_categories WHERE product_cat_name = 'Washing Machine' AND ROWNUM = 1),
+    (SELECT sub_cat_id FROM sub_categories WHERE sub_cat_name = 'Front Load Washing Machine' AND ROWNUM = 1),
+    (SELECT brand_id FROM brand WHERE model_name = 'AR12MVF' AND ROWNUM = 1),
     'Unit', 55000, 48000, 24
 );
 
@@ -3067,10 +2697,10 @@ VALUES (
 INSERT INTO products (product_code, product_name, supplier_id, category_id, sub_cat_id, brand_id, uom, mrp, purchase_price, warranty) 
 VALUES (
     'HIT-GEN-0916', 'Hitachi Silent Generator', 
-    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Jamuna Electronics Supplier'),
-    (SELECT product_cat_id FROM product_categories WHERE product_cat_name = 'Generator and Power Products'),
-    (SELECT sub_cat_id FROM sub_categories WHERE sub_cat_name = 'Solo Microwave Oven'),
-    (SELECT brand_id FROM brand WHERE model_name = 'RAS-F13CF'),
+    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Jamuna Electronics Supplier' AND ROWNUM = 1),
+    (SELECT product_cat_id FROM product_categories WHERE product_cat_name = 'Generator and Power Products' AND ROWNUM = 1),
+    (SELECT sub_cat_id FROM sub_categories WHERE sub_cat_name = 'Solo Microwave Oven' AND ROWNUM = 1),
+    (SELECT brand_id FROM brand WHERE model_name = 'RAS-F13CF' AND ROWNUM = 1),
     'Unit', 120000, 105000, 12
 );
 
@@ -3078,10 +2708,10 @@ VALUES (
 INSERT INTO products (product_code, product_name, supplier_id, category_id, sub_cat_id, brand_id, uom, mrp, purchase_price, warranty) 
 VALUES (
     'LG-HOM-1017', 'LG Home Theater System', 
-    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'LG Electronics Supplier'),
-    (SELECT product_cat_id FROM product_categories WHERE product_cat_name = 'Home Theater and Sound System'),
-    (SELECT sub_cat_id FROM sub_categories WHERE sub_cat_name = 'Top Load Washing Machine'),
-    (SELECT brand_id FROM brand WHERE model_name = 'LG-WM140'),
+    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'LG Electronics Supplier' AND ROWNUM = 1),
+    (SELECT product_cat_id FROM product_categories WHERE product_cat_name = 'Home Theater and Sound System' AND ROWNUM = 1),
+    (SELECT sub_cat_id FROM sub_categories WHERE sub_cat_name = 'Top Load Washing Machine' AND ROWNUM = 1),
+    (SELECT brand_id FROM brand WHERE model_name = 'LG-WM140' AND ROWNUM = 1),
     'Set', 25000, 21000, 12
 );
 
@@ -3150,52 +2780,6 @@ VALUES ('PWR-BOARD', 'LED TV Power Supply Board', 1500, 2500,
 
 
 --------------------------------------------------------------------------------
--- 13. DEPARTMENTS (Matching Employee FKs)
---------------------------------------------------------------------------------
--- Data referenced by first set of employees
-INSERT INTO departments (department_id, department_name, company_id) 
-VALUES ('PRO101', 'Procurement & Sourcing', (SELECT company_id FROM company WHERE ROWNUM = 1));
-
-INSERT INTO departments (department_id, department_name, company_id) 
-VALUES ('LOG116', 'Logistics & Supply Chain', (SELECT company_id FROM company WHERE ROWNUM = 1));
-
-INSERT INTO departments (department_id, department_name, company_id) 
-VALUES ('IT 106', 'IT Operations', (SELECT company_id FROM company WHERE ROWNUM = 1));
-
-INSERT INTO departments (department_id, department_name, company_id) 
-VALUES ('HUM111', 'Human Resources', (SELECT company_id FROM company WHERE ROWNUM = 1));
-
-INSERT INTO departments (department_id, department_name, company_id) 
-VALUES ('ACC96', 'Finance & Accounting', (SELECT company_id FROM company WHERE ROWNUM = 1));
-
--- Data referenced by second set of employees
-INSERT INTO departments (department_id, department_name, company_id) 
-VALUES ('SAL41', 'Sales Department', (SELECT company_id FROM company WHERE ROWNUM = 1));
-
-INSERT INTO departments (department_id, department_name, company_id) 
-VALUES ('CUS46', 'Customer Support', (SELECT company_id FROM company WHERE ROWNUM = 1));
-
-INSERT INTO departments (department_id, department_name, company_id) 
-VALUES ('SER51', 'After Sales Service', (SELECT company_id FROM company WHERE ROWNUM = 1));
-
-INSERT INTO departments (department_id, department_name, company_id) 
-VALUES ('ACC56', 'Corporate Accounts', (SELECT company_id FROM company WHERE ROWNUM = 1));
-
-INSERT INTO departments (department_id, department_name, company_id) 
-VALUES ('PRO61', 'General Procurement', (SELECT company_id FROM company WHERE ROWNUM = 1));
-
-INSERT INTO departments (department_id, department_name, company_id) 
-VALUES ('IT 66', 'IT Infrastructure', (SELECT company_id FROM company WHERE ROWNUM = 1));
-
-INSERT INTO departments (department_id, department_name, company_id) 
-VALUES ('HUM71', 'Human Capital Management', (SELECT company_id FROM company WHERE ROWNUM = 1));
-
-INSERT INTO departments (department_id, department_name, company_id) 
-VALUES ('LOG76', 'Shipping & Delivery', (SELECT company_id FROM company WHERE ROWNUM = 1));
-
-
-
---------------------------------------------------------------------------------
 -- 14. EMPLOYEES (Populated with your provided Job and Dept IDs)
 --------------------------------------------------------------------------------
 
@@ -3252,10 +2836,10 @@ VALUES ('Ahsan', 'Kabir', 'ahsan.kabir@walton.com', '01711110008', 'Khilkhet, Dh
 
 
 UPDATE employees
-SET manager_id = (SELECT employee_id FROM employees WHERE last_name='Hasan')
+SET manager_id = (SELECT employee_id FROM employees WHERE last_name='Hasan' AND ROWNUM = 1)
 WHERE last_name <> 'Hasan';
 UPDATE departments
-SET manager_id = (SELECT employee_id FROM employees WHERE last_name='Hasan');
+SET manager_id = (SELECT employee_id FROM employees WHERE last_name='Hasan' AND ROWNUM = 1);
 
 
 --------------------------------------------------------------------------------
@@ -3410,191 +2994,104 @@ COMMIT;
 
 
 --------------------------------------------------------------------------------
--- 19. PRODUCT_RECEIVE_MASTER (Dynamic Mapping to ensure Integrity)
---------------------------------------------------------------------------------
-
--- Receiving for Order from Samsung Distributor
-INSERT INTO product_receive_master (order_id, received_by, supplier_id, sup_invoice_id, status)
-VALUES (
-    (SELECT order_id FROM product_order_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Samsung Authorized Distributor') AND ROWNUM = 1),
-    (SELECT employee_id FROM employees WHERE first_name = 'Ariful' AND last_name = 'Islam' AND ROWNUM = 1),
-    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Samsung Authorized Distributor' AND ROWNUM = 1),
-    'SAM-INV-501', 1
-);
-
--- Receiving for Order from LG Electronics Supplier
-INSERT INTO product_receive_master (order_id, received_by, supplier_id, sup_invoice_id, status)
-VALUES (
-    (SELECT order_id FROM product_order_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'LG Electronics Supplier') AND ROWNUM = 1),
-    (SELECT employee_id FROM employees WHERE first_name = 'Rezaul' AND last_name = 'Karim' AND ROWNUM = 1),
-    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'LG Electronics Supplier' AND ROWNUM = 1),
-    'LG-INV-882', 1
-);
-
--- Receiving for Order from Walton Spare Parts Division
-INSERT INTO product_receive_master (order_id, received_by, supplier_id, sup_invoice_id, status)
-VALUES (
-    (SELECT order_id FROM product_order_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Walton Spare Parts Division') AND ROWNUM = 1),
-    (SELECT employee_id FROM employees WHERE first_name = 'Ahsan' AND last_name = 'Kabir' AND ROWNUM = 1),
-    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Walton Spare Parts Division' AND ROWNUM = 1),
-    'WAL-INV-301', 1
-);
-
--- Receiving for Order from Samsung (Second Shipment)
-INSERT INTO product_receive_master (order_id, received_by, supplier_id, sup_invoice_id, status)
-VALUES (
-    (SELECT order_id FROM product_order_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Samsung Authorized Distributor') AND ROWNUM = 1),
-    (SELECT employee_id FROM employees WHERE first_name = 'Keya' AND last_name = 'Payel' AND ROWNUM = 1),
-    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Samsung Authorized Distributor' AND ROWNUM = 1),
-    'SAM-INV-502', 1
-);
-
--- Receiving for Order from Asian Spare Parts House
-INSERT INTO product_receive_master (order_id, received_by, supplier_id, sup_invoice_id, status)
-VALUES (
-    (SELECT order_id FROM product_order_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Asian Spare Parts House') AND ROWNUM = 1),
-    (SELECT employee_id FROM employees WHERE first_name = 'Ariful' AND last_name = 'Islam' AND ROWNUM = 1),
-    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Asian Spare Parts House' AND ROWNUM = 1),
-    'ASI-INV-109', 1
-);
-
--- Receiving for Order from LG Electronics Supplier (Second Shipment)
-INSERT INTO product_receive_master (order_id, received_by, supplier_id, sup_invoice_id, status)
-VALUES (
-    (SELECT order_id FROM product_order_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'LG Electronics Supplier') AND ROWNUM = 1),
-    (SELECT employee_id FROM employees WHERE first_name = 'Imtiaz' AND last_name = 'Bulbul' AND ROWNUM = 1),
-    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'LG Electronics Supplier' AND ROWNUM = 1),
-    'LG-INV-885', 1
-);
-
--- Receiving for Order from Jamuna Electronics Supplier
-INSERT INTO product_receive_master (order_id, received_by, supplier_id, sup_invoice_id, status)
-VALUES (
-    (SELECT order_id FROM product_order_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Jamuna Electronics Supplier') AND ROWNUM = 1),
-    (SELECT employee_id FROM employees WHERE first_name = 'Mominul' AND last_name = 'Haque' AND ROWNUM = 1),
-    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Jamuna Electronics Supplier' AND ROWNUM = 1),
-    'JAM-INV-441', 1
-);
-
--- Receiving for Order from Minister Hi-Tech Supplier
-INSERT INTO product_receive_master (order_id, received_by, supplier_id, sup_invoice_id, status)
-VALUES (
-    (SELECT order_id FROM product_order_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Minister Hi-Tech Supplier') AND ROWNUM = 1),
-    (SELECT employee_id FROM employees WHERE first_name = 'Ariful' AND last_name = 'Islam' AND ROWNUM = 1),
-    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Minister Hi-Tech Supplier' AND ROWNUM = 1),
-    'MIN-INV-221', 1
-);
-
--- Receiving for Order from City Electronics Parts Supplier
-INSERT INTO product_receive_master (order_id, received_by, supplier_id, sup_invoice_id, status)
-VALUES (
-    (SELECT order_id FROM product_order_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'City Electronics Parts Supplier') AND ROWNUM = 1),
-    (SELECT employee_id FROM employees WHERE first_name = 'Fatima' AND last_name = 'Zohra' AND ROWNUM = 1),
-    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'City Electronics Parts Supplier' AND ROWNUM = 1),
-    'CIT-INV-667', 1
-);
-
--- Receiving for Order from Bangladesh Electronics Wholesale
-INSERT INTO product_receive_master (order_id, received_by, supplier_id, sup_invoice_id, status)
-VALUES (
-    (SELECT order_id FROM product_order_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Bangladesh Electronics Wholesale') AND ROWNUM = 1),
-    (SELECT employee_id FROM employees WHERE first_name = 'Zahid' AND last_name = 'Hasib' AND ROWNUM = 1),
-    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Bangladesh Electronics Wholesale' AND ROWNUM = 1),
-    'BAN-INV-990', 1
-);
-
-COMMIT;
-
---------------------------------------------------------------------------------
--- 20. PRODUCT_RETURN_MASTER (Dynamic Mapping to ensure Integrity)
 --------------------------------------------------------------------------------
 
 -- Return 1: Returning items from Samsung shipment (SAM-INV-501)
-INSERT INTO product_return_master (supplier_id, receive_id, return_by, adjusted_vat, status)
+INSERT INTO product_return_master (supplier_id, receive_id, order_id, return_by, adjusted_vat, status)
 VALUES (
     (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Samsung Authorized Distributor' AND ROWNUM = 1),
-    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'SAM-INV-501'),
+    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'SAM-INV-501' AND ROWNUM = 1),
+    (SELECT order_id FROM product_receive_master WHERE sup_invoice_id = 'SAM-INV-501' AND ROWNUM = 1),
     (SELECT employee_id FROM employees WHERE first_name = 'Ahsan' AND last_name = 'Kabir' AND ROWNUM = 1),
     150, 1
 );
 
 -- Return 2: Returning items from LG shipment (LG-INV-882)
-INSERT INTO product_return_master (supplier_id, receive_id, return_by, adjusted_vat, status)
+INSERT INTO product_return_master (supplier_id, receive_id, order_id, return_by, adjusted_vat, status)
 VALUES (
     (SELECT supplier_id FROM suppliers WHERE supplier_name = 'LG Electronics Supplier' AND ROWNUM = 1),
-    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'LG-INV-882'),
+    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'LG-INV-882' AND ROWNUM = 1),
+    (SELECT order_id FROM product_receive_master WHERE sup_invoice_id = 'LG-INV-882' AND ROWNUM = 1),
     (SELECT employee_id FROM employees WHERE first_name = 'Rezaul' AND last_name = 'Karim' AND ROWNUM = 1),
     200, 1
 );
 
 -- Return 3: Returning items from Walton shipment (WAL-INV-301)
-INSERT INTO product_return_master (supplier_id, receive_id, return_by, adjusted_vat, status)
+INSERT INTO product_return_master (supplier_id, receive_id, order_id, return_by, adjusted_vat, status)
 VALUES (
     (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Walton Spare Parts Division' AND ROWNUM = 1),
-    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'WAL-INV-301'),
+    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'WAL-INV-301' AND ROWNUM = 1),
+    (SELECT order_id FROM product_receive_master WHERE sup_invoice_id = 'WAL-INV-301' AND ROWNUM = 1),
     (SELECT employee_id FROM employees WHERE first_name = 'Ahsan' AND last_name = 'Kabir' AND ROWNUM = 1),
     50, 1
 );
 
 -- Return 4: Returning items from second Samsung shipment (SAM-INV-502)
-INSERT INTO product_return_master (supplier_id, receive_id, return_by, adjusted_vat, status)
+INSERT INTO product_return_master (supplier_id, receive_id, order_id, return_by, adjusted_vat, status)
 VALUES (
     (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Samsung Authorized Distributor' AND ROWNUM = 1),
-    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'SAM-INV-502'),
+    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'SAM-INV-502' AND ROWNUM = 1),
+    (SELECT order_id FROM product_receive_master WHERE sup_invoice_id = 'SAM-INV-502' AND ROWNUM = 1),
     (SELECT employee_id FROM employees WHERE first_name = 'Keya' AND last_name = 'Payel' AND ROWNUM = 1),
     100, 1
 );
 
 -- Return 5: Returning items from Asian Tech (ASI-INV-109)
-INSERT INTO product_return_master (supplier_id, receive_id, return_by, adjusted_vat, status)
+INSERT INTO product_return_master (supplier_id, receive_id, order_id, return_by, adjusted_vat, status)
 VALUES (
     (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Asian Spare Parts House' AND ROWNUM = 1),
-    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'ASI-INV-109'),
+    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'ASI-INV-109' AND ROWNUM = 1),
+    (SELECT order_id FROM product_receive_master WHERE sup_invoice_id = 'ASI-INV-109' AND ROWNUM = 1),
     (SELECT employee_id FROM employees WHERE first_name = 'Ariful' AND last_name = 'Islam' AND ROWNUM = 1),
     300, 1
 );
 
 -- Return 6: Returning items from second LG shipment (LG-INV-885)
-INSERT INTO product_return_master (supplier_id, receive_id, return_by, adjusted_vat, status)
+INSERT INTO product_return_master (supplier_id, receive_id, order_id, return_by, adjusted_vat, status)
 VALUES (
     (SELECT supplier_id FROM suppliers WHERE supplier_name = 'LG Electronics Supplier' AND ROWNUM = 1),
-    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'LG-INV-885'),
+    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'LG-INV-885' AND ROWNUM = 1),
+    (SELECT order_id FROM product_receive_master WHERE sup_invoice_id = 'LG-INV-885' AND ROWNUM = 1),
     (SELECT employee_id FROM employees WHERE first_name = 'Imtiaz' AND last_name = 'Bulbul' AND ROWNUM = 1),
     180, 1
 );
 
 -- Return 7: Returning items from Singer (JAM-INV-441)
-INSERT INTO product_return_master (supplier_id, receive_id, return_by, adjusted_vat, status)
+INSERT INTO product_return_master (supplier_id, receive_id, order_id, return_by, adjusted_vat, status)
 VALUES (
     (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Jamuna Electronics Supplier' AND ROWNUM = 1),
-    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'JAM-INV-441'),
+    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'JAM-INV-441' AND ROWNUM = 1),
+    (SELECT order_id FROM product_receive_master WHERE sup_invoice_id = 'JAM-INV-441' AND ROWNUM = 1),
     (SELECT employee_id FROM employees WHERE first_name = 'Mominul' AND last_name = 'Haque' AND ROWNUM = 1),
     400, 1
 );
 
 -- Return 8: Returning items from Midea (MIN-INV-221)
-INSERT INTO product_return_master (supplier_id, receive_id, return_by, adjusted_vat, status)
+INSERT INTO product_return_master (supplier_id, receive_id, order_id, return_by, adjusted_vat, status)
 VALUES (
     (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Minister Hi-Tech Supplier' AND ROWNUM = 1),
-    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'MIN-INV-221'),
+    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'MIN-INV-221' AND ROWNUM = 1),
+    (SELECT order_id FROM product_receive_master WHERE sup_invoice_id = 'MIN-INV-221' AND ROWNUM = 1),
     (SELECT employee_id FROM employees WHERE first_name = 'Ariful' AND last_name = 'Islam' AND ROWNUM = 1),
     120, 1
 );
 
 -- Return 9: Returning items from City IT (CIT-INV-667)
-INSERT INTO product_return_master (supplier_id, receive_id, return_by, adjusted_vat, status)
+INSERT INTO product_return_master (supplier_id, receive_id, order_id, return_by, adjusted_vat, status)
 VALUES (
     (SELECT supplier_id FROM suppliers WHERE supplier_name = 'City Electronics Parts Supplier' AND ROWNUM = 1),
-    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'CIT-INV-667'),
+    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'CIT-INV-667' AND ROWNUM = 1),
+    (SELECT order_id FROM product_receive_master WHERE sup_invoice_id = 'CIT-INV-667' AND ROWNUM = 1),
     (SELECT employee_id FROM employees WHERE first_name = 'Fatima' AND last_name = 'Zohra' AND ROWNUM = 1),
     250, 1
 );
 
 -- Return 10: Returning items from Bangla Tech (BAN-INV-990)
-INSERT INTO product_return_master (supplier_id, receive_id, return_by, adjusted_vat, status)
+INSERT INTO product_return_master (supplier_id, receive_id, order_id, return_by, adjusted_vat, status)
 VALUES (
     (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Bangladesh Electronics Wholesale' AND ROWNUM = 1),
-    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'BAN-INV-990'),
+    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'BAN-INV-990' AND ROWNUM = 1),
+    (SELECT order_id FROM product_receive_master WHERE sup_invoice_id = 'BAN-INV-990' AND ROWNUM = 1),
     (SELECT employee_id FROM employees WHERE first_name = 'Zahid' AND last_name = 'Hasib' AND ROWNUM = 1),
     90, 1
 );
@@ -3608,80 +3105,80 @@ COMMIT;
 -- Order 1: Samsung Galaxy S24
 INSERT INTO product_order_detail (order_id, product_id, mrp, purchase_price, quantity)
 VALUES (
-    (SELECT order_id FROM product_order_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Samsung Authorized Distributor') AND ROWNUM = 1),
-    (SELECT product_id FROM products WHERE product_code = 'SAM-S24-018'),
+    (SELECT order_id FROM product_order_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Samsung Authorized Distributor' AND ROWNUM = 1) AND ROWNUM = 1),
+    (SELECT product_id FROM products WHERE product_code = 'SAM-S24-018' AND ROWNUM = 1),
     95000, 82000, 10
 );
 
 -- Order 2: LG Double Door Refrigerator
 INSERT INTO product_order_detail (order_id, product_id, mrp, purchase_price, quantity)
 VALUES (
-    (SELECT order_id FROM product_order_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'LG Electronics Supplier') AND ROWNUM = 1),
-    (SELECT product_id FROM products WHERE product_code = 'LG-REF-0411'),
+    (SELECT order_id FROM product_order_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'LG Electronics Supplier' AND ROWNUM = 1) AND ROWNUM = 1),
+    (SELECT product_id FROM products WHERE product_code = 'LG-REF-0411' AND ROWNUM = 1),
     75000, 65000, 5
 );
 
 -- Order 3: Walton 42 Inch LED
 INSERT INTO product_order_detail (order_id, product_id, mrp, purchase_price, quantity)
 VALUES (
-    (SELECT order_id FROM product_order_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Walton Spare Parts Division') AND ROWNUM = 1),
-    (SELECT product_id FROM products WHERE product_code = 'WAL-TV-0512'),
+    (SELECT order_id FROM product_order_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Walton Spare Parts Division' AND ROWNUM = 1) AND ROWNUM = 1),
+    (SELECT product_id FROM products WHERE product_code = 'WAL-TV-0512' AND ROWNUM = 1),
     35000, 28000, 15
 );
 
 -- Order 4: Samsung Front Load Washer
 INSERT INTO product_order_detail (order_id, product_id, mrp, purchase_price, quantity)
 VALUES (
-    (SELECT order_id FROM product_order_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Samsung Authorized Distributor') AND ROWNUM = 1),
-    (SELECT product_id FROM products WHERE product_code = 'SAM-WASH-0815'),
+    (SELECT order_id FROM product_order_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Samsung Authorized Distributor' AND ROWNUM = 1) AND ROWNUM = 1),
+    (SELECT product_id FROM products WHERE product_code = 'SAM-WASH-0815' AND ROWNUM = 1),
     55000, 48000, 8
 );
 
 -- Order 5: Dell Latitude 5420
 INSERT INTO product_order_detail (order_id, product_id, mrp, purchase_price, quantity)
 VALUES (
-    (SELECT order_id FROM product_order_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Asian Spare Parts House') AND ROWNUM = 1),
-    (SELECT product_id FROM products WHERE product_code = 'DEL-LAT-0310'),
+    (SELECT order_id FROM product_order_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Asian Spare Parts House' AND ROWNUM = 1) AND ROWNUM = 1),
+    (SELECT product_id FROM products WHERE product_code = 'DEL-LAT-0310' AND ROWNUM = 1),
     85000, 75000, 12
 );
 
 -- Order 6: LG Home Theater System
 INSERT INTO product_order_detail (order_id, product_id, mrp, purchase_price, quantity)
 VALUES (
-    (SELECT order_id FROM product_order_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'LG Electronics Supplier') AND ROWNUM = 1),
-    (SELECT product_id FROM products WHERE product_code = 'LG-HOM-1017'),
+    (SELECT order_id FROM product_order_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'LG Electronics Supplier' AND ROWNUM = 1) AND ROWNUM = 1),
+    (SELECT product_id FROM products WHERE product_code = 'LG-HOM-1017' AND ROWNUM = 1),
     25000, 21000, 20
 );
 
 -- Order 7: Hitachi Silent Generator
 INSERT INTO product_order_detail (order_id, product_id, mrp, purchase_price, quantity)
 VALUES (
-    (SELECT order_id FROM product_order_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Jamuna Electronics Supplier') AND ROWNUM = 1),
-    (SELECT product_id FROM products WHERE product_code = 'HIT-GEN-0916'),
+    (SELECT order_id FROM product_order_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Jamuna Electronics Supplier' AND ROWNUM = 1) AND ROWNUM = 1),
+    (SELECT product_id FROM products WHERE product_code = 'HIT-GEN-0916' AND ROWNUM = 1),
     120000, 105000, 3
 );
 
 -- Order 8: Midea Split AC
 INSERT INTO product_order_detail (order_id, product_id, mrp, purchase_price, quantity)
 VALUES (
-    (SELECT order_id FROM product_order_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Minister Hi-Tech Supplier') AND ROWNUM = 1),
-    (SELECT product_id FROM products WHERE product_code = 'MIN-AC-0613'),
+    (SELECT order_id FROM product_order_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Minister Hi-Tech Supplier' AND ROWNUM = 1) AND ROWNUM = 1),
+    (SELECT product_id FROM products WHERE product_code = 'MIN-AC-0613' AND ROWNUM = 1),
     48000, 42000, 10
 );
 
 -- Order 9: iPhone 15 Pro
 INSERT INTO product_order_detail (order_id, product_id, mrp, purchase_price, quantity)
 VALUES (
-    (SELECT order_id FROM product_order_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'City Electronics Parts Supplier') AND ROWNUM = 1),
-    (SELECT product_id FROM products WHERE product_code = 'IPH-15-029'),
+    (SELECT order_id FROM product_order_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'City Electronics Parts Supplier' AND ROWNUM = 1) AND ROWNUM = 1),
+    (SELECT product_id FROM products WHERE product_code = 'IPH-15-029' AND ROWNUM = 1),
     145000, 130000, 7
 );
 
 -- Order 10: Panasonic Microwave
 INSERT INTO product_order_detail (order_id, product_id, mrp, purchase_price, quantity)
 VALUES (
-    (SELECT order_id FROM product_order_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Bangladesh Electronics Wholesale') AND ROWNUM = 1),
-    (SELECT product_id FROM products WHERE product_code = 'PAN-MIC-0714'),
+    (SELECT order_id FROM product_order_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Bangladesh Electronics Wholesale' AND ROWNUM = 1) AND ROWNUM = 1),
+    (SELECT product_id FROM products WHERE product_code = 'PAN-MIC-0714' AND ROWNUM = 1),
     18000, 15000, 10
 );
 
@@ -3695,80 +3192,80 @@ COMMIT;
 -- Receiving for Order from Samsung (SAM-INV-501)
 INSERT INTO product_receive_details (receive_id, product_id, mrp, purchase_price, receive_quantity)
 VALUES (
-    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'SAM-INV-501'),
-    (SELECT product_id FROM products WHERE product_code = 'SAM-S24-018'),
+    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'SAM-INV-501' AND ROWNUM = 1),
+    (SELECT product_id FROM products WHERE product_code = 'SAM-S24-018' AND ROWNUM = 1),
     95000, 82000, 10
 );
 
 -- Receiving for Order from LG (LG-INV-882)
 INSERT INTO product_receive_details (receive_id, product_id, mrp, purchase_price, receive_quantity)
 VALUES (
-    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'LG-INV-882'),
-    (SELECT product_id FROM products WHERE product_code = 'LG-REF-0411'),
+    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'LG-INV-882' AND ROWNUM = 1),
+    (SELECT product_id FROM products WHERE product_code = 'LG-REF-0411' AND ROWNUM = 1),
     75000, 65000, 5
 );
 
 -- Receiving for Order from Walton (WAL-INV-301)
 INSERT INTO product_receive_details (receive_id, product_id, mrp, purchase_price, receive_quantity)
 VALUES (
-    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'WAL-INV-301'),
-    (SELECT product_id FROM products WHERE product_code = 'WAL-TV-0512'),
+    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'WAL-INV-301' AND ROWNUM = 1),
+    (SELECT product_id FROM products WHERE product_code = 'WAL-TV-0512' AND ROWNUM = 1),
     35000, 28000, 15
 );
 
 -- Receiving for Order from Samsung (SAM-INV-502)
 INSERT INTO product_receive_details (receive_id, product_id, mrp, purchase_price, receive_quantity)
 VALUES (
-    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'SAM-INV-502'),
-    (SELECT product_id FROM products WHERE product_code = 'SAM-WASH-0815'),
+    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'SAM-INV-502' AND ROWNUM = 1),
+    (SELECT product_id FROM products WHERE product_code = 'SAM-WASH-0815' AND ROWNUM = 1),
     55000, 48000, 8
 );
 
 -- Receiving for Order from Asian Tech (ASI-INV-109)
 INSERT INTO product_receive_details (receive_id, product_id, mrp, purchase_price, receive_quantity)
 VALUES (
-    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'ASI-INV-109'),
-    (SELECT product_id FROM products WHERE product_code = 'DEL-LAT-0310'),
+    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'ASI-INV-109' AND ROWNUM = 1),
+    (SELECT product_id FROM products WHERE product_code = 'DEL-LAT-0310' AND ROWNUM = 1),
     85000, 75000, 12
 );
 
 -- Receiving for Order from LG (LG-INV-885)
 INSERT INTO product_receive_details (receive_id, product_id, mrp, purchase_price, receive_quantity)
 VALUES (
-    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'LG-INV-885'),
-    (SELECT product_id FROM products WHERE product_code = 'LG-HOM-1017'),
+    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'LG-INV-885' AND ROWNUM = 1),
+    (SELECT product_id FROM products WHERE product_code = 'LG-HOM-1017' AND ROWNUM = 1),
     25000, 21000, 20
 );
 
 -- Receiving for Order from Jamuna (JAM-INV-441)
 INSERT INTO product_receive_details (receive_id, product_id, mrp, purchase_price, receive_quantity)
 VALUES (
-    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'JAM-INV-441'),
-    (SELECT product_id FROM products WHERE product_code = 'HIT-GEN-0916'),
+    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'JAM-INV-441' AND ROWNUM = 1),
+    (SELECT product_id FROM products WHERE product_code = 'HIT-GEN-0916' AND ROWNUM = 1),
     120000, 105000, 3
 );
 
 -- Receiving for Order from Midea (MIN-INV-221)
 INSERT INTO product_receive_details (receive_id, product_id, mrp, purchase_price, receive_quantity)
 VALUES (
-    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'MIN-INV-221'),
-    (SELECT product_id FROM products WHERE product_code = 'MIN-AC-0613'),
+    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'MIN-INV-221' AND ROWNUM = 1),
+    (SELECT product_id FROM products WHERE product_code = 'MIN-AC-0613' AND ROWNUM = 1),
     48000, 42000, 10
 );
 
 -- Receiving for Order from City IT (CIT-INV-667)
 INSERT INTO product_receive_details (receive_id, product_id, mrp, purchase_price, receive_quantity)
 VALUES (
-    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'CIT-INV-667'),
-    (SELECT product_id FROM products WHERE product_code = 'IPH-15-029'),
+    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'CIT-INV-667' AND ROWNUM = 1),
+    (SELECT product_id FROM products WHERE product_code = 'IPH-15-029' AND ROWNUM = 1),
     145000, 130000, 7
 );
 
 -- Receiving for Order from Bangla Tech (BAN-INV-990)
 INSERT INTO product_receive_details (receive_id, product_id, mrp, purchase_price, receive_quantity)
 VALUES (
-    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'BAN-INV-990'),
-    (SELECT product_id FROM products WHERE product_code = 'PAN-MIC-0714'),
+    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'BAN-INV-990' AND ROWNUM = 1),
+    (SELECT product_id FROM products WHERE product_code = 'PAN-MIC-0714' AND ROWNUM = 1),
     18000, 15000, 10
 );
 
@@ -3783,7 +3280,7 @@ COMMIT;
 INSERT INTO product_return_details (return_id, product_id, mrp, purchase_price, return_quantity, reason)
 VALUES (
     (SELECT return_id FROM product_return_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Samsung Authorized Distributor' AND ROWNUM = 1) AND ROWNUM = 1),
-    (SELECT product_id FROM products WHERE product_code = 'SAM-S24-018'),
+    (SELECT product_id FROM products WHERE product_code = 'SAM-S24-018' AND ROWNUM = 1),
     95000, 82000, 2, 'Damaged screen during transit'
 );
 
@@ -3791,7 +3288,7 @@ VALUES (
 INSERT INTO product_return_details (return_id, product_id, mrp, purchase_price, return_quantity, reason)
 VALUES (
     (SELECT return_id FROM product_return_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'LG Electronics Supplier' AND ROWNUM = 1) AND ROWNUM = 1),
-    (SELECT product_id FROM products WHERE product_code = 'LG-REF-0411'),
+    (SELECT product_id FROM products WHERE product_code = 'LG-REF-0411' AND ROWNUM = 1),
     75000, 65000, 1, 'Compressor noise issue'
 );
 
@@ -3799,7 +3296,7 @@ VALUES (
 INSERT INTO product_return_details (return_id, product_id, mrp, purchase_price, return_quantity, reason)
 VALUES (
     (SELECT return_id FROM product_return_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Walton Spare Parts Division' AND ROWNUM = 1) AND ROWNUM = 1),
-    (SELECT product_id FROM products WHERE product_code = 'WAL-TV-0512'),
+    (SELECT product_id FROM products WHERE product_code = 'WAL-TV-0512' AND ROWNUM = 1),
     35000, 28000, 3, 'Dead pixels on panel'
 );
 
@@ -3807,7 +3304,7 @@ VALUES (
 INSERT INTO product_return_details (return_id, product_id, mrp, purchase_price, return_quantity, reason)
 VALUES (
     (SELECT return_id FROM product_return_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Samsung Authorized Distributor' AND ROWNUM = 1) AND ROWNUM = 1),
-    (SELECT product_id FROM products WHERE product_code = 'SAM-WASH-0815'),
+    (SELECT product_id FROM products WHERE product_code = 'SAM-WASH-0815' AND ROWNUM = 1),
     55000, 48000, 1, 'Water leakage from door'
 );
 
@@ -3815,7 +3312,7 @@ VALUES (
 INSERT INTO product_return_details (return_id, product_id, mrp, purchase_price, return_quantity, reason)
 VALUES (
     (SELECT return_id FROM product_return_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Asian Spare Parts House' AND ROWNUM = 1) AND ROWNUM = 1),
-    (SELECT product_id FROM products WHERE product_code = 'DEL-LAT-0310'),
+    (SELECT product_id FROM products WHERE product_code = 'DEL-LAT-0310' AND ROWNUM = 1),
     85000, 75000, 2, 'Motherboard failure'
 );
 
@@ -3823,7 +3320,7 @@ VALUES (
 INSERT INTO product_return_details (return_id, product_id, mrp, purchase_price, return_quantity, reason)
 VALUES (
     (SELECT return_id FROM product_return_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'LG Electronics Supplier' AND ROWNUM = 1) AND ROWNUM = 1),
-    (SELECT product_id FROM products WHERE product_code = 'LG-HOM-1017'),
+    (SELECT product_id FROM products WHERE product_code = 'LG-HOM-1017' AND ROWNUM = 1),
     25000, 21000, 5, 'Remote control missing in boxes'
 );
 
@@ -3831,7 +3328,7 @@ VALUES (
 INSERT INTO product_return_details (return_id, product_id, mrp, purchase_price, return_quantity, reason)
 VALUES (
     (SELECT return_id FROM product_return_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Jamuna Electronics Supplier' AND ROWNUM = 1) AND ROWNUM = 1),
-    (SELECT product_id FROM products WHERE product_code = 'HIT-GEN-0916'),
+    (SELECT product_id FROM products WHERE product_code = 'HIT-GEN-0916' AND ROWNUM = 1),
     120000, 105000, 1, 'Fuel tank dented'
 );
 
@@ -3839,7 +3336,7 @@ VALUES (
 INSERT INTO product_return_details (return_id, product_id, mrp, purchase_price, return_quantity, reason)
 VALUES (
     (SELECT return_id FROM product_return_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Minister Hi-Tech Supplier' AND ROWNUM = 1) AND ROWNUM = 1),
-    (SELECT product_id FROM products WHERE product_code = 'MIN-AC-0613'),
+    (SELECT product_id FROM products WHERE product_code = 'MIN-AC-0613' AND ROWNUM = 1),
     48000, 42000, 2, 'Incomplete installation kit'
 );
 
@@ -3847,7 +3344,7 @@ VALUES (
 INSERT INTO product_return_details (return_id, product_id, mrp, purchase_price, return_quantity, reason)
 VALUES (
     (SELECT return_id FROM product_return_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'City Electronics Parts Supplier' AND ROWNUM = 1) AND ROWNUM = 1),
-    (SELECT product_id FROM products WHERE product_code = 'IPH-15-029'),
+    (SELECT product_id FROM products WHERE product_code = 'IPH-15-029' AND ROWNUM = 1),
     145000, 130000, 1, 'FaceID sensor not working'
 );
 
@@ -3855,8 +3352,615 @@ VALUES (
 INSERT INTO product_return_details (return_id, product_id, mrp, purchase_price, return_quantity, reason)
 VALUES (
     (SELECT return_id FROM product_return_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Bangladesh Electronics Wholesale' AND ROWNUM = 1) AND ROWNUM = 1),
-    (SELECT product_id FROM products WHERE product_code = 'PAN-MIC-0714'),
+    (SELECT product_id FROM products WHERE product_code = 'PAN-MIC-0714' AND ROWNUM = 1),
     18000, 15000, 2, 'Glass tray broken'
 );
 
 COMMIT;
+
+--------------------------------------------------------------------------------
+-- ADDITIONAL DATA: SALES, SERVICE, AND OPERATIONAL RECORDS
+--------------------------------------------------------------------------------
+
+-- 30. STOCK (Inventory Management)
+--------------------------------------------------------------------------------
+INSERT INTO stock (product_id, supplier_id, quantity)
+VALUES (
+    (SELECT product_id FROM products WHERE product_code = 'SAM-S24-018' AND ROWNUM = 1),
+    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Samsung Authorized Distributor' AND ROWNUM = 1),
+    25
+);
+
+INSERT INTO stock (product_id, supplier_id, quantity)
+VALUES (
+    (SELECT product_id FROM products WHERE product_code = 'LG-REF-0411' AND ROWNUM = 1),
+    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'LG Electronics Supplier' AND ROWNUM = 1),
+    15
+);
+
+INSERT INTO stock (product_id, supplier_id, quantity)
+VALUES (
+    (SELECT product_id FROM products WHERE product_code = 'WAL-TV-0512' AND ROWNUM = 1),
+    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Walton Spare Parts Division' AND ROWNUM = 1),
+    20
+);
+
+INSERT INTO stock (product_id, supplier_id, quantity)
+VALUES (
+    (SELECT product_id FROM products WHERE product_code = 'SAM-WASH-0815' AND ROWNUM = 1),
+    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Samsung Authorized Distributor' AND ROWNUM = 1),
+    12
+);
+
+INSERT INTO stock (product_id, supplier_id, quantity)
+VALUES (
+    (SELECT product_id FROM products WHERE product_code = 'DEL-LAT-0310' AND ROWNUM = 1),
+    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Asian Spare Parts House' AND ROWNUM = 1),
+    18
+);
+
+INSERT INTO stock (product_id, supplier_id, quantity)
+VALUES (
+    (SELECT product_id FROM products WHERE product_code = 'LG-HOM-1017' AND ROWNUM = 1),
+    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'LG Electronics Supplier' AND ROWNUM = 1),
+    30
+);
+
+INSERT INTO stock (product_id, supplier_id, quantity)
+VALUES (
+    (SELECT product_id FROM products WHERE product_code = 'HIT-GEN-0916' AND ROWNUM = 1),
+    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Jamuna Electronics Supplier' AND ROWNUM = 1),
+    8
+);
+
+INSERT INTO stock (product_id, supplier_id, quantity)
+VALUES (
+    (SELECT product_id FROM products WHERE product_code = 'MIN-AC-0613' AND ROWNUM = 1),
+    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Minister Hi-Tech Supplier' AND ROWNUM = 1),
+    14
+);
+
+INSERT INTO stock (product_id, supplier_id, quantity)
+VALUES (
+    (SELECT product_id FROM products WHERE product_code = 'IPH-15-029' AND ROWNUM = 1),
+    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'City Electronics Parts Supplier' AND ROWNUM = 1),
+    9
+);
+
+INSERT INTO stock (product_id, supplier_id, quantity)
+VALUES (
+    (SELECT product_id FROM products WHERE product_code = 'PAN-MIC-0714' AND ROWNUM = 1),
+    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Bangladesh Electronics Wholesale' AND ROWNUM = 1),
+    16
+);
+
+COMMIT;
+
+
+--------------------------------------------------------------------------------
+-- 31. SALES_MASTER (Customer Sales Invoices)
+--------------------------------------------------------------------------------
+
+INSERT INTO sales_master (customer_id, sales_by, invoice_date, discount)
+VALUES (
+    (SELECT customer_id FROM customers WHERE phone_no = '01711111001' AND ROWNUM = 1),
+    (SELECT employee_id FROM employees WHERE first_name = 'Rafiqul' AND last_name = 'Hasan' AND ROWNUM = 1),
+    SYSDATE - 12,
+    2000
+);
+
+INSERT INTO sales_master (customer_id, sales_by, invoice_date, discount)
+VALUES (
+    (SELECT customer_id FROM customers WHERE phone_no = '01711111002' AND ROWNUM = 1),
+    (SELECT employee_id FROM employees WHERE first_name = 'Ariful' AND last_name = 'Islam' AND ROWNUM = 1),
+    SYSDATE - 10,
+    3000
+);
+
+INSERT INTO sales_master (customer_id, sales_by, invoice_date, discount)
+VALUES (
+    (SELECT customer_id FROM customers WHERE phone_no = '01711111003' AND ROWNUM = 1),
+    (SELECT employee_id FROM employees WHERE first_name = 'Fatima' AND last_name = 'Zohra' AND ROWNUM = 1),
+    SYSDATE - 8,
+    1500
+);
+
+INSERT INTO sales_master (customer_id, sales_by, invoice_date, discount)
+VALUES (
+    (SELECT customer_id FROM customers WHERE phone_no = '01711111004' AND ROWNUM = 1),
+    (SELECT employee_id FROM employees WHERE first_name = 'Zahid' AND last_name = 'Hasib' AND ROWNUM = 1),
+    SYSDATE - 6,
+    5000
+);
+
+INSERT INTO sales_master (customer_id, sales_by, invoice_date, discount)
+VALUES (
+    (SELECT customer_id FROM customers WHERE phone_no = '01711111005' AND ROWNUM = 1),
+    (SELECT employee_id FROM employees WHERE first_name = 'Tariq' AND last_name = 'Aziz' AND ROWNUM = 1),
+    SYSDATE - 4,
+    2500
+);
+
+INSERT INTO sales_master (customer_id, sales_by, invoice_date, discount)
+VALUES (
+    (SELECT customer_id FROM customers WHERE phone_no = '01711111006' AND ROWNUM = 1),
+    (SELECT employee_id FROM employees WHERE first_name = 'Rumana' AND last_name = 'Afroz' AND ROWNUM = 1),
+    SYSDATE - 3,
+    1000
+);
+
+INSERT INTO sales_master (customer_id, sales_by, invoice_date, discount)
+VALUES (
+    (SELECT customer_id FROM customers WHERE phone_no = '01711111007' AND ROWNUM = 1),
+    (SELECT employee_id FROM employees WHERE first_name = 'Mominul' AND last_name = 'Haque' AND ROWNUM = 1),
+    SYSDATE - 2,
+    3000
+);
+
+INSERT INTO sales_master (customer_id, sales_by, invoice_date, discount)
+VALUES (
+    (SELECT customer_id FROM customers WHERE phone_no = '01711111008' AND ROWNUM = 1),
+    (SELECT employee_id FROM employees WHERE first_name = 'Rafiqul' AND last_name = 'Hasan' AND ROWNUM = 1),
+    SYSDATE - 1,
+    2000
+);
+
+INSERT INTO sales_master (customer_id, sales_by, invoice_date, discount)
+VALUES (
+    (SELECT customer_id FROM customers WHERE phone_no = '01711111009' AND ROWNUM = 1),
+    (SELECT employee_id FROM employees WHERE first_name = 'Ariful' AND last_name = 'Islam' AND ROWNUM = 1),
+    SYSDATE,
+    500
+);
+
+INSERT INTO sales_master (customer_id, sales_by, invoice_date, discount)
+VALUES (
+    (SELECT customer_id FROM customers WHERE phone_no = '01711111010' AND ROWNUM = 1),
+    (SELECT employee_id FROM employees WHERE first_name = 'Fatima' AND last_name = 'Zohra' AND ROWNUM = 1),
+    SYSDATE,
+    8000
+);
+
+COMMIT;
+
+
+--------------------------------------------------------------------------------
+-- 32. SALES_DETAIL (Sales Line Items)
+--------------------------------------------------------------------------------
+
+INSERT INTO sales_detail (invoice_id, product_id, quantity, mrp, vat)
+VALUES (
+    (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01711111001' AND ROWNUM = 1) AND ROWNUM = 1),
+    (SELECT product_id FROM products WHERE product_code = 'SAM-S24-018' AND ROWNUM = 1),
+    1, 95000, 5000
+);
+
+INSERT INTO sales_detail (invoice_id, product_id, quantity, mrp, vat)
+VALUES (
+    (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01711111002' AND ROWNUM = 1) AND ROWNUM = 1),
+    (SELECT product_id FROM products WHERE product_code = 'LG-REF-0411' AND ROWNUM = 1),
+    1, 75000, 3500
+);
+
+INSERT INTO sales_detail (invoice_id, product_id, quantity, mrp, vat)
+VALUES (
+    (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01711111003' AND ROWNUM = 1) AND ROWNUM = 1),
+    (SELECT product_id FROM products WHERE product_code = 'WAL-TV-0512' AND ROWNUM = 1),
+    1, 35000, 2000
+);
+
+INSERT INTO sales_detail (invoice_id, product_id, quantity, mrp, vat)
+VALUES (
+    (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01711111004' AND ROWNUM = 1) AND ROWNUM = 1),
+    (SELECT product_id FROM products WHERE product_code = 'DEL-LAT-0310' AND ROWNUM = 1),
+    2, 85000, 4500
+);
+
+INSERT INTO sales_detail (invoice_id, product_id, quantity, mrp, vat)
+VALUES (
+    (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01711111005' AND ROWNUM = 1) AND ROWNUM = 1),
+    (SELECT product_id FROM products WHERE product_code = 'MIN-AC-0613' AND ROWNUM = 1),
+    1, 48000, 3000
+);
+
+INSERT INTO sales_detail (invoice_id, product_id, quantity, mrp, vat)
+VALUES (
+    (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01711111006' AND ROWNUM = 1) AND ROWNUM = 1),
+    (SELECT product_id FROM products WHERE product_code = 'LG-HOM-1017' AND ROWNUM = 1),
+    1, 25000, 1500
+);
+
+INSERT INTO sales_detail (invoice_id, product_id, quantity, mrp, vat)
+VALUES (
+    (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01711111007' AND ROWNUM = 1) AND ROWNUM = 1),
+    (SELECT product_id FROM products WHERE product_code = 'IPH-15-029' AND ROWNUM = 1),
+    1, 145000, 7500
+);
+
+INSERT INTO sales_detail (invoice_id, product_id, quantity, mrp, vat)
+VALUES (
+    (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01711111008' AND ROWNUM = 1) AND ROWNUM = 1),
+    (SELECT product_id FROM products WHERE product_code = 'SAM-WASH-0815' AND ROWNUM = 1),
+    1, 55000, 3000
+);
+
+INSERT INTO sales_detail (invoice_id, product_id, quantity, mrp, vat)
+VALUES (
+    (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01711111009' AND ROWNUM = 1) AND ROWNUM = 1),
+    (SELECT product_id FROM products WHERE product_code = 'PAN-MIC-0714' AND ROWNUM = 1),
+    1, 18000, 1000
+);
+
+INSERT INTO sales_detail (invoice_id, product_id, quantity, mrp, vat)
+VALUES (
+    (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01711111010' AND ROWNUM = 1) AND ROWNUM = 1),
+    (SELECT product_id FROM products WHERE product_code = 'HIT-GEN-0916' AND ROWNUM = 1),
+    1, 120000, 6000
+);
+
+COMMIT;
+
+
+--------------------------------------------------------------------------------
+-- 33. SALES_RETURN_MASTER (Returns from Customers)
+--------------------------------------------------------------------------------
+
+INSERT INTO sales_return_master (invoice_id, return_date)
+VALUES (
+    (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01711111001' AND ROWNUM = 1) AND ROWNUM = 1),
+    SYSDATE - 5
+);
+
+INSERT INTO sales_return_master (invoice_id, return_date)
+VALUES (
+    (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01711111009' AND ROWNUM = 1) AND ROWNUM = 1),
+    SYSDATE
+);
+
+COMMIT;
+
+
+--------------------------------------------------------------------------------
+-- 34. SERVICE_MASTER (Service Requests)
+--------------------------------------------------------------------------------
+
+INSERT INTO service_master (customer_id, invoice_id, service_date, service_by, warranty_applicable)
+VALUES (
+    (SELECT customer_id FROM customers WHERE phone_no = '01711111003' AND ROWNUM = 1),
+    (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01711111003' AND ROWNUM = 1) AND ROWNUM = 1),
+    SYSDATE - 5,
+    (SELECT employee_id FROM employees WHERE first_name = 'Mominul' AND last_name = 'Haque' AND ROWNUM = 1),
+    'Y'
+);
+
+INSERT INTO service_master (customer_id, invoice_id, service_date, service_by, warranty_applicable)
+VALUES (
+    (SELECT customer_id FROM customers WHERE phone_no = '01711111002' AND ROWNUM = 1),
+    (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01711111002' AND ROWNUM = 1) AND ROWNUM = 1),
+    SYSDATE - 3,
+    (SELECT employee_id FROM employees WHERE first_name = 'Mominul' AND last_name = 'Haque' AND ROWNUM = 1),
+    'Y'
+);
+
+INSERT INTO service_master (customer_id, invoice_id, service_date, service_by, warranty_applicable)
+VALUES (
+    (SELECT customer_id FROM customers WHERE phone_no = '01711111005' AND ROWNUM = 1),
+    (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01711111005' AND ROWNUM = 1) AND ROWNUM = 1),
+    SYSDATE - 2,
+    (SELECT employee_id FROM employees WHERE first_name = 'Mominul' AND last_name = 'Haque' AND ROWNUM = 1),
+    'N'
+);
+
+INSERT INTO service_master (customer_id, invoice_id, service_date, service_by, warranty_applicable)
+VALUES (
+    (SELECT customer_id FROM customers WHERE phone_no = '01711111004' AND ROWNUM = 1),
+    (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01711111004' AND ROWNUM = 1) AND ROWNUM = 1),
+    SYSDATE - 1,
+    (SELECT employee_id FROM employees WHERE first_name = 'Ariful' AND last_name = 'Islam' AND ROWNUM = 1),
+    'N'
+);
+
+INSERT INTO service_master (customer_id, invoice_id, service_date, service_by, warranty_applicable)
+VALUES (
+    (SELECT customer_id FROM customers WHERE phone_no = '01711111008' AND ROWNUM = 1),
+    (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01711111008' AND ROWNUM = 1) AND ROWNUM = 1),
+    SYSDATE,
+    (SELECT employee_id FROM employees WHERE first_name = 'Mominul' AND last_name = 'Haque' AND ROWNUM = 1),
+    'Y'
+);
+
+COMMIT;
+
+
+--------------------------------------------------------------------------------
+-- 35. DAMAGE (Damaged Goods)
+--------------------------------------------------------------------------------
+
+INSERT INTO damage (damage_date, total_loss)
+VALUES (
+    SYSDATE - 7,
+    45000
+);
+
+INSERT INTO damage (damage_date, total_loss)
+VALUES (
+    SYSDATE - 3,
+    28500
+);
+
+COMMIT;
+
+
+--------------------------------------------------------------------------------
+-- 36. EXPENSE_MASTER (Business Expenses)
+--------------------------------------------------------------------------------
+
+INSERT INTO expense_master (expense_date, expense_by, remarks)
+VALUES (
+    SYSDATE - 15,
+    (SELECT employee_id FROM employees WHERE first_name = 'Fatima' AND last_name = 'Zohra' AND ROWNUM = 1),
+    'Monthly rent payment'
+);
+
+INSERT INTO expense_master (expense_date, expense_by, remarks)
+VALUES (
+    SYSDATE - 10,
+    (SELECT employee_id FROM employees WHERE first_name = 'Fatima' AND last_name = 'Zohra' AND ROWNUM = 1),
+    'Utility bills - electricity and water'
+);
+
+INSERT INTO expense_master (expense_date, expense_by, remarks)
+VALUES (
+    SYSDATE - 5,
+    (SELECT employee_id FROM employees WHERE first_name = 'Zahid' AND last_name = 'Hasib' AND ROWNUM = 1),
+    'Marketing campaign - digital media'
+);
+
+INSERT INTO expense_master (expense_date, expense_by, remarks)
+VALUES (
+    SYSDATE - 1,
+    (SELECT employee_id FROM employees WHERE first_name = 'Fatima' AND last_name = 'Zohra' AND ROWNUM = 1),
+    'Monthly payroll - all staff salaries'
+);
+
+COMMIT;
+
+
+--------------------------------------------------------------------------------
+-- 37. PAYMENTS (Supplier Payments)
+--------------------------------------------------------------------------------
+
+INSERT INTO payments (supplier_id, payment_date, amount)
+VALUES (
+    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Samsung Authorized Distributor' AND ROWNUM = 1),
+    SYSDATE - 10,
+    500000
+);
+
+INSERT INTO payments (supplier_id, payment_date, amount)
+VALUES (
+    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'LG Electronics Supplier' AND ROWNUM = 1),
+    SYSDATE - 8,
+    400000
+);
+
+INSERT INTO payments (supplier_id, payment_date, amount)
+VALUES (
+    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Walton Spare Parts Division' AND ROWNUM = 1),
+    SYSDATE - 6,
+    300000
+);
+
+INSERT INTO payments (supplier_id, payment_date, amount)
+VALUES (
+    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Minister Hi-Tech Supplier' AND ROWNUM = 1),
+    SYSDATE - 4,
+    250000
+);
+
+INSERT INTO payments (supplier_id, payment_date, amount)
+VALUES (
+    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Asian Spare Parts House' AND ROWNUM = 1),
+    SYSDATE - 2,
+    600000
+);
+
+COMMIT;
+
+
+--------------------------------------------------------------------------------
+-- 38. COM_USERS (Application Users)
+--------------------------------------------------------------------------------
+
+INSERT INTO com_users (user_name, password, employee_id, role)
+VALUES (
+    'rafiqul.admin',
+    'admin@2026',
+    (SELECT employee_id FROM employees WHERE first_name = 'Rafiqul' AND last_name = 'Hasan' AND ROWNUM = 1),
+    'ADMIN'
+);
+
+INSERT INTO com_users (user_name, password, employee_id, role)
+VALUES (
+    'ariful.sales',
+    'sales@2026',
+    (SELECT employee_id FROM employees WHERE first_name = 'Ariful' AND last_name = 'Islam' AND ROWNUM = 1),
+    'SALES_MANAGER'
+);
+
+INSERT INTO com_users (user_name, password, employee_id, role)
+VALUES (
+    'fatima.accounts',
+    'account@2026',
+    (SELECT employee_id FROM employees WHERE first_name = 'Fatima' AND last_name = 'Zohra' AND ROWNUM = 1),
+    'ACCOUNTANT'
+);
+
+INSERT INTO com_users (user_name, password, employee_id, role)
+VALUES (
+    'zahid.procurement',
+    'purchase@2026',
+    (SELECT employee_id FROM employees WHERE first_name = 'Zahid' AND last_name = 'Hasib' AND ROWNUM = 1),
+    'PROCUREMENT'
+);
+
+INSERT INTO com_users (user_name, password, employee_id, role)
+VALUES (
+    'mominul.service',
+    'service@2026',
+    (SELECT employee_id FROM employees WHERE first_name = 'Mominul' AND last_name = 'Haque' AND ROWNUM = 1),
+    'SERVICE_TECH'
+);
+
+INSERT INTO com_users (user_name, password, employee_id, role)
+VALUES (
+    'tariq.sales',
+    'sales@2026',
+    (SELECT employee_id FROM employees WHERE first_name = 'Tariq' AND last_name = 'Aziz' AND ROWNUM = 1),
+    'SALES_EXECUTIVE'
+);
+
+INSERT INTO com_users (user_name, password, employee_id, role)
+VALUES (
+    'rumana.support',
+    'support@2026',
+    (SELECT employee_id FROM employees WHERE first_name = 'Rumana' AND last_name = 'Afroz' AND ROWNUM = 1),
+    'CUSTOMER_SUPPORT'
+);
+
+COMMIT;
+
+
+--------------------------------------------------------------------------------
+-- 39. SALES_RETURN_DETAILS (Return Details for Sales Returns)
+--------------------------------------------------------------------------------
+
+INSERT INTO sales_return_details (sales_return_id, product_id, mrp, purchase_price, qty_return, reason)
+VALUES (
+    (SELECT sales_return_id FROM sales_return_master WHERE ROWNUM = 1),
+    (SELECT product_id FROM products WHERE product_name = 'Samsung 65" 4K LED TV' AND ROWNUM = 1),
+    95000, 76000, 1, 'Unit found to have dead pixels in display'
+);
+
+INSERT INTO sales_return_details (sales_return_id, product_id, mrp, purchase_price, qty_return, reason)
+VALUES (
+    (SELECT sales_return_id FROM sales_return_master WHERE ROWNUM = 1),
+    (SELECT product_id FROM products WHERE product_name = 'Walton 2-Door Refrigerator (300L)' AND ROWNUM = 1),
+    35000, 28000, 1, 'Compressor making unusual noise'
+);
+
+COMMIT;
+
+
+--------------------------------------------------------------------------------
+-- 40. SERVICE_DETAILS (Service Details for Service Requests)
+--------------------------------------------------------------------------------
+
+INSERT INTO service_details (service_id, product_id, parts_id, quantity, total_service_cost, warranty_status)
+VALUES (
+    (SELECT service_id FROM service_master WHERE ROWNUM = 1),
+    (SELECT product_id FROM products WHERE product_name = 'Samsung 65" 4K LED TV' AND ROWNUM = 1),
+    NULL,
+    1,
+    2500,
+    'Y'
+);
+
+INSERT INTO service_details (service_id, product_id, parts_id, quantity, total_service_cost, warranty_status)
+VALUES (
+    (SELECT service_id FROM service_master WHERE ROWNUM = 1),
+    NULL,
+    (SELECT parts_id FROM parts WHERE parts_name = 'AC Motor Assembly' AND ROWNUM = 1),
+    1,
+    1500,
+    'N'
+);
+
+INSERT INTO service_details (service_id, product_id, parts_id, quantity, total_service_cost, warranty_status)
+VALUES (
+    (SELECT service_id FROM service_master WHERE service_id IN (SELECT service_id FROM service_master WHERE ROWNUM = 2) AND ROWNUM = 1),
+    (SELECT product_id FROM products WHERE product_name = 'LG 32" Smart LED TV' AND ROWNUM = 1),
+    NULL,
+    1,
+    3000,
+    'Y'
+);
+
+COMMIT;
+
+
+--------------------------------------------------------------------------------
+-- 41. EXPENSE_DETAILS (Expense Line Items)
+--------------------------------------------------------------------------------
+
+INSERT INTO expense_details (expense_id, expense_type_id, description, amount, quantity, line_total)
+VALUES (
+    'EXM1',
+    (SELECT expense_type_id FROM expense_list WHERE type_name = 'Staff Salary' AND ROWNUM = 1),
+    'Monthly salary for 10 sales staff',
+    45000,
+    10,
+    450000
+);
+
+INSERT INTO expense_details (expense_id, expense_type_id, description, amount, quantity, line_total)
+VALUES (
+    'EXM2',
+    (SELECT expense_type_id FROM expense_list WHERE type_name = 'Utility Bills' AND ROWNUM = 1),
+    'Electricity, water, internet for December',
+    8000,
+    1,
+    8000
+);
+
+INSERT INTO expense_details (expense_id, expense_type_id, description, amount, quantity, line_total)
+VALUES (
+    'EXM3',
+    (SELECT expense_type_id FROM expense_list WHERE type_name = 'Office Rent' AND ROWNUM = 1),
+    'Monthly shop rent - Mirpur location',
+    50000,
+    1,
+    50000
+);
+
+INSERT INTO expense_details (expense_id, expense_type_id, description, amount, quantity, line_total)
+VALUES (
+    'EXM4',
+    (SELECT expense_type_id FROM expense_list WHERE type_name = 'Transport and Delivery Cost' AND ROWNUM = 1),
+    'Courier charges for product delivery',
+    500,
+    8,
+    4000
+);
+
+COMMIT;
+
+
+--------------------------------------------------------------------------------
+-- 42. DAMAGE_DETAIL (Damage Details for Damaged Goods)
+--------------------------------------------------------------------------------
+
+INSERT INTO damage_detail (damage_id, product_id, mrp, purchase_price, damage_quantity, reason)
+VALUES (
+    (SELECT damage_id FROM damage WHERE ROWNUM = 1),
+    (SELECT product_id FROM products WHERE product_name = 'Walton 2-Door Refrigerator (300L)' AND ROWNUM = 1),
+    35000,
+    28000,
+    1,
+    'Unit dropped during warehouse handling - compressor damaged'
+);
+
+INSERT INTO damage_detail (damage_id, product_id, mrp, purchase_price, damage_quantity, reason)
+VALUES (
+    (SELECT damage_id FROM damage WHERE ROWNUM = 2),
+    (SELECT product_id FROM products WHERE product_name = 'LG Washing Machine (7kg)' AND ROWNUM = 1),
+    28000,
+    22400,
+    1,
+    'Water ingress during monsoon - motor short circuit'
+);
+
+COMMIT;
+
+
+--------------------------------------------------------------------------------
