@@ -2544,6 +2544,7 @@ VALUES (
 
 COMMIT;
 
+
 -- Infrastructure (01, 02, 13, 14)
 INSERT INTO company
 (company_name, company_proprietor, phone_no, email, address, website,
@@ -2935,39 +2936,39 @@ VALUES ('OTH', 'Other General Expenses', 'Miscellaneous office related expenses'
 
 -- LED Television Links
 INSERT INTO sub_categories (sub_cat_name, product_cat_id) 
-VALUES ('Smart LED TV', (SELECT product_cat_id FROM product_categories WHERE product_cat_name = 'LED Television'));
+VALUES ('Smart LED TV', (SELECT product_cat_id FROM product_categories WHERE product_cat_name = 'LED Television' AND ROWNUM = 1));
 INSERT INTO sub_categories (sub_cat_name, product_cat_id) 
-VALUES ('Android TV', (SELECT product_cat_id FROM product_categories WHERE product_cat_name = 'LED Television'));
+VALUES ('Android TV', (SELECT product_cat_id FROM product_categories WHERE product_cat_name = 'LED Television' AND ROWNUM = 1));
 
 -- Refrigerator Links
 INSERT INTO sub_categories (sub_cat_name, product_cat_id) 
-VALUES ('Double Door Refrigerator', (SELECT product_cat_id FROM product_categories WHERE product_cat_name = 'Refrigerator and Freezer'));
+VALUES ('Double Door Refrigerator', (SELECT product_cat_id FROM product_categories WHERE product_cat_name = 'Refrigerator and Freezer' AND ROWNUM = 1));
 INSERT INTO sub_categories (sub_cat_name, product_cat_id) 
-VALUES ('Deep Freezer', (SELECT product_cat_id FROM product_categories WHERE product_cat_name = 'Refrigerator and Freezer'));
+VALUES ('Deep Freezer', (SELECT product_cat_id FROM product_categories WHERE product_cat_name = 'Refrigerator and Freezer' AND ROWNUM = 1));
 
 -- Air Conditioner Links
 INSERT INTO sub_categories (sub_cat_name, product_cat_id) 
-VALUES ('Split AC', (SELECT product_cat_id FROM product_categories WHERE product_cat_name = 'Air Conditioner'));
+VALUES ('Split AC', (SELECT product_cat_id FROM product_categories WHERE product_cat_name = 'Air Conditioner' AND ROWNUM = 1));
 INSERT INTO sub_categories (sub_cat_name, product_cat_id) 
-VALUES ('Window AC', (SELECT product_cat_id FROM product_categories WHERE product_cat_name = 'Air Conditioner'));
+VALUES ('Window AC', (SELECT product_cat_id FROM product_categories WHERE product_cat_name = 'Air Conditioner' AND ROWNUM = 1));
 
 -- Washing Machine Links
 INSERT INTO sub_categories (sub_cat_name, product_cat_id) 
-VALUES ('Front Load Washing Machine', (SELECT product_cat_id FROM product_categories WHERE product_cat_name = 'Washing Machine'));
+VALUES ('Front Load Washing Machine', (SELECT product_cat_id FROM product_categories WHERE product_cat_name = 'Washing Machine' AND ROWNUM = 1));
 INSERT INTO sub_categories (sub_cat_name, product_cat_id) 
-VALUES ('Top Load Washing Machine', (SELECT product_cat_id FROM product_categories WHERE product_cat_name = 'Washing Machine'));
+VALUES ('Top Load Washing Machine', (SELECT product_cat_id FROM product_categories WHERE product_cat_name = 'Washing Machine' AND ROWNUM = 1));
 
 -- Microwave Oven Links
 INSERT INTO sub_categories (sub_cat_name, product_cat_id) 
-VALUES ('Convection Microwave Oven', (SELECT product_cat_id FROM product_categories WHERE product_cat_name = 'Microwave Oven'));
+VALUES ('Convection Microwave Oven', (SELECT product_cat_id FROM product_categories WHERE product_cat_name = 'Microwave Oven' AND ROWNUM = 1));
 INSERT INTO sub_categories (sub_cat_name, product_cat_id) 
-VALUES ('Solo Microwave Oven', (SELECT product_cat_id FROM product_categories WHERE product_cat_name = 'Microwave Oven'));
+VALUES ('Solo Microwave Oven', (SELECT product_cat_id FROM product_categories WHERE product_cat_name = 'Microwave Oven' AND ROWNUM = 1));
 
 -- Smart Phone Links
 INSERT INTO sub_categories (sub_cat_name, product_cat_id) 
-VALUES ('Android Smartphone', (SELECT product_cat_id FROM product_categories WHERE product_cat_name = 'Smart Phone'));
+VALUES ('Android Smartphone', (SELECT product_cat_id FROM product_categories WHERE product_cat_name = 'Smart Phone' AND ROWNUM = 1));
 INSERT INTO sub_categories (sub_cat_name, product_cat_id) 
-VALUES ('Feature Phone', (SELECT product_cat_id FROM product_categories WHERE product_cat_name = 'Smart Phone'));
+VALUES ('Feature Phone', (SELECT product_cat_id FROM product_categories WHERE product_cat_name = 'Smart Phone' AND ROWNUM = 1));
 
 COMMIT;
 
@@ -2979,10 +2980,10 @@ COMMIT;
 INSERT INTO products (product_code, product_name, supplier_id, category_id, sub_cat_id, brand_id, uom, mrp, purchase_price, warranty) 
 VALUES (
     'SAM-S24-018', 'Samsung Galaxy S24', 
-    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Samsung Authorized Distributor'),
-    (SELECT product_cat_id FROM product_categories WHERE product_cat_name = 'Smart Phone'),
-    (SELECT sub_cat_id FROM sub_categories WHERE sub_cat_name = 'Android Smartphone'),
-    (SELECT brand_id FROM brand WHERE model_name = 'UA43T5400'),
+    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Samsung Authorized Distributor' AND ROWNUM = 1),
+    (SELECT product_cat_id FROM product_categories WHERE product_cat_name = 'Smart Phone' AND ROWNUM = 1),
+    (SELECT sub_cat_id FROM sub_categories WHERE sub_cat_name = 'Android Smartphone' AND ROWNUM = 1),
+    (SELECT brand_id FROM brand WHERE model_name = 'UA43T5400' AND ROWNUM = 1),
     'Pcs', 95000, 82000, 12
 );
 
@@ -2990,10 +2991,10 @@ VALUES (
 INSERT INTO products (product_code, product_name, supplier_id, category_id, sub_cat_id, brand_id, uom, mrp, purchase_price, warranty) 
 VALUES (
     'IPH-15-029', 'iPhone 15 Pro', 
-    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'City Electronics Parts Supplier'),
-    (SELECT product_cat_id FROM product_categories WHERE product_cat_name = 'Smart Phone'),
-    (SELECT sub_cat_id FROM sub_categories WHERE sub_cat_name = 'Android Smartphone'),
-    (SELECT brand_id FROM brand WHERE model_name = 'WD-LED32F'),
+    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'City Electronics Parts Supplier' AND ROWNUM = 1),
+    (SELECT product_cat_id FROM product_categories WHERE product_cat_name = 'Smart Phone' AND ROWNUM = 1),
+    (SELECT sub_cat_id FROM sub_categories WHERE sub_cat_name = 'Android Smartphone' AND ROWNUM = 1),
+    (SELECT brand_id FROM brand WHERE model_name = 'WD-LED32F' AND ROWNUM = 1),
     'Pcs', 145000, 130000, 12
 );
 
@@ -3001,10 +3002,10 @@ VALUES (
 INSERT INTO products (product_code, product_name, supplier_id, category_id, sub_cat_id, brand_id, uom, mrp, purchase_price, warranty) 
 VALUES (
     'DEL-LAT-0310', 'Dell Latitude 5420', 
-    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Asian Spare Parts House'),
-    (SELECT product_cat_id FROM product_categories WHERE product_cat_name = 'Laptop and Computer'),
-    (SELECT sub_cat_id FROM sub_categories WHERE sub_cat_name = 'Android TV'), -- Placeholder subcat as per logic
-    (SELECT brand_id FROM brand WHERE model_name = 'WTM-RT240'),
+    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Asian Spare Parts House' AND ROWNUM = 1),
+    (SELECT product_cat_id FROM product_categories WHERE product_cat_name = 'Laptop and Computer' AND ROWNUM = 1),
+    (SELECT sub_cat_id FROM sub_categories WHERE sub_cat_name = 'Laptop' AND ROWNUM = 1),
+    (SELECT brand_id FROM brand WHERE model_name = 'WTM-RT240' AND ROWNUM = 1),
     'Unit', 85000, 75000, 36
 );
 
@@ -3012,10 +3013,10 @@ VALUES (
 INSERT INTO products (product_code, product_name, supplier_id, category_id, sub_cat_id, brand_id, uom, mrp, purchase_price, warranty) 
 VALUES (
     'LG-REF-0411', 'LG Double Door Refrigerator', 
-    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'LG Electronics Supplier'),
-    (SELECT product_cat_id FROM product_categories WHERE product_cat_name = 'Refrigerator and Freezer'),
-    (SELECT sub_cat_id FROM sub_categories WHERE sub_cat_name = 'Double Door Refrigerator'),
-    (SELECT brand_id FROM brand WHERE model_name = 'GL-B201SLBB'),
+    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'LG Electronics Supplier' AND ROWNUM = 1),
+    (SELECT product_cat_id FROM product_categories WHERE product_cat_name = 'Refrigerator and Freezer' AND ROWNUM = 1),
+    (SELECT sub_cat_id FROM sub_categories WHERE sub_cat_name = 'Double Door Refrigerator' AND ROWNUM = 1),
+    (SELECT brand_id FROM brand WHERE model_name = 'GL-B201SLBB' AND ROWNUM = 1),
     'Unit', 75000, 65000, 24
 );
 
@@ -3023,10 +3024,10 @@ VALUES (
 INSERT INTO products (product_code, product_name, supplier_id, category_id, sub_cat_id, brand_id, uom, mrp, purchase_price, warranty) 
 VALUES (
     'WAL-TV-0512', 'Walton 42 Inch LED', 
-    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Walton Spare Parts Division'),
-    (SELECT product_cat_id FROM product_categories WHERE product_cat_name = 'LED Television'),
-    (SELECT sub_cat_id FROM sub_categories WHERE sub_cat_name = 'Smart LED TV'),
-    (SELECT brand_id FROM brand WHERE model_name = 'WD-LED32F'),
+    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Walton Spare Parts Division' AND ROWNUM = 1),
+    (SELECT product_cat_id FROM product_categories WHERE product_cat_name = 'LED Television' AND ROWNUM = 1),
+    (SELECT sub_cat_id FROM sub_categories WHERE sub_cat_name = 'Smart LED TV' AND ROWNUM = 1),
+    (SELECT brand_id FROM brand WHERE model_name = 'WD-LED32F' AND ROWNUM = 1),
     'Unit', 35000, 28000, 60
 );
 
@@ -3034,10 +3035,10 @@ VALUES (
 INSERT INTO products (product_code, product_name, supplier_id, category_id, sub_cat_id, brand_id, uom, mrp, purchase_price, warranty) 
 VALUES (
     'MIN-AC-0613', 'Midea Split AC 1.5 Ton', 
-    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Minister Hi-Tech Supplier'),
-    (SELECT product_cat_id FROM product_categories WHERE product_cat_name = 'Air Conditioner'),
-    (SELECT sub_cat_id FROM sub_categories WHERE sub_cat_name = 'Split AC'),
-    (SELECT brand_id FROM brand WHERE model_name = 'M-DFR-240'),
+    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Minister Hi-Tech Supplier' AND ROWNUM = 1),
+    (SELECT product_cat_id FROM product_categories WHERE product_cat_name = 'Air Conditioner' AND ROWNUM = 1),
+    (SELECT sub_cat_id FROM sub_categories WHERE sub_cat_name = 'Split AC' AND ROWNUM = 1),
+    (SELECT brand_id FROM brand WHERE model_name = 'M-DFR-240' AND ROWNUM = 1),
     'Unit', 48000, 42000, 12
 );
 
@@ -3045,10 +3046,10 @@ VALUES (
 INSERT INTO products (product_code, product_name, supplier_id, category_id, sub_cat_id, brand_id, uom, mrp, purchase_price, warranty) 
 VALUES (
     'PAN-MIC-0714', 'Panasonic Microwave', 
-    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Global Electronics Importer'),
-    (SELECT product_cat_id FROM product_categories WHERE product_cat_name = 'Microwave Oven'),
-    (SELECT sub_cat_id FROM sub_categories WHERE sub_cat_name = 'Android Smartphone'),
-    (SELECT brand_id FROM brand WHERE model_name = 'Singer Smart 32'),
+    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Global Electronics Importer' AND ROWNUM = 1),
+    (SELECT product_cat_id FROM product_categories WHERE product_cat_name = 'Microwave Oven' AND ROWNUM = 1),
+    (SELECT sub_cat_id FROM sub_categories WHERE sub_cat_name = 'Android Smartphone' AND ROWNUM = 1),
+    (SELECT brand_id FROM brand WHERE model_name = 'Singer Smart 32' AND ROWNUM = 1),
     'Pcs', 18000, 15000, 12
 );
 
@@ -3056,10 +3057,10 @@ VALUES (
 INSERT INTO products (product_code, product_name, supplier_id, category_id, sub_cat_id, brand_id, uom, mrp, purchase_price, warranty) 
 VALUES (
     'SAM-WASH-0815', 'Samsung Front Load Washer', 
-    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Samsung Authorized Distributor'),
-    (SELECT product_cat_id FROM product_categories WHERE product_cat_name = 'Washing Machine'),
-    (SELECT sub_cat_id FROM sub_categories WHERE sub_cat_name = 'Front Load Washing Machine'),
-    (SELECT brand_id FROM brand WHERE model_name = 'AR12MVF'),
+    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Samsung Authorized Distributor' AND ROWNUM = 1),
+    (SELECT product_cat_id FROM product_categories WHERE product_cat_name = 'Washing Machine' AND ROWNUM = 1),
+    (SELECT sub_cat_id FROM sub_categories WHERE sub_cat_name = 'Front Load Washing Machine' AND ROWNUM = 1),
+    (SELECT brand_id FROM brand WHERE model_name = 'AR12MVF' AND ROWNUM = 1),
     'Unit', 55000, 48000, 24
 );
 
@@ -3067,10 +3068,10 @@ VALUES (
 INSERT INTO products (product_code, product_name, supplier_id, category_id, sub_cat_id, brand_id, uom, mrp, purchase_price, warranty) 
 VALUES (
     'HIT-GEN-0916', 'Hitachi Silent Generator', 
-    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Jamuna Electronics Supplier'),
-    (SELECT product_cat_id FROM product_categories WHERE product_cat_name = 'Generator and Power Products'),
-    (SELECT sub_cat_id FROM sub_categories WHERE sub_cat_name = 'Solo Microwave Oven'),
-    (SELECT brand_id FROM brand WHERE model_name = 'RAS-F13CF'),
+    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Jamuna Electronics Supplier' AND ROWNUM = 1),
+    (SELECT product_cat_id FROM product_categories WHERE product_cat_name = 'Generator and Power Products' AND ROWNUM = 1),
+    (SELECT sub_cat_id FROM sub_categories WHERE sub_cat_name = 'Solo Microwave Oven' AND ROWNUM = 1),
+    (SELECT brand_id FROM brand WHERE model_name = 'RAS-F13CF' AND ROWNUM = 1),
     'Unit', 120000, 105000, 12
 );
 
@@ -3078,10 +3079,10 @@ VALUES (
 INSERT INTO products (product_code, product_name, supplier_id, category_id, sub_cat_id, brand_id, uom, mrp, purchase_price, warranty) 
 VALUES (
     'LG-HOM-1017', 'LG Home Theater System', 
-    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'LG Electronics Supplier'),
-    (SELECT product_cat_id FROM product_categories WHERE product_cat_name = 'Home Theater and Sound System'),
-    (SELECT sub_cat_id FROM sub_categories WHERE sub_cat_name = 'Top Load Washing Machine'),
-    (SELECT brand_id FROM brand WHERE model_name = 'LG-WM140'),
+    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'LG Electronics Supplier' AND ROWNUM = 1),
+    (SELECT product_cat_id FROM product_categories WHERE product_cat_name = 'Home Theater and Sound System' AND ROWNUM = 1),
+    (SELECT sub_cat_id FROM sub_categories WHERE sub_cat_name = 'Top Load Washing Machine' AND ROWNUM = 1),
+    (SELECT brand_id FROM brand WHERE model_name = 'LG-WM140' AND ROWNUM = 1),
     'Set', 25000, 21000, 12
 );
 
@@ -3252,10 +3253,10 @@ VALUES ('Ahsan', 'Kabir', 'ahsan.kabir@walton.com', '01711110008', 'Khilkhet, Dh
 
 
 UPDATE employees
-SET manager_id = (SELECT employee_id FROM employees WHERE last_name='Hasan')
+SET manager_id = (SELECT employee_id FROM employees WHERE last_name='Hasan' AND ROWNUM = 1)
 WHERE last_name <> 'Hasan';
 UPDATE departments
-SET manager_id = (SELECT employee_id FROM employees WHERE last_name='Hasan');
+SET manager_id = (SELECT employee_id FROM employees WHERE last_name='Hasan' AND ROWNUM = 1);
 
 
 --------------------------------------------------------------------------------
@@ -3416,7 +3417,7 @@ COMMIT;
 -- Receiving for Order from Samsung Distributor
 INSERT INTO product_receive_master (order_id, received_by, supplier_id, sup_invoice_id, status)
 VALUES (
-    (SELECT order_id FROM product_order_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Samsung Authorized Distributor') AND ROWNUM = 1),
+    (SELECT order_id FROM product_order_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Samsung Authorized Distributor' AND ROWNUM = 1) AND ROWNUM = 1),
     (SELECT employee_id FROM employees WHERE first_name = 'Ariful' AND last_name = 'Islam' AND ROWNUM = 1),
     (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Samsung Authorized Distributor' AND ROWNUM = 1),
     'SAM-INV-501', 1
@@ -3425,7 +3426,7 @@ VALUES (
 -- Receiving for Order from LG Electronics Supplier
 INSERT INTO product_receive_master (order_id, received_by, supplier_id, sup_invoice_id, status)
 VALUES (
-    (SELECT order_id FROM product_order_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'LG Electronics Supplier') AND ROWNUM = 1),
+    (SELECT order_id FROM product_order_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'LG Electronics Supplier' AND ROWNUM = 1) AND ROWNUM = 1),
     (SELECT employee_id FROM employees WHERE first_name = 'Rezaul' AND last_name = 'Karim' AND ROWNUM = 1),
     (SELECT supplier_id FROM suppliers WHERE supplier_name = 'LG Electronics Supplier' AND ROWNUM = 1),
     'LG-INV-882', 1
@@ -3434,7 +3435,7 @@ VALUES (
 -- Receiving for Order from Walton Spare Parts Division
 INSERT INTO product_receive_master (order_id, received_by, supplier_id, sup_invoice_id, status)
 VALUES (
-    (SELECT order_id FROM product_order_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Walton Spare Parts Division') AND ROWNUM = 1),
+    (SELECT order_id FROM product_order_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Walton Spare Parts Division' AND ROWNUM = 1) AND ROWNUM = 1),
     (SELECT employee_id FROM employees WHERE first_name = 'Ahsan' AND last_name = 'Kabir' AND ROWNUM = 1),
     (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Walton Spare Parts Division' AND ROWNUM = 1),
     'WAL-INV-301', 1
@@ -3443,7 +3444,7 @@ VALUES (
 -- Receiving for Order from Samsung (Second Shipment)
 INSERT INTO product_receive_master (order_id, received_by, supplier_id, sup_invoice_id, status)
 VALUES (
-    (SELECT order_id FROM product_order_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Samsung Authorized Distributor') AND ROWNUM = 1),
+    (SELECT order_id FROM product_order_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Samsung Authorized Distributor' AND ROWNUM = 1) AND ROWNUM = 1),
     (SELECT employee_id FROM employees WHERE first_name = 'Keya' AND last_name = 'Payel' AND ROWNUM = 1),
     (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Samsung Authorized Distributor' AND ROWNUM = 1),
     'SAM-INV-502', 1
@@ -3452,7 +3453,7 @@ VALUES (
 -- Receiving for Order from Asian Spare Parts House
 INSERT INTO product_receive_master (order_id, received_by, supplier_id, sup_invoice_id, status)
 VALUES (
-    (SELECT order_id FROM product_order_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Asian Spare Parts House') AND ROWNUM = 1),
+    (SELECT order_id FROM product_order_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Asian Spare Parts House' AND ROWNUM = 1) AND ROWNUM = 1),
     (SELECT employee_id FROM employees WHERE first_name = 'Ariful' AND last_name = 'Islam' AND ROWNUM = 1),
     (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Asian Spare Parts House' AND ROWNUM = 1),
     'ASI-INV-109', 1
@@ -3461,7 +3462,7 @@ VALUES (
 -- Receiving for Order from LG Electronics Supplier (Second Shipment)
 INSERT INTO product_receive_master (order_id, received_by, supplier_id, sup_invoice_id, status)
 VALUES (
-    (SELECT order_id FROM product_order_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'LG Electronics Supplier') AND ROWNUM = 1),
+    (SELECT order_id FROM product_order_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'LG Electronics Supplier' AND ROWNUM = 1) AND ROWNUM = 1),
     (SELECT employee_id FROM employees WHERE first_name = 'Imtiaz' AND last_name = 'Bulbul' AND ROWNUM = 1),
     (SELECT supplier_id FROM suppliers WHERE supplier_name = 'LG Electronics Supplier' AND ROWNUM = 1),
     'LG-INV-885', 1
@@ -3470,7 +3471,7 @@ VALUES (
 -- Receiving for Order from Jamuna Electronics Supplier
 INSERT INTO product_receive_master (order_id, received_by, supplier_id, sup_invoice_id, status)
 VALUES (
-    (SELECT order_id FROM product_order_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Jamuna Electronics Supplier') AND ROWNUM = 1),
+    (SELECT order_id FROM product_order_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Jamuna Electronics Supplier' AND ROWNUM = 1) AND ROWNUM = 1),
     (SELECT employee_id FROM employees WHERE first_name = 'Mominul' AND last_name = 'Haque' AND ROWNUM = 1),
     (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Jamuna Electronics Supplier' AND ROWNUM = 1),
     'JAM-INV-441', 1
@@ -3479,7 +3480,7 @@ VALUES (
 -- Receiving for Order from Minister Hi-Tech Supplier
 INSERT INTO product_receive_master (order_id, received_by, supplier_id, sup_invoice_id, status)
 VALUES (
-    (SELECT order_id FROM product_order_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Minister Hi-Tech Supplier') AND ROWNUM = 1),
+    (SELECT order_id FROM product_order_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Minister Hi-Tech Supplier' AND ROWNUM = 1) AND ROWNUM = 1),
     (SELECT employee_id FROM employees WHERE first_name = 'Ariful' AND last_name = 'Islam' AND ROWNUM = 1),
     (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Minister Hi-Tech Supplier' AND ROWNUM = 1),
     'MIN-INV-221', 1
@@ -3488,7 +3489,7 @@ VALUES (
 -- Receiving for Order from City Electronics Parts Supplier
 INSERT INTO product_receive_master (order_id, received_by, supplier_id, sup_invoice_id, status)
 VALUES (
-    (SELECT order_id FROM product_order_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'City Electronics Parts Supplier') AND ROWNUM = 1),
+    (SELECT order_id FROM product_order_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'City Electronics Parts Supplier' AND ROWNUM = 1) AND ROWNUM = 1),
     (SELECT employee_id FROM employees WHERE first_name = 'Fatima' AND last_name = 'Zohra' AND ROWNUM = 1),
     (SELECT supplier_id FROM suppliers WHERE supplier_name = 'City Electronics Parts Supplier' AND ROWNUM = 1),
     'CIT-INV-667', 1
@@ -3497,7 +3498,7 @@ VALUES (
 -- Receiving for Order from Bangladesh Electronics Wholesale
 INSERT INTO product_receive_master (order_id, received_by, supplier_id, sup_invoice_id, status)
 VALUES (
-    (SELECT order_id FROM product_order_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Bangladesh Electronics Wholesale') AND ROWNUM = 1),
+    (SELECT order_id FROM product_order_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Bangladesh Electronics Wholesale' AND ROWNUM = 1) AND ROWNUM = 1),
     (SELECT employee_id FROM employees WHERE first_name = 'Zahid' AND last_name = 'Hasib' AND ROWNUM = 1),
     (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Bangladesh Electronics Wholesale' AND ROWNUM = 1),
     'BAN-INV-990', 1
@@ -3513,7 +3514,7 @@ COMMIT;
 INSERT INTO product_return_master (supplier_id, receive_id, return_by, adjusted_vat, status)
 VALUES (
     (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Samsung Authorized Distributor' AND ROWNUM = 1),
-    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'SAM-INV-501'),
+    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'SAM-INV-501' AND ROWNUM = 1),
     (SELECT employee_id FROM employees WHERE first_name = 'Ahsan' AND last_name = 'Kabir' AND ROWNUM = 1),
     150, 1
 );
@@ -3522,7 +3523,7 @@ VALUES (
 INSERT INTO product_return_master (supplier_id, receive_id, return_by, adjusted_vat, status)
 VALUES (
     (SELECT supplier_id FROM suppliers WHERE supplier_name = 'LG Electronics Supplier' AND ROWNUM = 1),
-    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'LG-INV-882'),
+    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'LG-INV-882' AND ROWNUM = 1),
     (SELECT employee_id FROM employees WHERE first_name = 'Rezaul' AND last_name = 'Karim' AND ROWNUM = 1),
     200, 1
 );
@@ -3531,7 +3532,7 @@ VALUES (
 INSERT INTO product_return_master (supplier_id, receive_id, return_by, adjusted_vat, status)
 VALUES (
     (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Walton Spare Parts Division' AND ROWNUM = 1),
-    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'WAL-INV-301'),
+    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'WAL-INV-301' AND ROWNUM = 1),
     (SELECT employee_id FROM employees WHERE first_name = 'Ahsan' AND last_name = 'Kabir' AND ROWNUM = 1),
     50, 1
 );
@@ -3540,7 +3541,7 @@ VALUES (
 INSERT INTO product_return_master (supplier_id, receive_id, return_by, adjusted_vat, status)
 VALUES (
     (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Samsung Authorized Distributor' AND ROWNUM = 1),
-    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'SAM-INV-502'),
+    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'SAM-INV-502' AND ROWNUM = 1),
     (SELECT employee_id FROM employees WHERE first_name = 'Keya' AND last_name = 'Payel' AND ROWNUM = 1),
     100, 1
 );
@@ -3549,7 +3550,7 @@ VALUES (
 INSERT INTO product_return_master (supplier_id, receive_id, return_by, adjusted_vat, status)
 VALUES (
     (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Asian Spare Parts House' AND ROWNUM = 1),
-    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'ASI-INV-109'),
+    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'ASI-INV-109' AND ROWNUM = 1),
     (SELECT employee_id FROM employees WHERE first_name = 'Ariful' AND last_name = 'Islam' AND ROWNUM = 1),
     300, 1
 );
@@ -3558,7 +3559,7 @@ VALUES (
 INSERT INTO product_return_master (supplier_id, receive_id, return_by, adjusted_vat, status)
 VALUES (
     (SELECT supplier_id FROM suppliers WHERE supplier_name = 'LG Electronics Supplier' AND ROWNUM = 1),
-    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'LG-INV-885'),
+    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'LG-INV-885' AND ROWNUM = 1),
     (SELECT employee_id FROM employees WHERE first_name = 'Imtiaz' AND last_name = 'Bulbul' AND ROWNUM = 1),
     180, 1
 );
@@ -3567,7 +3568,7 @@ VALUES (
 INSERT INTO product_return_master (supplier_id, receive_id, return_by, adjusted_vat, status)
 VALUES (
     (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Jamuna Electronics Supplier' AND ROWNUM = 1),
-    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'JAM-INV-441'),
+    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'JAM-INV-441' AND ROWNUM = 1),
     (SELECT employee_id FROM employees WHERE first_name = 'Mominul' AND last_name = 'Haque' AND ROWNUM = 1),
     400, 1
 );
@@ -3576,7 +3577,7 @@ VALUES (
 INSERT INTO product_return_master (supplier_id, receive_id, return_by, adjusted_vat, status)
 VALUES (
     (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Minister Hi-Tech Supplier' AND ROWNUM = 1),
-    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'MIN-INV-221'),
+    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'MIN-INV-221' AND ROWNUM = 1),
     (SELECT employee_id FROM employees WHERE first_name = 'Ariful' AND last_name = 'Islam' AND ROWNUM = 1),
     120, 1
 );
@@ -3585,7 +3586,7 @@ VALUES (
 INSERT INTO product_return_master (supplier_id, receive_id, return_by, adjusted_vat, status)
 VALUES (
     (SELECT supplier_id FROM suppliers WHERE supplier_name = 'City Electronics Parts Supplier' AND ROWNUM = 1),
-    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'CIT-INV-667'),
+    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'CIT-INV-667' AND ROWNUM = 1),
     (SELECT employee_id FROM employees WHERE first_name = 'Fatima' AND last_name = 'Zohra' AND ROWNUM = 1),
     250, 1
 );
@@ -3594,7 +3595,7 @@ VALUES (
 INSERT INTO product_return_master (supplier_id, receive_id, return_by, adjusted_vat, status)
 VALUES (
     (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Bangladesh Electronics Wholesale' AND ROWNUM = 1),
-    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'BAN-INV-990'),
+    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'BAN-INV-990' AND ROWNUM = 1),
     (SELECT employee_id FROM employees WHERE first_name = 'Zahid' AND last_name = 'Hasib' AND ROWNUM = 1),
     90, 1
 );
@@ -3608,80 +3609,80 @@ COMMIT;
 -- Order 1: Samsung Galaxy S24
 INSERT INTO product_order_detail (order_id, product_id, mrp, purchase_price, quantity)
 VALUES (
-    (SELECT order_id FROM product_order_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Samsung Authorized Distributor') AND ROWNUM = 1),
-    (SELECT product_id FROM products WHERE product_code = 'SAM-S24-018'),
+    (SELECT order_id FROM product_order_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Samsung Authorized Distributor' AND ROWNUM = 1) AND ROWNUM = 1),
+    (SELECT product_id FROM products WHERE product_code = 'SAM-S24-018' AND ROWNUM = 1),
     95000, 82000, 10
 );
 
 -- Order 2: LG Double Door Refrigerator
 INSERT INTO product_order_detail (order_id, product_id, mrp, purchase_price, quantity)
 VALUES (
-    (SELECT order_id FROM product_order_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'LG Electronics Supplier') AND ROWNUM = 1),
-    (SELECT product_id FROM products WHERE product_code = 'LG-REF-0411'),
+    (SELECT order_id FROM product_order_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'LG Electronics Supplier' AND ROWNUM = 1) AND ROWNUM = 1),
+    (SELECT product_id FROM products WHERE product_code = 'LG-REF-0411' AND ROWNUM = 1),
     75000, 65000, 5
 );
 
 -- Order 3: Walton 42 Inch LED
 INSERT INTO product_order_detail (order_id, product_id, mrp, purchase_price, quantity)
 VALUES (
-    (SELECT order_id FROM product_order_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Walton Spare Parts Division') AND ROWNUM = 1),
-    (SELECT product_id FROM products WHERE product_code = 'WAL-TV-0512'),
+    (SELECT order_id FROM product_order_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Walton Spare Parts Division' AND ROWNUM = 1) AND ROWNUM = 1),
+    (SELECT product_id FROM products WHERE product_code = 'WAL-TV-0512' AND ROWNUM = 1),
     35000, 28000, 15
 );
 
 -- Order 4: Samsung Front Load Washer
 INSERT INTO product_order_detail (order_id, product_id, mrp, purchase_price, quantity)
 VALUES (
-    (SELECT order_id FROM product_order_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Samsung Authorized Distributor') AND ROWNUM = 1),
-    (SELECT product_id FROM products WHERE product_code = 'SAM-WASH-0815'),
+    (SELECT order_id FROM product_order_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Samsung Authorized Distributor' AND ROWNUM = 1) AND ROWNUM = 1),
+    (SELECT product_id FROM products WHERE product_code = 'SAM-WASH-0815' AND ROWNUM = 1),
     55000, 48000, 8
 );
 
 -- Order 5: Dell Latitude 5420
 INSERT INTO product_order_detail (order_id, product_id, mrp, purchase_price, quantity)
 VALUES (
-    (SELECT order_id FROM product_order_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Asian Spare Parts House') AND ROWNUM = 1),
-    (SELECT product_id FROM products WHERE product_code = 'DEL-LAT-0310'),
+    (SELECT order_id FROM product_order_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Asian Spare Parts House' AND ROWNUM = 1) AND ROWNUM = 1),
+    (SELECT product_id FROM products WHERE product_code = 'DEL-LAT-0310' AND ROWNUM = 1),
     85000, 75000, 12
 );
 
 -- Order 6: LG Home Theater System
 INSERT INTO product_order_detail (order_id, product_id, mrp, purchase_price, quantity)
 VALUES (
-    (SELECT order_id FROM product_order_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'LG Electronics Supplier') AND ROWNUM = 1),
-    (SELECT product_id FROM products WHERE product_code = 'LG-HOM-1017'),
+    (SELECT order_id FROM product_order_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'LG Electronics Supplier' AND ROWNUM = 1) AND ROWNUM = 1),
+    (SELECT product_id FROM products WHERE product_code = 'LG-HOM-1017' AND ROWNUM = 1),
     25000, 21000, 20
 );
 
 -- Order 7: Hitachi Silent Generator
 INSERT INTO product_order_detail (order_id, product_id, mrp, purchase_price, quantity)
 VALUES (
-    (SELECT order_id FROM product_order_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Jamuna Electronics Supplier') AND ROWNUM = 1),
-    (SELECT product_id FROM products WHERE product_code = 'HIT-GEN-0916'),
+    (SELECT order_id FROM product_order_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Jamuna Electronics Supplier' AND ROWNUM = 1) AND ROWNUM = 1),
+    (SELECT product_id FROM products WHERE product_code = 'HIT-GEN-0916' AND ROWNUM = 1),
     120000, 105000, 3
 );
 
 -- Order 8: Midea Split AC
 INSERT INTO product_order_detail (order_id, product_id, mrp, purchase_price, quantity)
 VALUES (
-    (SELECT order_id FROM product_order_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Minister Hi-Tech Supplier') AND ROWNUM = 1),
-    (SELECT product_id FROM products WHERE product_code = 'MIN-AC-0613'),
+    (SELECT order_id FROM product_order_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Minister Hi-Tech Supplier' AND ROWNUM = 1) AND ROWNUM = 1),
+    (SELECT product_id FROM products WHERE product_code = 'MIN-AC-0613' AND ROWNUM = 1),
     48000, 42000, 10
 );
 
 -- Order 9: iPhone 15 Pro
 INSERT INTO product_order_detail (order_id, product_id, mrp, purchase_price, quantity)
 VALUES (
-    (SELECT order_id FROM product_order_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'City Electronics Parts Supplier') AND ROWNUM = 1),
-    (SELECT product_id FROM products WHERE product_code = 'IPH-15-029'),
+    (SELECT order_id FROM product_order_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'City Electronics Parts Supplier' AND ROWNUM = 1) AND ROWNUM = 1),
+    (SELECT product_id FROM products WHERE product_code = 'IPH-15-029' AND ROWNUM = 1),
     145000, 130000, 7
 );
 
 -- Order 10: Panasonic Microwave
 INSERT INTO product_order_detail (order_id, product_id, mrp, purchase_price, quantity)
 VALUES (
-    (SELECT order_id FROM product_order_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Bangladesh Electronics Wholesale') AND ROWNUM = 1),
-    (SELECT product_id FROM products WHERE product_code = 'PAN-MIC-0714'),
+    (SELECT order_id FROM product_order_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Bangladesh Electronics Wholesale' AND ROWNUM = 1) AND ROWNUM = 1),
+    (SELECT product_id FROM products WHERE product_code = 'PAN-MIC-0714' AND ROWNUM = 1),
     18000, 15000, 10
 );
 
@@ -3695,80 +3696,80 @@ COMMIT;
 -- Receiving for Order from Samsung (SAM-INV-501)
 INSERT INTO product_receive_details (receive_id, product_id, mrp, purchase_price, receive_quantity)
 VALUES (
-    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'SAM-INV-501'),
-    (SELECT product_id FROM products WHERE product_code = 'SAM-S24-018'),
+    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'SAM-INV-501' AND ROWNUM = 1),
+    (SELECT product_id FROM products WHERE product_code = 'SAM-S24-018' AND ROWNUM = 1),
     95000, 82000, 10
 );
 
 -- Receiving for Order from LG (LG-INV-882)
 INSERT INTO product_receive_details (receive_id, product_id, mrp, purchase_price, receive_quantity)
 VALUES (
-    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'LG-INV-882'),
-    (SELECT product_id FROM products WHERE product_code = 'LG-REF-0411'),
+    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'LG-INV-882' AND ROWNUM = 1),
+    (SELECT product_id FROM products WHERE product_code = 'LG-REF-0411' AND ROWNUM = 1),
     75000, 65000, 5
 );
 
 -- Receiving for Order from Walton (WAL-INV-301)
 INSERT INTO product_receive_details (receive_id, product_id, mrp, purchase_price, receive_quantity)
 VALUES (
-    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'WAL-INV-301'),
-    (SELECT product_id FROM products WHERE product_code = 'WAL-TV-0512'),
+    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'WAL-INV-301' AND ROWNUM = 1),
+    (SELECT product_id FROM products WHERE product_code = 'WAL-TV-0512' AND ROWNUM = 1),
     35000, 28000, 15
 );
 
 -- Receiving for Order from Samsung (SAM-INV-502)
 INSERT INTO product_receive_details (receive_id, product_id, mrp, purchase_price, receive_quantity)
 VALUES (
-    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'SAM-INV-502'),
-    (SELECT product_id FROM products WHERE product_code = 'SAM-WASH-0815'),
+    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'SAM-INV-502' AND ROWNUM = 1),
+    (SELECT product_id FROM products WHERE product_code = 'SAM-WASH-0815' AND ROWNUM = 1),
     55000, 48000, 8
 );
 
 -- Receiving for Order from Asian Tech (ASI-INV-109)
 INSERT INTO product_receive_details (receive_id, product_id, mrp, purchase_price, receive_quantity)
 VALUES (
-    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'ASI-INV-109'),
-    (SELECT product_id FROM products WHERE product_code = 'DEL-LAT-0310'),
+    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'ASI-INV-109' AND ROWNUM = 1),
+    (SELECT product_id FROM products WHERE product_code = 'DEL-LAT-0310' AND ROWNUM = 1),
     85000, 75000, 12
 );
 
 -- Receiving for Order from LG (LG-INV-885)
 INSERT INTO product_receive_details (receive_id, product_id, mrp, purchase_price, receive_quantity)
 VALUES (
-    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'LG-INV-885'),
-    (SELECT product_id FROM products WHERE product_code = 'LG-HOM-1017'),
+    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'LG-INV-885' AND ROWNUM = 1),
+    (SELECT product_id FROM products WHERE product_code = 'LG-HOM-1017' AND ROWNUM = 1),
     25000, 21000, 20
 );
 
 -- Receiving for Order from Jamuna (JAM-INV-441)
 INSERT INTO product_receive_details (receive_id, product_id, mrp, purchase_price, receive_quantity)
 VALUES (
-    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'JAM-INV-441'),
-    (SELECT product_id FROM products WHERE product_code = 'HIT-GEN-0916'),
+    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'JAM-INV-441' AND ROWNUM = 1),
+    (SELECT product_id FROM products WHERE product_code = 'HIT-GEN-0916' AND ROWNUM = 1),
     120000, 105000, 3
 );
 
 -- Receiving for Order from Midea (MIN-INV-221)
 INSERT INTO product_receive_details (receive_id, product_id, mrp, purchase_price, receive_quantity)
 VALUES (
-    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'MIN-INV-221'),
-    (SELECT product_id FROM products WHERE product_code = 'MIN-AC-0613'),
+    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'MIN-INV-221' AND ROWNUM = 1),
+    (SELECT product_id FROM products WHERE product_code = 'MIN-AC-0613' AND ROWNUM = 1),
     48000, 42000, 10
 );
 
 -- Receiving for Order from City IT (CIT-INV-667)
 INSERT INTO product_receive_details (receive_id, product_id, mrp, purchase_price, receive_quantity)
 VALUES (
-    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'CIT-INV-667'),
-    (SELECT product_id FROM products WHERE product_code = 'IPH-15-029'),
+    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'CIT-INV-667' AND ROWNUM = 1),
+    (SELECT product_id FROM products WHERE product_code = 'IPH-15-029' AND ROWNUM = 1),
     145000, 130000, 7
 );
 
 -- Receiving for Order from Bangla Tech (BAN-INV-990)
 INSERT INTO product_receive_details (receive_id, product_id, mrp, purchase_price, receive_quantity)
 VALUES (
-    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'BAN-INV-990'),
-    (SELECT product_id FROM products WHERE product_code = 'PAN-MIC-0714'),
+    (SELECT receive_id FROM product_receive_master WHERE sup_invoice_id = 'BAN-INV-990' AND ROWNUM = 1),
+    (SELECT product_id FROM products WHERE product_code = 'PAN-MIC-0714' AND ROWNUM = 1),
     18000, 15000, 10
 );
 
@@ -3783,7 +3784,7 @@ COMMIT;
 INSERT INTO product_return_details (return_id, product_id, mrp, purchase_price, return_quantity, reason)
 VALUES (
     (SELECT return_id FROM product_return_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Samsung Authorized Distributor' AND ROWNUM = 1) AND ROWNUM = 1),
-    (SELECT product_id FROM products WHERE product_code = 'SAM-S24-018'),
+    (SELECT product_id FROM products WHERE product_code = 'SAM-S24-018' AND ROWNUM = 1),
     95000, 82000, 2, 'Damaged screen during transit'
 );
 
@@ -3791,7 +3792,7 @@ VALUES (
 INSERT INTO product_return_details (return_id, product_id, mrp, purchase_price, return_quantity, reason)
 VALUES (
     (SELECT return_id FROM product_return_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'LG Electronics Supplier' AND ROWNUM = 1) AND ROWNUM = 1),
-    (SELECT product_id FROM products WHERE product_code = 'LG-REF-0411'),
+    (SELECT product_id FROM products WHERE product_code = 'LG-REF-0411' AND ROWNUM = 1),
     75000, 65000, 1, 'Compressor noise issue'
 );
 
@@ -3799,7 +3800,7 @@ VALUES (
 INSERT INTO product_return_details (return_id, product_id, mrp, purchase_price, return_quantity, reason)
 VALUES (
     (SELECT return_id FROM product_return_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Walton Spare Parts Division' AND ROWNUM = 1) AND ROWNUM = 1),
-    (SELECT product_id FROM products WHERE product_code = 'WAL-TV-0512'),
+    (SELECT product_id FROM products WHERE product_code = 'WAL-TV-0512' AND ROWNUM = 1),
     35000, 28000, 3, 'Dead pixels on panel'
 );
 
@@ -3807,7 +3808,7 @@ VALUES (
 INSERT INTO product_return_details (return_id, product_id, mrp, purchase_price, return_quantity, reason)
 VALUES (
     (SELECT return_id FROM product_return_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Samsung Authorized Distributor' AND ROWNUM = 1) AND ROWNUM = 1),
-    (SELECT product_id FROM products WHERE product_code = 'SAM-WASH-0815'),
+    (SELECT product_id FROM products WHERE product_code = 'SAM-WASH-0815' AND ROWNUM = 1),
     55000, 48000, 1, 'Water leakage from door'
 );
 
@@ -3815,7 +3816,7 @@ VALUES (
 INSERT INTO product_return_details (return_id, product_id, mrp, purchase_price, return_quantity, reason)
 VALUES (
     (SELECT return_id FROM product_return_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Asian Spare Parts House' AND ROWNUM = 1) AND ROWNUM = 1),
-    (SELECT product_id FROM products WHERE product_code = 'DEL-LAT-0310'),
+    (SELECT product_id FROM products WHERE product_code = 'DEL-LAT-0310' AND ROWNUM = 1),
     85000, 75000, 2, 'Motherboard failure'
 );
 
@@ -3823,7 +3824,7 @@ VALUES (
 INSERT INTO product_return_details (return_id, product_id, mrp, purchase_price, return_quantity, reason)
 VALUES (
     (SELECT return_id FROM product_return_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'LG Electronics Supplier' AND ROWNUM = 1) AND ROWNUM = 1),
-    (SELECT product_id FROM products WHERE product_code = 'LG-HOM-1017'),
+    (SELECT product_id FROM products WHERE product_code = 'LG-HOM-1017' AND ROWNUM = 1),
     25000, 21000, 5, 'Remote control missing in boxes'
 );
 
@@ -3831,7 +3832,7 @@ VALUES (
 INSERT INTO product_return_details (return_id, product_id, mrp, purchase_price, return_quantity, reason)
 VALUES (
     (SELECT return_id FROM product_return_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Jamuna Electronics Supplier' AND ROWNUM = 1) AND ROWNUM = 1),
-    (SELECT product_id FROM products WHERE product_code = 'HIT-GEN-0916'),
+    (SELECT product_id FROM products WHERE product_code = 'HIT-GEN-0916' AND ROWNUM = 1),
     120000, 105000, 1, 'Fuel tank dented'
 );
 
@@ -3839,7 +3840,7 @@ VALUES (
 INSERT INTO product_return_details (return_id, product_id, mrp, purchase_price, return_quantity, reason)
 VALUES (
     (SELECT return_id FROM product_return_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Minister Hi-Tech Supplier' AND ROWNUM = 1) AND ROWNUM = 1),
-    (SELECT product_id FROM products WHERE product_code = 'MIN-AC-0613'),
+    (SELECT product_id FROM products WHERE product_code = 'MIN-AC-0613' AND ROWNUM = 1),
     48000, 42000, 2, 'Incomplete installation kit'
 );
 
@@ -3847,7 +3848,7 @@ VALUES (
 INSERT INTO product_return_details (return_id, product_id, mrp, purchase_price, return_quantity, reason)
 VALUES (
     (SELECT return_id FROM product_return_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'City Electronics Parts Supplier' AND ROWNUM = 1) AND ROWNUM = 1),
-    (SELECT product_id FROM products WHERE product_code = 'IPH-15-029'),
+    (SELECT product_id FROM products WHERE product_code = 'IPH-15-029' AND ROWNUM = 1),
     145000, 130000, 1, 'FaceID sensor not working'
 );
 
@@ -3855,7 +3856,7 @@ VALUES (
 INSERT INTO product_return_details (return_id, product_id, mrp, purchase_price, return_quantity, reason)
 VALUES (
     (SELECT return_id FROM product_return_master WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Bangladesh Electronics Wholesale' AND ROWNUM = 1) AND ROWNUM = 1),
-    (SELECT product_id FROM products WHERE product_code = 'PAN-MIC-0714'),
+    (SELECT product_id FROM products WHERE product_code = 'PAN-MIC-0714' AND ROWNUM = 1),
     18000, 15000, 2, 'Glass tray broken'
 );
 
