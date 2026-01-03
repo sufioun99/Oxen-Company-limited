@@ -3628,7 +3628,7 @@ COMMIT;
 --------------------------------------------------------------------------------
 
 -- Service 1: TV Repair Service
-INSERT INTO service_master (customer_id, invoice_id, service_date, servicelist_id, service_by, service_charge, parts_price, total_price, warranty_applicable)
+INSERT INTO service_master (customer_id, invoice_id, service_date, servicelist_id, service_by, service_charge, parts_price, vat, grand_total, warranty_applicable)
 VALUES (
     (SELECT customer_id FROM customers WHERE phone_no = '01810000001' AND ROWNUM = 1),
     (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000001' AND ROWNUM = 1) AND ROWNUM = 1),
@@ -3637,12 +3637,13 @@ VALUES (
     (SELECT employee_id FROM employees WHERE first_name = 'Mominul' AND last_name = 'Haque' AND ROWNUM = 1),
     2500,
     3500,
+    900,
     6900,
     'Y'
 );
 
 -- Service 2: AC Servicing
-INSERT INTO service_master (customer_id, invoice_id, service_date, servicelist_id, service_by, service_charge, parts_price, total_price, warranty_applicable)
+INSERT INTO service_master (customer_id, invoice_id, service_date, servicelist_id, service_by, service_charge, parts_price, vat, grand_total, warranty_applicable)
 VALUES (
     (SELECT customer_id FROM customers WHERE phone_no = '01810000002' AND ROWNUM = 1),
     (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000002' AND ROWNUM = 1) AND ROWNUM = 1),
@@ -3651,12 +3652,13 @@ VALUES (
     (SELECT employee_id FROM employees WHERE first_name = 'Ariful' AND last_name = 'Islam' AND ROWNUM = 1),
     1800,
     2200,
+    600,
     4600,
     'Y'
 );
 
 -- Service 3: Refrigerator Repair
-INSERT INTO service_master (customer_id, invoice_id, service_date, servicelist_id, service_by, service_charge, parts_price, total_price, warranty_applicable)
+INSERT INTO service_master (customer_id, invoice_id, service_date, servicelist_id, service_by, service_charge, parts_price, vat, grand_total, warranty_applicable)
 VALUES (
     (SELECT customer_id FROM customers WHERE phone_no = '01810000003' AND ROWNUM = 1),
     (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000003' AND ROWNUM = 1) AND ROWNUM = 1),
@@ -3665,12 +3667,13 @@ VALUES (
     (SELECT employee_id FROM employees WHERE first_name = 'Keya' AND last_name = 'Payel' AND ROWNUM = 1),
     2200,
     4500,
+    1005,
     7705,
     'N'
 );
 
 -- Service 4: Washing Machine Repair
-INSERT INTO service_master (customer_id, invoice_id, service_date, servicelist_id, service_by, service_charge, parts_price, total_price, warranty_applicable)
+INSERT INTO service_master (customer_id, invoice_id, service_date, servicelist_id, service_by, service_charge, parts_price, vat, grand_total, warranty_applicable)
 VALUES (
     (SELECT customer_id FROM customers WHERE phone_no = '01810000004' AND ROWNUM = 1),
     (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000004' AND ROWNUM = 1) AND ROWNUM = 1),
@@ -3679,12 +3682,13 @@ VALUES (
     (SELECT employee_id FROM employees WHERE first_name = 'Imtiaz' AND last_name = 'Bulbul' AND ROWNUM = 1),
     1500,
     1800,
+    495,
     3795,
     'N'
 );
 
 -- Service 5: Laptop / Computer Repair
-INSERT INTO service_master (customer_id, invoice_id, service_date, servicelist_id, service_by, service_charge, parts_price, total_price, warranty_applicable)
+INSERT INTO service_master (customer_id, invoice_id, service_date, servicelist_id, service_by, service_charge, parts_price, vat, grand_total, warranty_applicable)
 VALUES (
     (SELECT customer_id FROM customers WHERE phone_no = '01810000005' AND ROWNUM = 1),
     (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000005' AND ROWNUM = 1) AND ROWNUM = 1),
@@ -3693,12 +3697,13 @@ VALUES (
     (SELECT employee_id FROM employees WHERE first_name = 'Ariful' AND last_name = 'Islam' AND ROWNUM = 1),
     3000,
     2500,
+    825,
     6325,
     'Y'
 );
 
 -- Service 6: TV Installation
-INSERT INTO service_master (customer_id, invoice_id, service_date, servicelist_id, service_by, service_charge, parts_price, total_price, warranty_applicable)
+INSERT INTO service_master (customer_id, invoice_id, service_date, servicelist_id, service_by, service_charge, parts_price, vat, grand_total, warranty_applicable)
 VALUES (
     (SELECT customer_id FROM customers WHERE phone_no = '01810000006' AND ROWNUM = 1),
     (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000006' AND ROWNUM = 1) AND ROWNUM = 1),
@@ -3707,12 +3712,13 @@ VALUES (
     (SELECT employee_id FROM employees WHERE first_name = 'Mominul' AND last_name = 'Haque' AND ROWNUM = 1),
     1200,
     1500,
+    405,
     3105,
     'Y'
 );
 
 -- Service 7: AC Installation
-INSERT INTO service_master (customer_id, invoice_id, service_date, servicelist_id, service_by, service_charge, parts_price, total_price, warranty_applicable)
+INSERT INTO service_master (customer_id, invoice_id, service_date, servicelist_id, service_by, service_charge, parts_price, vat, grand_total, warranty_applicable)
 VALUES (
     (SELECT customer_id FROM customers WHERE phone_no = '01810000007' AND ROWNUM = 1),
     (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000007' AND ROWNUM = 1) AND ROWNUM = 1),
@@ -3721,12 +3727,13 @@ VALUES (
     (SELECT employee_id FROM employees WHERE first_name = 'Keya' AND last_name = 'Payel' AND ROWNUM = 1),
     2500,
     2000,
+    675,
     5175,
     'Y'
 );
 
 -- Service 8: Microwave Oven Repair
-INSERT INTO service_master (customer_id, invoice_id, service_date, servicelist_id, service_by, service_charge, parts_price, total_price, warranty_applicable)
+INSERT INTO service_master (customer_id, invoice_id, service_date, servicelist_id, service_by, service_charge, parts_price, vat, grand_total, warranty_applicable)
 VALUES (
     (SELECT customer_id FROM customers WHERE phone_no = '01810000008' AND ROWNUM = 1),
     (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000008' AND ROWNUM = 1) AND ROWNUM = 1),
@@ -3735,12 +3742,13 @@ VALUES (
     (SELECT employee_id FROM employees WHERE first_name = 'Imtiaz' AND last_name = 'Bulbul' AND ROWNUM = 1),
     1200,
     2800,
+    600,
     4600,
     'N'
 );
 
 -- Service 9: Mobile Service and Repair
-INSERT INTO service_master (customer_id, invoice_id, service_date, servicelist_id, service_by, service_charge, parts_price, total_price, warranty_applicable)
+INSERT INTO service_master (customer_id, invoice_id, service_date, servicelist_id, service_by, service_charge, parts_price, vat, grand_total, warranty_applicable)
 VALUES (
     (SELECT customer_id FROM customers WHERE phone_no = '01810000009' AND ROWNUM = 1),
     (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000009' AND ROWNUM = 1) AND ROWNUM = 1),
@@ -3749,12 +3757,13 @@ VALUES (
     (SELECT employee_id FROM employees WHERE first_name = 'Ariful' AND last_name = 'Islam' AND ROWNUM = 1),
     2200,
     1500,
+    555,
     4255,
     'Y'
 );
 
 -- Service 10: Home Appliance Diagnosis
-INSERT INTO service_master (customer_id, invoice_id, service_date, servicelist_id, service_by, service_charge, parts_price, total_price, warranty_applicable)
+INSERT INTO service_master (customer_id, invoice_id, service_date, servicelist_id, service_by, service_charge, parts_price, vat, grand_total, warranty_applicable)
 VALUES (
     (SELECT customer_id FROM customers WHERE phone_no = '01810000010' AND ROWNUM = 1),
     (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000010' AND ROWNUM = 1) AND ROWNUM = 1),
@@ -3763,6 +3772,7 @@ VALUES (
     (SELECT employee_id FROM employees WHERE first_name = 'Mominul' AND last_name = 'Haque' AND ROWNUM = 1),
     800,
     1200,
+    300,
     2300,
     'N'
 );
