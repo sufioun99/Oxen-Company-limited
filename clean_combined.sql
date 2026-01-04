@@ -62,6 +62,7 @@ BEGIN
         IF :NEW.cre_by IS NULL THEN :NEW.cre_by := USER; END IF;
         IF :NEW.cre_dt IS NULL THEN :NEW.cre_dt := SYSDATE; END IF;
     ELSIF UPDATING THEN
+        -- Always stamp updater to maintain audit integrity
         :NEW.upd_by := USER;
         :NEW.upd_dt := SYSDATE;
     END IF;
