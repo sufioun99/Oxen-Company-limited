@@ -1475,7 +1475,8 @@ CREATE TABLE payments (
     payment_date DATE NOT NULL,
     amount       NUMBER NOT NULL CHECK (amount > 0),
     supplier_id  VARCHAR2(50) REFERENCES suppliers(supplier_id),
-    payment_type VARCHAR2(50)
+    payment_type VARCHAR2(50),
+    CONSTRAINT chk_payment_type CHECK (UPPER(payment_type) IN ('CASH','ONLINE','BANK'))
 );
 
 CREATE SEQUENCE payments_seq START WITH 1 INCREMENT BY 1 NOCACHE NOCYCLE;
