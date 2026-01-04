@@ -1238,7 +1238,7 @@ BEGIN
 END;
 /
 
--- Keep master audit columns current when any detail row changes
+-- Keep expense_master audit columns current when any detail row changes
 CREATE OR REPLACE TRIGGER trg_exp_det_master_audit
 AFTER INSERT OR UPDATE OR DELETE ON expense_details
 FOR EACH ROW
