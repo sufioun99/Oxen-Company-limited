@@ -956,11 +956,6 @@ CREATE TABLE stock (
     sub_cat_id      VARCHAR2(50) NULL,
     quantity        NUMBER DEFAULT 0,
     last_update     TIMESTAMP DEFAULT SYSTIMESTAMP,
-    status          NUMBER,
-    cre_by          VARCHAR2(100),
-    cre_dt          DATE,
-    upd_by          VARCHAR2(100),
-    upd_dt          DATE,
     CONSTRAINT fk_s_p   FOREIGN KEY (product_id) REFERENCES products(product_id),
     CONSTRAINT fk_s_sup FOREIGN KEY (supplier_id) REFERENCES suppliers(supplier_id),
     CONSTRAINT fk_prod_cat FOREIGN KEY (product_cat_id) REFERENCES product_categories(product_cat_id),
@@ -977,15 +972,9 @@ BEGIN
         :NEW.stock_id := 'STK' || TO_CHAR(stock_seq.NEXTVAL);
     END IF;
     
-    -- Populate audit columns independently (not nested)
-    IF INSERTING THEN
-        IF :NEW.status IS NULL THEN :NEW.status := 1; END IF;
-        IF :NEW.cre_by IS NULL THEN :NEW.cre_by := USER; END IF;
-        IF :NEW.cre_dt IS NULL THEN :NEW.cre_dt := SYSDATE; END IF; 
-    ELSIF UPDATING THEN
-        :NEW.last_update := SYSTIMESTAMP; 
-        :NEW.upd_by := USER;
-        :NEW.upd_dt := SYSDATE;
+    -- Update timestamp on any change
+    IF UPDATING THEN
+        :NEW.last_update := SYSTIMESTAMP;
     END IF;
 END;
 /
@@ -1302,8 +1291,8 @@ BEGIN
             IF v_delta < 0 THEN
                 RAISE_APPLICATION_ERROR(-20012, 'Stock row missing for decrement');
             END IF;
-            INSERT INTO stock (product_id, supplier_id, quantity, status, cre_by, cre_dt)
-            VALUES (v_target_product, v_supplier, v_delta, 1, USER, SYSDATE);
+            INSERT INTO stock (product_id, supplier_id, quantity)
+            VALUES (v_target_product, v_supplier, v_delta);
         END;
     END IF;
 END;
