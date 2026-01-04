@@ -2472,6 +2472,16 @@ INSERT INTO employees (first_name, last_name, email, phone_no, address, hire_dat
 VALUES ('Ahsan', 'Kabir', 'ahsan.kabir@walton.com', '01711110008', 'Khilkhet, Dhaka', SYSDATE-200, 15000, 
         'DLV8', 'LOG76');
 
+-- 10b. IT Operations Manager (reports to Rafiqul Hasan)
+INSERT INTO employees (first_name, last_name, email, phone_no, address, hire_date, salary, job_id, department_id, manager_id)
+VALUES ('Farid', 'Ahmed', 'farid.ahmed@walton.com', '01733300021', 'Baridhara, Dhaka', SYSDATE-420, 50000,
+    'MGR4', 'IT 106', (SELECT employee_id FROM employees WHERE last_name='Hasan' AND ROWNUM=1));
+
+-- 10c. Procurement Manager (reports to Rafiqul Hasan)
+INSERT INTO employees (first_name, last_name, email, phone_no, address, hire_date, salary, job_id, department_id, manager_id)
+VALUES ('Salma', 'Chowdhury', 'salma.chowdhury@walton.com', '01733300022', 'Gulshan, Dhaka', SYSDATE-380, 52000,
+    'MGR4', 'PRO101', (SELECT employee_id FROM employees WHERE last_name='Hasan' AND ROWNUM=1));
+
 
 
 UPDATE employees
@@ -2479,6 +2489,15 @@ SET manager_id = (SELECT employee_id FROM employees WHERE last_name='Hasan')
 WHERE last_name <> 'Hasan';
 UPDATE departments
 SET manager_id = (SELECT employee_id FROM employees WHERE last_name='Hasan');
+
+-- Reassign specific departments to new managers
+UPDATE departments
+SET manager_id = (SELECT employee_id FROM employees WHERE email = 'farid.ahmed@walton.com')
+WHERE department_id = 'IT 106';
+
+UPDATE departments
+SET manager_id = (SELECT employee_id FROM employees WHERE email = 'salma.chowdhury@walton.com')
+WHERE department_id = 'PRO101';
 
 
 --------------------------------------------------------------------------------
