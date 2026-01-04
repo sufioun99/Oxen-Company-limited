@@ -1064,6 +1064,53 @@ END IF;
 END;
 /
 
+-- Auto-update stock when sales details change
+CREATE OR REPLACE TRIGGER trg_stock_on_sales_det
+AFTER INSERT OR UPDATE OR DELETE ON sales_detail
+FOR EACH ROW
+DECLARE
+    v_target_product sales_detail.product_id%TYPE;
+    v_stock_id       stock.stock_id%TYPE;
+    v_curr_qty       stock.quantity%TYPE;
+    v_delta          NUMBER := 0;
+BEGIN
+    IF INSERTING OR UPDATING THEN
+        v_target_product := :NEW.product_id;
+    ELSE
+        v_target_product := :OLD.product_id;
+    END IF;
+
+    IF INSERTING THEN
+        v_delta := -NVL(:NEW.quantity,0);
+    ELSIF DELETING THEN
+        v_delta := NVL(:OLD.quantity,0);
+    ELSE
+        IF :NEW.product_id = :OLD.product_id THEN
+            v_delta := -(NVL(:NEW.quantity,0) - NVL(:OLD.quantity,0));
+        ELSE
+            -- Product changed: put back old quantity and deduct new
+            SELECT stock_id, quantity INTO v_stock_id, v_curr_qty
+            FROM stock WHERE product_id = :OLD.product_id
+            FOR UPDATE;
+            UPDATE stock SET quantity = v_curr_qty + NVL(:OLD.quantity,0) WHERE stock_id = v_stock_id;
+            v_delta := -NVL(:NEW.quantity,0);
+        END IF;
+    END IF;
+
+    IF v_delta <> 0 THEN
+        SELECT stock_id, quantity INTO v_stock_id, v_curr_qty
+        FROM stock WHERE product_id = v_target_product
+        FOR UPDATE;
+        IF v_curr_qty + v_delta < 0 THEN
+            RAISE_APPLICATION_ERROR(-20014, 'Insufficient stock for sale');
+        END IF;
+        UPDATE stock
+        SET quantity = v_curr_qty + v_delta
+        WHERE stock_id = v_stock_id;
+    END IF;
+END;
+/
+
 -- Keep sales_master audit columns current when any sales detail changes
 CREATE OR REPLACE TRIGGER trg_sales_det_master_audit
 AFTER INSERT OR UPDATE OR DELETE ON sales_detail
@@ -1195,6 +1242,73 @@ END IF;
 END;
 /
 
+-- Auto-update stock when receive details change
+CREATE OR REPLACE TRIGGER trg_stock_on_receive_det
+AFTER INSERT OR UPDATE OR DELETE ON product_receive_details
+FOR EACH ROW
+DECLARE
+    v_target_product   product_receive_details.product_id%TYPE;
+    v_supplier         product_receive_master.supplier_id%TYPE;
+    v_stock_id         stock.stock_id%TYPE;
+    v_curr_qty         stock.quantity%TYPE;
+    v_delta            NUMBER := 0;
+BEGIN
+    IF INSERTING OR UPDATING THEN
+        v_target_product := :NEW.product_id;
+    ELSE
+        v_target_product := :OLD.product_id;
+    END IF;
+
+    SELECT supplier_id INTO v_supplier
+    FROM product_receive_master
+    WHERE receive_id = NVL(:NEW.receive_id, :OLD.receive_id);
+
+    IF INSERTING THEN
+        v_delta := NVL(:NEW.receive_quantity,0);
+    ELSIF DELETING THEN
+        v_delta := -NVL(:OLD.receive_quantity,0);
+    ELSE
+        IF :NEW.product_id = :OLD.product_id THEN
+            v_delta := NVL(:NEW.receive_quantity,0) - NVL(:OLD.receive_quantity,0);
+        ELSE
+            -- Product changed: first roll back the old product quantity
+            SELECT stock_id, quantity INTO v_stock_id, v_curr_qty
+            FROM stock
+            WHERE product_id = :OLD.product_id AND NVL(supplier_id, 'X') = NVL(v_supplier, 'X')
+            FOR UPDATE;
+            IF v_curr_qty - NVL(:OLD.receive_quantity,0) < 0 THEN
+                RAISE_APPLICATION_ERROR(-20010, 'Insufficient stock to reassign received quantity from old product');
+            END IF;
+            UPDATE stock
+            SET quantity = v_curr_qty - NVL(:OLD.receive_quantity,0)
+            WHERE stock_id = v_stock_id;
+            v_delta := NVL(:NEW.receive_quantity,0);
+        END IF;
+    END IF;
+
+    IF v_delta <> 0 THEN
+        BEGIN
+            SELECT stock_id, quantity INTO v_stock_id, v_curr_qty
+            FROM stock
+            WHERE product_id = v_target_product AND NVL(supplier_id, 'X') = NVL(v_supplier, 'X')
+            FOR UPDATE;
+            IF v_curr_qty + v_delta < 0 THEN
+                RAISE_APPLICATION_ERROR(-20011, 'Stock cannot go negative for received product');
+            END IF;
+            UPDATE stock
+            SET quantity = v_curr_qty + v_delta
+            WHERE stock_id = v_stock_id;
+        EXCEPTION WHEN NO_DATA_FOUND THEN
+            IF v_delta < 0 THEN
+                RAISE_APPLICATION_ERROR(-20012, 'Stock row missing for decrement');
+            END IF;
+            INSERT INTO stock (product_id, supplier_id, quantity, status, cre_by, cre_dt)
+            VALUES (v_target_product, v_supplier, v_delta, 1, USER, SYSDATE);
+        END;
+    END IF;
+END;
+/
+
 -- Keep product_receive_master audit columns current when any receive detail changes
 CREATE OR REPLACE TRIGGER trg_recv_det_master_audit
 AFTER INSERT OR UPDATE OR DELETE ON product_receive_details
@@ -1272,6 +1386,62 @@ BEGIN
 IF INSERTING AND :NEW.return_detail_id IS NULL THEN
 :NEW.return_detail_id := 'PRD' || TO_CHAR(prod_ret_det_seq.NEXTVAL); 
 END IF;
+END;
+/
+
+-- Auto-update stock when product return details change (returns to supplier)
+CREATE OR REPLACE TRIGGER trg_stock_on_prod_return_det
+AFTER INSERT OR UPDATE OR DELETE ON product_return_details
+FOR EACH ROW
+DECLARE
+    v_target_product product_return_details.product_id%TYPE;
+    v_supplier       product_return_master.supplier_id%TYPE;
+    v_stock_id       stock.stock_id%TYPE;
+    v_curr_qty       stock.quantity%TYPE;
+    v_delta          NUMBER := 0;
+BEGIN
+    IF INSERTING OR UPDATING THEN
+        v_target_product := :NEW.product_id;
+    ELSE
+        v_target_product := :OLD.product_id;
+    END IF;
+
+    SELECT supplier_id INTO v_supplier
+    FROM product_return_master
+    WHERE return_id = NVL(:NEW.return_id, :OLD.return_id);
+
+    IF INSERTING THEN
+        v_delta := -NVL(:NEW.return_quantity,0);
+    ELSIF DELETING THEN
+        v_delta := NVL(:OLD.return_quantity,0);
+    ELSE
+        IF :NEW.product_id = :OLD.product_id THEN
+            v_delta := -(NVL(:NEW.return_quantity,0) - NVL(:OLD.return_quantity,0));
+        ELSE
+            -- Product changed: add back old quantity then deduct new
+            SELECT stock_id, quantity INTO v_stock_id, v_curr_qty
+            FROM stock
+            WHERE product_id = :OLD.product_id AND NVL(supplier_id, 'X') = NVL(v_supplier, 'X')
+            FOR UPDATE;
+            UPDATE stock
+            SET quantity = v_curr_qty + NVL(:OLD.return_quantity,0)
+            WHERE stock_id = v_stock_id;
+            v_delta := -NVL(:NEW.return_quantity,0);
+        END IF;
+    END IF;
+
+    IF v_delta <> 0 THEN
+        SELECT stock_id, quantity INTO v_stock_id, v_curr_qty
+        FROM stock
+        WHERE product_id = v_target_product AND NVL(supplier_id, 'X') = NVL(v_supplier, 'X')
+        FOR UPDATE;
+        IF v_curr_qty + v_delta < 0 THEN
+            RAISE_APPLICATION_ERROR(-20013, 'Stock cannot go negative on return');
+        END IF;
+        UPDATE stock
+        SET quantity = v_curr_qty + v_delta
+        WHERE stock_id = v_stock_id;
+    END IF;
 END;
 /
 
@@ -1400,6 +1570,53 @@ BEGIN
 IF INSERTING AND :NEW.damage_detail_id IS NULL THEN
 :NEW.damage_detail_id := 'DDT' || TO_CHAR(damage_det_seq.NEXTVAL);
 END IF; 
+END;
+/
+
+-- Auto-update stock when damage details change (write-offs)
+CREATE OR REPLACE TRIGGER trg_stock_on_damage_det
+AFTER INSERT OR UPDATE OR DELETE ON damage_detail
+FOR EACH ROW
+DECLARE
+    v_target_product damage_detail.product_id%TYPE;
+    v_stock_id       stock.stock_id%TYPE;
+    v_curr_qty       stock.quantity%TYPE;
+    v_delta          NUMBER := 0;
+BEGIN
+    IF INSERTING OR UPDATING THEN
+        v_target_product := :NEW.product_id;
+    ELSE
+        v_target_product := :OLD.product_id;
+    END IF;
+
+    IF INSERTING THEN
+        v_delta := -NVL(:NEW.damage_quantity,0);
+    ELSIF DELETING THEN
+        v_delta := NVL(:OLD.damage_quantity,0);
+    ELSE
+        IF :NEW.product_id = :OLD.product_id THEN
+            v_delta := -(NVL(:NEW.damage_quantity,0) - NVL(:OLD.damage_quantity,0));
+        ELSE
+            -- Product changed: add back old quantity then deduct new
+            SELECT stock_id, quantity INTO v_stock_id, v_curr_qty
+            FROM stock WHERE product_id = :OLD.product_id
+            FOR UPDATE;
+            UPDATE stock SET quantity = v_curr_qty + NVL(:OLD.damage_quantity,0) WHERE stock_id = v_stock_id;
+            v_delta := -NVL(:NEW.damage_quantity,0);
+        END IF;
+    END IF;
+
+    IF v_delta <> 0 THEN
+        SELECT stock_id, quantity INTO v_stock_id, v_curr_qty
+        FROM stock WHERE product_id = v_target_product
+        FOR UPDATE;
+        IF v_curr_qty + v_delta < 0 THEN
+            RAISE_APPLICATION_ERROR(-20015, 'Stock cannot go negative on damage write-off');
+        END IF;
+        UPDATE stock
+        SET quantity = v_curr_qty + v_delta
+        WHERE stock_id = v_stock_id;
+    END IF;
 END;
 /
 
@@ -4195,22 +4412,8 @@ END;
 
 
 --------------------------------------------------------------------------------
--- 35. DAMAGE (Damaged Goods)
+-- 35. DAMAGE (Damaged Goods) - No seed data; use triggers for actual transactions
 --------------------------------------------------------------------------------
-
-INSERT INTO damage (damage_date, total_loss)
-VALUES (
-    SYSDATE - 7,
-    45000
-);
-
-INSERT INTO damage (damage_date, total_loss)
-VALUES (
-    SYSDATE - 3,
-    28500
-);
-
-COMMIT;
 
 
 --------------------------------------------------------------------------------
@@ -4359,24 +4562,8 @@ COMMIT;
 
 
 --------------------------------------------------------------------------------
--- 39. SALES_RETURN_DETAILS (Return Details for Sales Returns)
+-- 39. SALES_RETURN_DETAILS - No seed data; use triggers for actual return transactions
 --------------------------------------------------------------------------------
-
-INSERT INTO sales_return_details (sales_return_id, product_id, mrp, purchase_price, qty_return, reason)
-VALUES (
-    (SELECT sales_return_id FROM sales_return_master WHERE ROWNUM = 1),
-    (SELECT product_id FROM products WHERE product_name = 'Samsung 65" 4K LED TV' AND ROWNUM = 1),
-    95000, 76000, 1, 'Unit found to have dead pixels in display'
-);
-
-INSERT INTO sales_return_details (sales_return_id, product_id, mrp, purchase_price, qty_return, reason)
-VALUES (
-    (SELECT sales_return_id FROM sales_return_master WHERE ROWNUM = 1),
-    (SELECT product_id FROM products WHERE product_name = 'Walton 2-Door Refrigerator (300L)' AND ROWNUM = 1),
-    35000, 28000, 1, 'Compressor making unusual noise'
-);
-
-COMMIT;
 
 
 --------------------------------------------------------------------------------
@@ -4434,30 +4621,8 @@ COMMIT;
 
 
 --------------------------------------------------------------------------------
--- 42. DAMAGE_DETAIL (Damage Details for Damaged Goods)
+-- 42. DAMAGE_DETAIL - No seed data; use triggers for actual damage transactions
 --------------------------------------------------------------------------------
-
-INSERT INTO damage_detail (damage_id, product_id, mrp, purchase_price, damage_quantity, reason)
-VALUES (
-    (SELECT damage_id FROM damage WHERE ROWNUM = 1),
-    (SELECT product_id FROM products WHERE product_name = 'Walton 2-Door Refrigerator (300L)' AND ROWNUM = 1),
-    35000,
-    28000,
-    1,
-    'Unit dropped during warehouse handling - compressor damaged'
-);
-
-INSERT INTO damage_detail (damage_id, product_id, mrp, purchase_price, damage_quantity, reason)
-VALUES (
-    (SELECT damage_id FROM damage WHERE ROWNUM = 2),
-    (SELECT product_id FROM products WHERE product_name = 'LG Washing Machine (7kg)' AND ROWNUM = 1),
-    28000,
-    22400,
-    1,
-    'Water ingress during monsoon - motor short circuit'
-);
-
-COMMIT;
 
 
 --------------------------------------------------------------------------------
