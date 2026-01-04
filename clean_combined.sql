@@ -1500,6 +1500,28 @@ BEGIN
 END;
 /
 
+-- Keep suppliers audit columns current when any payment row changes
+CREATE OR REPLACE TRIGGER trg_payments_supplier_audit
+AFTER INSERT OR UPDATE OR DELETE ON payments
+FOR EACH ROW
+DECLARE
+    v_supplier_id payments.supplier_id%TYPE;
+BEGIN
+    IF INSERTING OR UPDATING THEN
+        v_supplier_id := :NEW.supplier_id;
+    ELSE
+        v_supplier_id := :OLD.supplier_id;
+    END IF;
+
+    IF v_supplier_id IS NOT NULL THEN
+        UPDATE suppliers
+        SET upd_by = USER,
+            upd_dt = SYSDATE
+        WHERE supplier_id = v_supplier_id;
+    END IF;
+END;
+/
+
 --------------------------------------------------------------------------------
 -- 17(a).SERVICE MASTER TRIGGER HERE 
 --------------------------------------------------------------------------------
