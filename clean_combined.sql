@@ -1484,7 +1484,19 @@ CREATE TABLE payments (
 CREATE SEQUENCE payments_seq START WITH 1 INCREMENT BY 1 NOCACHE NOCYCLE;
 CREATE OR REPLACE TRIGGER trg_payments_bi BEFORE INSERT OR UPDATE ON payments FOR EACH ROW
 BEGIN
-    IF INSERTING AND :NEW.payment_id IS NULL THEN :NEW.payment_id := 'PAY' || TO_CHAR(payments_seq.NEXTVAL); END IF;
+    IF INSERTING AND :NEW.payment_id IS NULL THEN
+        :NEW.payment_id := 'PAY' || TO_CHAR(payments_seq.NEXTVAL);
+    END IF;
+
+    -- Populate audit columns
+    IF INSERTING THEN
+        IF :NEW.status IS NULL THEN :NEW.status := 1; END IF;
+        IF :NEW.cre_by IS NULL THEN :NEW.cre_by := USER; END IF;
+        IF :NEW.cre_dt IS NULL THEN :NEW.cre_dt := SYSDATE; END IF;
+    ELSIF UPDATING THEN
+        :NEW.upd_by := USER;
+        :NEW.upd_dt := SYSDATE;
+    END IF;
 END;
 /
 
