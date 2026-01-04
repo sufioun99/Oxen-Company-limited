@@ -295,6 +295,7 @@ CREATE TABLE suppliers (
     email          VARCHAR2(150),
     address        VARCHAR2(300),
     contact_person VARCHAR2(100),
+    cp_designation VARCHAR2(100),
     cp_phone_no    VARCHAR2(30),
     cp_email       VARCHAR2(150),
     purchase_total NUMBER DEFAULT 0,
