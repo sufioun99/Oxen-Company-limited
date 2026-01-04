@@ -1474,11 +1474,7 @@ CREATE TABLE payments (
     payment_date DATE NOT NULL,
     amount       NUMBER NOT NULL CHECK (amount > 0),
     supplier_id  VARCHAR2(50) REFERENCES suppliers(supplier_id),
-    status       NUMBER,
-    cre_by       VARCHAR2(100),
-    cre_dt       DATE,
-    upd_by       VARCHAR2(100),
-    upd_dt       DATE
+    payment_type VARCHAR2(50)
 );
 
 CREATE SEQUENCE payments_seq START WITH 1 INCREMENT BY 1 NOCACHE NOCYCLE;
