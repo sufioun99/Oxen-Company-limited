@@ -49,10 +49,15 @@ CREATE OR REPLACE TRIGGER trg_company_bi
 BEFORE INSERT OR UPDATE ON company FOR EACH ROW
 DECLARE v_seq NUMBER; v_code VARCHAR2(100);
 BEGIN
+    -- Generate company_id only if null during INSERT
     IF INSERTING AND :NEW.company_id IS NULL THEN
         v_seq := company_seq.NEXTVAL;
         v_code := UPPER(SUBSTR(TRIM(:NEW.company_name),1,3));
         :NEW.company_id := NVL(v_code, 'COM') || TO_CHAR(v_seq);
+    END IF;
+    
+    -- Populate audit columns independently (not nested)
+    IF INSERTING THEN
         IF :NEW.status IS NULL THEN :NEW.status := 1; END IF;
         IF :NEW.cre_by IS NULL THEN :NEW.cre_by := USER; END IF;
         IF :NEW.cre_dt IS NULL THEN :NEW.cre_dt := SYSDATE; END IF;
@@ -87,12 +92,17 @@ CREATE OR REPLACE TRIGGER trg_jobs_bi
 BEFORE INSERT OR UPDATE ON jobs FOR EACH ROW
 DECLARE v_seq NUMBER; v_code VARCHAR2(100);
 BEGIN
+    -- Generate job_id only if null during INSERT
     IF INSERTING AND :NEW.job_id IS NULL THEN
         v_seq := jobs_seq.NEXTVAL; 
         IF :NEW.job_code IS NOT NULL THEN
             v_code := UPPER(TRIM(:NEW.job_code));
             :NEW.job_id := v_code || TO_CHAR(v_seq);
         ELSE :NEW.job_id := TO_CHAR(v_seq); END IF;
+    END IF;
+    
+    -- Populate audit columns independently (not nested)
+    IF INSERTING THEN
         IF :NEW.status IS NULL THEN :NEW.status := 1; END IF;
         IF :NEW.cre_by IS NULL THEN :NEW.cre_by := USER; END IF;
         IF :NEW.cre_dt IS NULL THEN :NEW.cre_dt := SYSDATE; END IF;
@@ -174,12 +184,17 @@ CREATE OR REPLACE TRIGGER trg_parts_cat_bi
 BEFORE INSERT OR UPDATE ON parts_category FOR EACH ROW
 DECLARE v_seq NUMBER; v_code VARCHAR2(100);
 BEGIN
+    -- Generate parts_cat_id only if null during INSERT
     IF INSERTING AND :NEW.parts_cat_id IS NULL THEN
         v_seq := parts_cat_seq.NEXTVAL;
         IF :NEW.parts_cat_code IS NOT NULL THEN
             v_code := UPPER(TRIM(:NEW.parts_cat_code));
             :NEW.parts_cat_id := v_code || TO_CHAR(v_seq);
         ELSE :NEW.parts_cat_id := TO_CHAR(v_seq); END IF;
+    END IF;
+    
+    -- Populate audit columns independently (not nested)
+    IF INSERTING THEN
         IF :NEW.status IS NULL THEN :NEW.status := 1; END IF;
         IF :NEW.cre_by IS NULL THEN :NEW.cre_by := USER; END IF;
         IF :NEW.cre_dt IS NULL THEN :NEW.cre_dt := SYSDATE; END IF;
@@ -209,10 +224,15 @@ CREATE OR REPLACE TRIGGER trg_prod_cat_bi
 BEFORE INSERT OR UPDATE ON product_categories FOR EACH ROW
 DECLARE v_seq NUMBER; v_code VARCHAR2(100);
 BEGIN
+    -- Generate product_cat_id only if null during INSERT
     IF INSERTING AND :NEW.product_cat_id IS NULL THEN
         v_seq := prod_cat_seq.NEXTVAL;
         v_code := UPPER(SUBSTR(TRIM(:NEW.product_cat_name),1,3));
         :NEW.product_cat_id := NVL(v_code, 'CAT') || TO_CHAR(v_seq);
+    END IF;
+    
+    -- Populate audit columns independently (not nested)
+    IF INSERTING THEN
         IF :NEW.status IS NULL THEN :NEW.status := 1; END IF;
         IF :NEW.cre_by IS NULL THEN :NEW.cre_by := USER; END IF;
         IF :NEW.cre_dt IS NULL THEN :NEW.cre_dt := SYSDATE; END IF;
@@ -245,10 +265,15 @@ CREATE OR REPLACE TRIGGER trg_brand_bi
 BEFORE INSERT OR UPDATE ON brand FOR EACH ROW
 DECLARE v_seq NUMBER; v_code VARCHAR2(100);
 BEGIN
+    -- Generate brand_id only if null during INSERT
     IF INSERTING AND :NEW.brand_id IS NULL THEN
         v_seq := brand_seq.NEXTVAL;
         v_code := UPPER(SUBSTR(TRIM(:NEW.brand_name),1,3));
         :NEW.brand_id := NVL(v_code, 'BRD') || TO_CHAR(v_seq);
+    END IF;
+    
+    -- Populate audit columns independently (not nested)
+    IF INSERTING THEN
         IF :NEW.status IS NULL THEN :NEW.status := 1; END IF;
         IF :NEW.cre_by IS NULL THEN :NEW.cre_by := USER; END IF;
         IF :NEW.cre_dt IS NULL THEN :NEW.cre_dt := SYSDATE; END IF;
@@ -287,10 +312,15 @@ CREATE OR REPLACE TRIGGER trg_suppliers_bi
 BEFORE INSERT OR UPDATE ON suppliers FOR EACH ROW
 DECLARE v_seq NUMBER; v_code VARCHAR2(100);
 BEGIN
+    -- Generate supplier_id only if null during INSERT
     IF INSERTING AND :NEW.supplier_id IS NULL THEN
         v_seq := suppliers_seq.NEXTVAL;
         v_code := UPPER(SUBSTR(TRIM(:NEW.supplier_name),1,3));
         :NEW.supplier_id := NVL(v_code, 'SUP') || TO_CHAR(v_seq);
+    END IF;
+    
+    -- Populate audit columns independently (not nested)
+    IF INSERTING THEN
         IF :NEW.status IS NULL THEN :NEW.status := 1; END IF;
         IF :NEW.cre_by IS NULL THEN :NEW.cre_by := USER; END IF;
         IF :NEW.cre_dt IS NULL THEN :NEW.cre_dt := SYSDATE; END IF;
@@ -322,10 +352,15 @@ CREATE OR REPLACE TRIGGER trg_service_list_bi
 BEFORE INSERT OR UPDATE ON service_list FOR EACH ROW
 DECLARE v_seq NUMBER; v_code VARCHAR2(100);
 BEGIN
+    -- Generate servicelist_id only if null during INSERT
     IF INSERTING AND :NEW.servicelist_id IS NULL THEN
         v_seq := service_list_seq.NEXTVAL;
         v_code := UPPER(SUBSTR(TRIM(:NEW.service_name),1,3));
         :NEW.servicelist_id := NVL(v_code, 'SRV') || TO_CHAR(v_seq);
+    END IF;
+    
+    -- Populate audit columns independently (not nested)
+    IF INSERTING THEN
         IF :NEW.status IS NULL THEN :NEW.status := 1; END IF;
         IF :NEW.cre_by IS NULL THEN :NEW.cre_by := USER; END IF;
         IF :NEW.cre_dt IS NULL THEN :NEW.cre_dt := SYSDATE; END IF;
@@ -358,12 +393,17 @@ CREATE OR REPLACE TRIGGER trg_exp_list_bi
 BEFORE INSERT OR UPDATE ON expense_list FOR EACH ROW
 DECLARE v_seq NUMBER; v_code VARCHAR2(100);
 BEGIN
+    -- Generate expense_type_id only if null during INSERT
     IF INSERTING AND :NEW.expense_type_id IS NULL THEN
         v_seq := exp_list_seq.NEXTVAL; 
         IF :NEW.expense_code IS NOT NULL THEN
             v_code := UPPER(TRIM(:NEW.expense_code));
             :NEW.expense_type_id := v_code || TO_CHAR(v_seq);
         ELSE :NEW.expense_type_id := TO_CHAR(v_seq); END IF;
+    END IF;
+    
+    -- Populate audit columns independently (not nested)
+    IF INSERTING THEN
         IF :NEW.status IS NULL THEN :NEW.status := 1; END IF;
         IF :NEW.cre_by IS NULL THEN :NEW.cre_by := USER; END IF;
         IF :NEW.cre_dt IS NULL THEN :NEW.cre_dt := SYSDATE; END IF;
@@ -399,6 +439,10 @@ BEGIN
         v_seq := sub_cat_seq.NEXTVAL;
         v_code := UPPER(SUBSTR(TRIM(:NEW.sub_cat_name),1,3));
         :NEW.sub_cat_id := NVL(v_code, 'SUB') || TO_CHAR(v_seq);
+    END IF;
+    
+    -- Populate audit columns independently (not nested)
+    IF INSERTING THEN
         IF :NEW.status IS NULL THEN :NEW.status := 1; END IF;
         IF :NEW.cre_by IS NULL THEN :NEW.cre_by := USER; END IF;
         IF :NEW.cre_dt IS NULL THEN :NEW.cre_dt := SYSDATE; END IF;
@@ -496,6 +540,10 @@ BEGIN
             v_code := UPPER(TRIM(:NEW.parts_code));
             :NEW.parts_id := v_code || TO_CHAR(v_seq);
         ELSE :NEW.parts_id := TO_CHAR(v_seq); END IF;
+    END IF;
+    
+    -- Populate audit columns independently (not nested)
+    IF INSERTING THEN
         IF :NEW.status IS NULL THEN :NEW.status := 1; END IF;
         IF :NEW.cre_by IS NULL THEN :NEW.cre_by := USER; END IF;
         IF :NEW.cre_dt IS NULL THEN :NEW.cre_dt := SYSDATE; END IF;
@@ -562,10 +610,15 @@ CREATE OR REPLACE TRIGGER trg_departments_bi
 BEFORE INSERT OR UPDATE ON departments FOR EACH ROW
 DECLARE v_seq NUMBER; v_code VARCHAR2(100);
 BEGIN
+    -- Generate department_id only if null during INSERT
     IF INSERTING AND :NEW.department_id IS NULL THEN
         v_seq := departments_seq.NEXTVAL;
         v_code := UPPER(SUBSTR(TRIM(:NEW.department_name),1,3));
         :NEW.department_id := NVL(v_code, 'DEP') || TO_CHAR(v_seq);
+    END IF;
+    
+    -- Populate audit columns independently (not nested)
+    IF INSERTING THEN
         IF :NEW.status IS NULL THEN :NEW.status := 1; END IF;
         IF :NEW.cre_by IS NULL THEN :NEW.cre_by := USER; END IF;
         IF :NEW.cre_dt IS NULL THEN :NEW.cre_dt := SYSDATE; END IF;
@@ -580,10 +633,15 @@ CREATE OR REPLACE TRIGGER trg_employees_bi
 BEFORE INSERT OR UPDATE ON employees FOR EACH ROW
 DECLARE v_seq NUMBER; v_code VARCHAR2(100);
 BEGIN
+    -- Generate employee_id only if null during INSERT
     IF INSERTING AND :NEW.employee_id IS NULL THEN
         v_seq := employees_seq.NEXTVAL;
         v_code := UPPER(SUBSTR(TRIM(:NEW.last_name),1,3));
         :NEW.employee_id := NVL(v_code, 'EMP') || TO_CHAR(v_seq);
+    END IF;
+    
+    -- Populate audit columns independently (not nested)
+    IF INSERTING THEN
         IF :NEW.status IS NULL THEN :NEW.status := 1; END IF;
         IF :NEW.cre_by IS NULL THEN :NEW.cre_by := USER; END IF;
         IF :NEW.cre_dt IS NULL THEN :NEW.cre_dt := SYSDATE; END IF;
@@ -660,8 +718,13 @@ CREATE SEQUENCE sales_ret_seq START WITH 1 INCREMENT BY 1 NOCACHE NOCYCLE;
 CREATE OR REPLACE TRIGGER trg_sales_ret_bi
 BEFORE INSERT OR UPDATE ON sales_return_master FOR EACH ROW
 BEGIN
+    -- Generate sales_return_id only if null during INSERT
     IF INSERTING AND :NEW.sales_return_id IS NULL THEN
         :NEW.sales_return_id := 'SRT' || TO_CHAR(sales_ret_seq.NEXTVAL);
+    END IF;
+    
+    -- Populate audit columns independently (not nested)
+    IF INSERTING THEN
         IF :NEW.status IS NULL THEN :NEW.status := 1; END IF;
         IF :NEW.cre_by IS NULL THEN :NEW.cre_by := USER; END IF;
         IF :NEW.cre_dt IS NULL THEN :NEW.cre_dt := SYSDATE; END IF;
@@ -776,6 +839,7 @@ BEFORE INSERT OR UPDATE ON product_receive_master FOR EACH ROW
 DECLARE
     v_seq NUMBER;
 BEGIN
+    -- Generate receive_id only if null during INSERT
     IF INSERTING AND :NEW.receive_id IS NULL THEN
         v_seq := receive_seq.NEXTVAL;
         :NEW.receive_id := 'RCV' || TO_CHAR(v_seq);
@@ -783,6 +847,10 @@ BEGIN
         IF :NEW.sup_invoice_id IS NULL THEN
             :NEW.sup_invoice_id := 'SINV' || TO_CHAR(v_seq);
         END IF;
+    END IF;
+    
+    -- Populate audit columns independently (not nested)
+    IF INSERTING THEN
         IF :NEW.status IS NULL THEN :NEW.status := 1; END IF;
         IF :NEW.cre_by IS NULL THEN :NEW.cre_by := USER; END IF;
         IF :NEW.cre_dt IS NULL THEN :NEW.cre_dt := SYSDATE; END IF;
@@ -822,8 +890,13 @@ CREATE SEQUENCE prod_ret_seq START WITH 1 INCREMENT BY 1 NOCACHE NOCYCLE;
 CREATE OR REPLACE TRIGGER trg_prod_ret_bi
 BEFORE INSERT OR UPDATE ON product_return_master FOR EACH ROW
 BEGIN
+    -- Generate return_id only if null during INSERT
     IF INSERTING AND :NEW.return_id IS NULL THEN
         :NEW.return_id := 'PRT' || TO_CHAR(prod_ret_seq.NEXTVAL);
+    END IF;
+    
+    -- Populate audit columns independently (not nested)
+    IF INSERTING THEN
         IF :NEW.status IS NULL THEN :NEW.status := 1; END IF;
         IF :NEW.cre_by IS NULL THEN :NEW.cre_by := USER; END IF;
         IF :NEW.cre_dt IS NULL THEN :NEW.cre_dt := SYSDATE; END IF;
@@ -853,8 +926,13 @@ CREATE SEQUENCE damage_seq START WITH 1 INCREMENT BY 1 NOCACHE NOCYCLE;
 CREATE OR REPLACE TRIGGER trg_damage_bi
 BEFORE INSERT OR UPDATE ON damage FOR EACH ROW
 BEGIN
+    -- Generate damage_id only if null during INSERT
     IF INSERTING AND :NEW.damage_id IS NULL THEN
         :NEW.damage_id := 'DMG' || TO_CHAR(damage_seq.NEXTVAL);
+    END IF;
+    
+    -- Populate audit columns independently (not nested)
+    IF INSERTING THEN
         IF :NEW.status IS NULL THEN :NEW.status := 1; END IF;
         IF :NEW.cre_by IS NULL THEN :NEW.cre_by := USER; END IF;
         IF :NEW.cre_dt IS NULL THEN :NEW.cre_dt := SYSDATE; END IF;
@@ -892,8 +970,13 @@ CREATE SEQUENCE stock_seq START WITH 1 INCREMENT BY 1 NOCACHE NOCYCLE;
 CREATE OR REPLACE TRIGGER trg_stock_bi
 BEFORE INSERT OR UPDATE ON stock FOR EACH ROW
 BEGIN
+    -- Generate stock_id only if null during INSERT
     IF INSERTING AND :NEW.stock_id IS NULL THEN
         :NEW.stock_id := 'STK' || TO_CHAR(stock_seq.NEXTVAL);
+    END IF;
+    
+    -- Populate audit columns independently (not nested)
+    IF INSERTING THEN
         IF :NEW.status IS NULL THEN :NEW.status := 1; END IF;
         IF :NEW.cre_by IS NULL THEN :NEW.cre_by := USER; END IF;
         IF :NEW.cre_dt IS NULL THEN :NEW.cre_dt := SYSDATE; END IF; 
@@ -1111,8 +1194,13 @@ CREATE TABLE expense_master (
 CREATE SEQUENCE exp_mst_seq START WITH 1 INCREMENT BY 1 NOCACHE NOCYCLE;
 CREATE OR REPLACE TRIGGER trg_exp_mst_bi BEFORE INSERT OR UPDATE ON expense_master FOR EACH ROW
 BEGIN
+    -- Generate expense_id only if null during INSERT
     IF INSERTING AND :NEW.expense_id IS NULL THEN
         :NEW.expense_id := 'EXM' || TO_CHAR(exp_mst_seq.NEXTVAL); 
+    END IF;
+    
+    -- Populate audit columns independently (not nested)
+    IF INSERTING THEN
         IF :NEW.status IS NULL THEN :NEW.status := 1; END IF;
         IF :NEW.cre_by IS NULL THEN :NEW.cre_by := USER; END IF;
         IF :NEW.cre_dt IS NULL THEN :NEW.cre_dt := SYSDATE; END IF;
@@ -1201,11 +1289,21 @@ DECLARE
     v_seq NUMBER; 
     v_code VARCHAR2(100);
 BEGIN
+    -- Generate user_id only if null during INSERT
     IF INSERTING AND :NEW.user_id IS NULL THEN
         v_seq := users_seq.NEXTVAL;
         v_code := UPPER(SUBSTR(TRIM(:NEW.user_name), 1, 3));
         :NEW.user_id := NVL(v_code, 'USR') || TO_CHAR(v_seq);
+    END IF;
+    
+    -- Populate audit columns independently (not nested)
+    IF INSERTING THEN
         IF :NEW.status IS NULL THEN :NEW.status := 1; END IF;
+        IF :NEW.cre_by IS NULL THEN :NEW.cre_by := USER; END IF;
+        IF :NEW.cre_dt IS NULL THEN :NEW.cre_dt := SYSDATE; END IF;
+    ELSIF UPDATING THEN
+        :NEW.upd_by := USER;
+        :NEW.upd_dt := SYSDATE;
     END IF;
 END;
 /
