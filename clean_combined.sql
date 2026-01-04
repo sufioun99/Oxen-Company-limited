@@ -1823,64 +1823,64 @@ VALUES ('Minister', 'M-DFR-240', '240 Liter', 'Red');
 
 
 INSERT INTO suppliers
-(supplier_name, phone_no, email, address, contact_person, cp_phone_no, cp_email, purchase_total, pay_total)
+(supplier_name, phone_no, email, address, contact_person, cp_designation, cp_phone_no, cp_email, purchase_total, pay_total)
 VALUES
 ('Walton Spare Parts Division','01715000001','spares@waltonbd.com','Bashundhara Industrial Area, Dhaka',
- 'Abdul Karim','01716000001','karim@waltonbd.com', 500000, 350000);
+ 'Abdul Karim','Procurement Manager','01716000001','karim@waltonbd.com', 500000, 350000);
 
 INSERT INTO suppliers
-(supplier_name, phone_no, email, address, contact_person, cp_phone_no, cp_email, purchase_total, pay_total)
+(supplier_name, phone_no, email, address, contact_person, cp_designation, cp_phone_no, cp_email, purchase_total, pay_total)
 VALUES
 ('Samsung Authorized Distributor','01715000002','dist@samsungbd.com','Banani, Dhaka',
- 'Tanvir Ahmed','01716000002','tanvir@samsungbd.com', 650000, 400000);
+ 'Tanvir Ahmed','Supply Lead','01716000002','tanvir@samsungbd.com', 650000, 400000);
 
 INSERT INTO suppliers
-(supplier_name, phone_no, email, address, contact_person, cp_phone_no, cp_email, purchase_total, pay_total)
+(supplier_name, phone_no, email, address, contact_person, cp_designation, cp_phone_no, cp_email, purchase_total, pay_total)
 VALUES
 ('LG Electronics Supplier','01715000003','supplier@lgbd.com','Gulshan-1, Dhaka',
- 'Ruhul Amin','01716000003','amin@lgbd.com', 300000, 200000);
+ 'Ruhul Amin','Account Manager','01716000003','amin@lgbd.com', 300000, 200000);
 
 INSERT INTO suppliers
-(supplier_name, phone_no, email, address, contact_person, cp_phone_no, cp_email, purchase_total, pay_total)
+(supplier_name, phone_no, email, address, contact_person, cp_designation, cp_phone_no, cp_email, purchase_total, pay_total)
 VALUES
 ('Vision / RFL Parts Supplier','01715000004','vision.parts@rfl.com','Badda, Dhaka',
- 'Shahadat Hossain','01716000004','shahadat@rfl.com', 250000, 150000);
+ 'Shahadat Hossain','Parts Coordinator','01716000004','shahadat@rfl.com', 250000, 150000);
 
 INSERT INTO suppliers
-(supplier_name, phone_no, email, address, contact_person, cp_phone_no, cp_email, purchase_total, pay_total)
+(supplier_name, phone_no, email, address, contact_person, cp_designation, cp_phone_no, cp_email, purchase_total, pay_total)
 VALUES
 ('Minister Hi-Tech Supplier','01715000005','supplier@minister.com','Gulshan-2, Dhaka',
- 'Nazmul Islam','01716000005','nazmul@minister.com', 180000, 70000);
+ 'Nazmul Islam','Logistics Lead','01716000005','nazmul@minister.com', 180000, 70000);
 
 INSERT INTO suppliers
-(supplier_name, phone_no, email, address, contact_person, cp_phone_no, cp_email, purchase_total, pay_total)
+(supplier_name, phone_no, email, address, contact_person, cp_designation, cp_phone_no, cp_email, purchase_total, pay_total)
 VALUES
 ('Jamuna Electronics Supplier','01715000006','jamuna.supplier@gmail.com','Jamuna Future Park, Dhaka',
- 'Faruk Ahmed','01716000006','faruk@jamuna.com', 200000, 120000);
+ 'Faruk Ahmed','Senior Buyer','01716000006','faruk@jamuna.com', 200000, 120000);
 
 INSERT INTO suppliers
-(supplier_name, phone_no, email, address, contact_person, cp_phone_no, cp_email, purchase_total, pay_total)
+(supplier_name, phone_no, email, address, contact_person, cp_designation, cp_phone_no, cp_email, purchase_total, pay_total)
 VALUES
 ('Global Electronics Importer','01715000007','import@globalelec.com','Chawk Bazar, Dhaka',
- 'Kamal Uddin','01716000007','kamal@globalelec.com', 450000, 250000);
+ 'Kamal Uddin','Import Manager','01716000007','kamal@globalelec.com', 450000, 250000);
 
 INSERT INTO suppliers
-(supplier_name, phone_no, email, address, contact_person, cp_phone_no, cp_email, purchase_total, pay_total)
+(supplier_name, phone_no, email, address, contact_person, cp_designation, cp_phone_no, cp_email, purchase_total, pay_total)
 VALUES
 ('Asian Spare Parts House','01715000008','asianparts@gmail.com','Elephant Road, Dhaka',
- 'Sharif Al Mamun','01716000008','sharif@asparts.com', 120000, 60000);
+ 'Sharif Al Mamun','Owner','01716000008','sharif@asparts.com', 120000, 60000);
 
 INSERT INTO suppliers
-(supplier_name, phone_no, email, address, contact_person, cp_phone_no, cp_email, purchase_total, pay_total)
+(supplier_name, phone_no, email, address, contact_person, cp_designation, cp_phone_no, cp_email, purchase_total, pay_total)
 VALUES
 ('Bangladesh Electronics Wholesale','01715000009','info@bdwholesale.com','Station Road, Chattogram',
- 'Jahangir Alam','01716000009','jahangir@bdwholesale.com', 350000, 230000);
+ 'Jahangir Alam','Wholesale Manager','01716000009','jahangir@bdwholesale.com', 350000, 230000);
 
 INSERT INTO suppliers
-(supplier_name, phone_no, email, address, contact_person, cp_phone_no, cp_email, purchase_total, pay_total)
+(supplier_name, phone_no, email, address, contact_person, cp_designation, cp_phone_no, cp_email, purchase_total, pay_total)
 VALUES
 ('City Electronics Parts Supplier','01715000010','cityparts@gmail.com','Sylhet Amberkhana',
- 'Shafiq Rahman','01716000010','shafiq@cityparts.com', 160000, 100000);
+ 'Shafiq Rahman','Parts Manager','01716000010','shafiq@cityparts.com', 160000, 100000);
 
 INSERT INTO service_list (service_name, service_desc, service_cost)
 VALUES ('TV Installation', 'Wall mount / table stand TV installation service', 800);
@@ -4327,39 +4327,44 @@ COMMIT;
 -- 37. PAYMENTS (Supplier Payments)
 --------------------------------------------------------------------------------
 
-INSERT INTO payments (supplier_id, payment_date, amount)
+INSERT INTO payments (supplier_id, payment_date, amount, payment_type)
 VALUES (
     (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Samsung Authorized Distributor' AND ROWNUM = 1),
     SYSDATE - 10,
-    500000
+    500000,
+    'BANK'
 );
 
-INSERT INTO payments (supplier_id, payment_date, amount)
+INSERT INTO payments (supplier_id, payment_date, amount, payment_type)
 VALUES (
     (SELECT supplier_id FROM suppliers WHERE supplier_name = 'LG Electronics Supplier' AND ROWNUM = 1),
     SYSDATE - 8,
-    400000
+    400000,
+    'ONLINE'
 );
 
-INSERT INTO payments (supplier_id, payment_date, amount)
+INSERT INTO payments (supplier_id, payment_date, amount, payment_type)
 VALUES (
     (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Walton Spare Parts Division' AND ROWNUM = 1),
     SYSDATE - 6,
-    300000
+    300000,
+    'CASH'
 );
 
-INSERT INTO payments (supplier_id, payment_date, amount)
+INSERT INTO payments (supplier_id, payment_date, amount, payment_type)
 VALUES (
     (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Minister Hi-Tech Supplier' AND ROWNUM = 1),
     SYSDATE - 4,
-    250000
+    250000,
+    'ONLINE'
 );
 
-INSERT INTO payments (supplier_id, payment_date, amount)
+INSERT INTO payments (supplier_id, payment_date, amount, payment_type)
 VALUES (
     (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Asian Spare Parts House' AND ROWNUM = 1),
     SYSDATE - 2,
-    600000
+    600000,
+    'BANK'
 );
 
 COMMIT;
