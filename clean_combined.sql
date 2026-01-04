@@ -1178,7 +1178,6 @@ END;
 --------------------------------------------------------------------------------
 CREATE TABLE expense_master (
     expense_id      VARCHAR2(50) PRIMARY KEY,
-    expense_code    VARCHAR2(50),
     expense_date    DATE,
     expense_by      VARCHAR2(100) NULL,
     expense_type_id VARCHAR2(50) NULL,
@@ -1216,7 +1215,6 @@ END;
 --------------------------------------------------------------------------------
 CREATE TABLE expense_details (
     expense_det_id    VARCHAR2(50) PRIMARY KEY,
-    detail_code       VARCHAR2(50),
     expense_id        VARCHAR2(50) NOT NULL,
     expense_type_id   VARCHAR2(50) NOT NULL,
     description       VARCHAR2(1000),
@@ -1233,8 +1231,7 @@ DECLARE v_seq NUMBER;
 BEGIN 
     IF INSERTING AND :NEW.expense_det_id IS NULL THEN
         v_seq := exp_det_seq.NEXTVAL;
-        IF :NEW.detail_code IS NOT NULL THEN :NEW.expense_det_id := :NEW.detail_code || TO_CHAR(v_seq);
-        ELSE :NEW.expense_det_id := TO_CHAR(v_seq); END IF;
+        :NEW.expense_det_id := 'EXD' || TO_CHAR(v_seq);
     END IF;
     :NEW.line_total := NVL(:NEW.amount,0) * NVL(:NEW.quantity,1); 
 END;
