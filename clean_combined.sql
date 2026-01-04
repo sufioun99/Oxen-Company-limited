@@ -2507,7 +2507,7 @@ VALUES ('Ariful', 'Islam', 'arif.i@walton.com', '01722200014', 'Dhanmondi, Dhaka
 
 -- 15. HR Assistant
 INSERT INTO employees (first_name, last_name, email, phone_no, address, hire_date, salary, job_id, department_id)
-VALUES ('Lutfur', 'Nahid', 'lutfur.n@walton.com', '01722200015', 'Malibagh, Dhaka', SYSDATE-280, 29000, 
+VALUES ('Lutfur', 'Nahid', 'lutfur.n@walton.com', '01722200015', 'Malibagh, Dhaka', SYSDATE-280, 35000, 
         'HR10', 'HUM71');
 
 -- 16. Customer Support Lead
@@ -2530,9 +2530,9 @@ INSERT INTO employees (first_name, last_name, email, phone_no, address, hire_dat
 VALUES ('Keya', 'Payel', 'keya.p@walton.com', '01722200019', 'Nikunja, Dhaka', SYSDATE-480, 24000, 
         'STOR7', 'LOG116');
 
--- 20. Logistics Coordinator
+-- 20. Logistics Coordinator (Fixed salary: 20000 within DLV8 range 12000-20000)
 INSERT INTO employees (first_name, last_name, email, phone_no, address, hire_date, salary, job_id, department_id)
-VALUES ('Imtiaz', 'Bulbul', 'imtiaz.b@walton.com', '01722200020', 'Rampura, Dhaka', SYSDATE-600, 27000, 
+VALUES ('Imtiaz', 'Bulbul', 'imtiaz.b@walton.com', '01722200020', 'Rampura, Dhaka', SYSDATE-600, 20000, 
         'DLV8', 'LOG116');
 
 --------------------------------------------------------------------------------
@@ -3270,123 +3270,6 @@ VALUES ('PWR-BOARD', 'LED TV Power Supply Board', 1500, 2500,
  (SELECT parts_cat_id FROM parts_category 
   WHERE parts_cat_name='Power Supply and Boards' AND ROWNUM=1));
 
-
---------------------------------------------------------------------------------
--- 14. EMPLOYEES (Populated with your provided Job and Dept IDs)
---------------------------------------------------------------------------------
-
--- 1. The Manager (Insert first so others can reference as manager_id)
-INSERT INTO employees (first_name, last_name, email, phone_no, address, hire_date, salary, job_id, department_id)
-VALUES ('Rafiqul', 'Hasan', 'rafiqul.hasan@walton.com', '01711100001', 'Bashundhara, Dhaka', SYSDATE-800, 60000, 
-        'MGR4', 'SAL41');
-
--- 2. Procurement Officer (References ASM5)
-INSERT INTO employees (first_name, last_name, email, phone_no, address, hire_date, salary, job_id, department_id)
-VALUES ('Zahid', 'Hasib', 'zahid.hasib@walton.com', '01711110010', 'Banani, Dhaka', SYSDATE-150, 33000, 
-        'ASM5', 'PRO101');
-
--- 3. Store Keeper (References STOR7)
-INSERT INTO employees (first_name, last_name, email, phone_no, address, hire_date, salary, job_id, department_id)
-VALUES ('Rezaul', 'Karim', 'rezaul.karim@walton.com', '01711110005', 'Badda, Dhaka', SYSDATE-400, 22000, 
-        'STOR7', 'LOG116');
-
--- 4. IT Support Officer (References IT9)
-INSERT INTO employees (first_name, last_name, email, phone_no, address, hire_date, salary, job_id, department_id)
-VALUES ('Tanvir', 'Rahman', 'tanvir.rahman@walton.com', '01711110006', 'Mohakhali, Dhaka', SYSDATE-350, 40000, 
-        'IT9', 'IT 106');
-
--- 5. HR Officer (References HR10)
-INSERT INTO employees (first_name, last_name, email, phone_no, address, hire_date, salary, job_id, department_id)
-VALUES ('Sharmin', 'Begum', 'sharmin.begum@walton.com', '01711110007', 'Khilgaon, Dhaka', SYSDATE-300, 45000, 
-        'HR10', 'HUM111');
-
--- 6. Sales Executive (References SALES1 and Manager Rafiqul)
-INSERT INTO employees (first_name, last_name, email, phone_no, address, hire_date, salary, job_id, department_id, manager_id)
-VALUES ('Sadia', 'Akter', 'sadia.akter@walton.com', '01711100002', 'Mirpur, Dhaka', SYSDATE-500, 25000, 
-        'SALES1', 'SAL41', (SELECT employee_id FROM employees WHERE last_name='Hasan' AND ROWNUM=1));
-
--- 7. Customer Support (References CSUP2)
-INSERT INTO employees (first_name, last_name, email, phone_no, address, hire_date, salary, job_id, department_id, manager_id)
-VALUES ('Kamal', 'Hossain', 'kamal.hossain@walton.com', '01711100003', 'Banani, Dhaka', SYSDATE-600, 28000, 
-        'CSUP2', 'CUS46', (SELECT employee_id FROM employees WHERE last_name='Hasan' AND ROWNUM=1));
-
--- 8. Service Technician (References TECH3)
-INSERT INTO employees (first_name, last_name, email, phone_no, address, hire_date, salary, job_id, department_id)
-VALUES ('Nazmul', 'Islam', 'nazmul.islam@walton.com', '01711100004', 'Uttara, Dhaka', SYSDATE-450, 35000, 
-        'TECH3', 'SER51');
-
--- 9. Accounting Assistant (References ACC6)
-INSERT INTO employees (first_name, last_name, email, phone_no, address, hire_date, salary, job_id, department_id)
-VALUES ('Jannat', 'Ara', 'jannat.ara@walton.com', '01711110009', 'Tejgaon, Dhaka', SYSDATE-180, 26000, 
-        'ACC6', 'ACC96');
-
--- 10. Delivery Staff (References DLV8)
-INSERT INTO employees (first_name, last_name, email, phone_no, address, hire_date, salary, job_id, department_id)
-VALUES ('Ahsan', 'Kabir', 'ahsan.kabir@walton.com', '01711110008', 'Khilkhet, Dhaka', SYSDATE-200, 15000, 
-        'DLV8', 'LOG76');
-
-
-
-UPDATE employees
-SET manager_id = (SELECT employee_id FROM employees WHERE last_name='Hasan' AND ROWNUM = 1)
-WHERE last_name <> 'Hasan';
-UPDATE departments
-SET manager_id = (SELECT employee_id FROM employees WHERE last_name='Hasan' AND ROWNUM = 1);
-
-
---------------------------------------------------------------------------------
--- 14. EMPLOYEES (Additional Data Set)
---------------------------------------------------------------------------------
-
--- 11. Senior Accountant
-INSERT INTO employees (first_name, last_name, email, phone_no, address, hire_date, salary, job_id, department_id)
-VALUES ('Fatima', 'Zohra', 'fatima.z@walton.com', '01722200011', 'Lalmatia, Dhaka', SYSDATE-700, 42000, 
-        'ACC6', 'ACC56');
-
--- 12. Junior Sales Rep (Reporting to Rafiqul Hasan)
-INSERT INTO employees (first_name, last_name, email, phone_no, address, hire_date, salary, job_id, department_id, manager_id)
-VALUES ('Sabbir', 'Ahmed', 'sabbir.a@walton.com', '01722200012', 'Farmgate, Dhaka', SYSDATE-120, 22000, 
-        'SALES1', 'SAL41', (SELECT employee_id FROM employees WHERE last_name='Hasan' AND ROWNUM=1));
-
--- 13. Senior Technician
-INSERT INTO employees (first_name, last_name, email, phone_no, address, hire_date, salary, job_id, department_id)
-VALUES ('Mominul', 'Haque', 'momin.h@walton.com', '01722200013', 'Tongi, Gazipur', SYSDATE-950, 38000, 
-        'TECH3', 'SER51');
-
--- 14. IT Security Specialist
-INSERT INTO employees (first_name, last_name, email, phone_no, address, hire_date, salary, job_id, department_id)
-VALUES ('Ariful', 'Islam', 'arif.i@walton.com', '01722200014', 'Dhanmondi, Dhaka', SYSDATE-400, 45000, 
-        'IT9', 'IT 66');
-
--- 15. HR Assistant
-INSERT INTO employees (first_name, last_name, email, phone_no, address, hire_date, salary, job_id, department_id)
-VALUES ('Lutfur', 'Nahid', 'lutfur.n@walton.com', '01722200015', 'Malibagh, Dhaka', SYSDATE-280, 29000, 
-        'HR10', 'HUM71');
-
--- 16. Customer Support Lead
-INSERT INTO employees (first_name, last_name, email, phone_no, address, hire_date, salary, job_id, department_id)
-VALUES ('Rumana', 'Afroz', 'rumana.a@walton.com', '01722200016', 'Banani, Dhaka', SYSDATE-550, 31000, 
-        'CSUP2', 'CUS46');
-
--- 17. Procurement Specialist
-INSERT INTO employees (first_name, last_name, email, phone_no, address, hire_date, salary, job_id, department_id)
-VALUES ('Tariq', 'Aziz', 'tariq.a@walton.com', '01722200017', 'Uttara Sector 4, Dhaka', SYSDATE-320, 37000, 
-        'ASM5', 'PRO61');
-
--- 18. Warehouse Assistant
-INSERT INTO employees (first_name, last_name, email, phone_no, address, hire_date, salary, job_id, department_id)
-VALUES ('Shohel', 'Rana', 'shohel.r@walton.com', '01722200018', 'Savar, Dhaka', SYSDATE-100, 19000, 
-        'STOR7', 'LOG76');
-
--- 19. Inventory Controller
-INSERT INTO employees (first_name, last_name, email, phone_no, address, hire_date, salary, job_id, department_id)
-VALUES ('Keya', 'Payel', 'keya.p@walton.com', '01722200019', 'Nikunja, Dhaka', SYSDATE-480, 24000, 
-        'STOR7', 'LOG116');
-
--- 20. Logistics Coordinator
-INSERT INTO employees (first_name, last_name, email, phone_no, address, hire_date, salary, job_id, department_id)
-VALUES ('Imtiaz', 'Bulbul', 'imtiaz.b@walton.com', '01722200020', 'Rampura, Dhaka', SYSDATE-600, 27000, 
-        'DLV8', 'LOG116');
 
 --------------------------------------------------------------------------------
 -- 18. PRODUCT_ORDER_MASTER (Dynamic Mapping to ensure Integrity)
