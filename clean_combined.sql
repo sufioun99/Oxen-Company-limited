@@ -1017,6 +1017,26 @@ END IF;
 END;
 /
 
+-- Keep service_master audit columns current when any service detail changes
+CREATE OR REPLACE TRIGGER trg_service_det_master_audit
+AFTER INSERT OR UPDATE OR DELETE ON service_details
+FOR EACH ROW
+DECLARE
+    v_service_id service_details.service_id%TYPE;
+BEGIN
+    IF INSERTING OR UPDATING THEN
+        v_service_id := :NEW.service_id;
+    ELSE
+        v_service_id := :OLD.service_id;
+    END IF;
+
+    UPDATE service_master
+    SET upd_by = USER,
+        upd_dt = SYSDATE
+    WHERE service_id = v_service_id;
+END;
+/
+
 --------------------------------------------------------------------------------
 -- 24. SALES_DETAIL
 --------------------------------------------------------------------------------
@@ -1040,6 +1060,26 @@ BEGIN
 IF INSERTING AND :NEW.sales_det_id IS NULL THEN
 	:NEW.sales_det_id := 'SLD' || TO_CHAR(sales_det_seq.NEXTVAL); 
 END IF;
+END;
+/
+
+-- Keep sales_master audit columns current when any sales detail changes
+CREATE OR REPLACE TRIGGER trg_sales_det_master_audit
+AFTER INSERT OR UPDATE OR DELETE ON sales_detail
+FOR EACH ROW
+DECLARE
+    v_invoice_id sales_detail.invoice_id%TYPE;
+BEGIN
+    IF INSERTING OR UPDATING THEN
+        v_invoice_id := :NEW.invoice_id;
+    ELSE
+        v_invoice_id := :OLD.invoice_id;
+    END IF;
+
+    UPDATE sales_master
+    SET upd_by = USER,
+        upd_dt = SYSDATE
+    WHERE invoice_id = v_invoice_id;
 END;
 /
 
@@ -1068,6 +1108,26 @@ END IF;
 END;
 /
 
+-- Keep sales_return_master audit columns current when any return detail changes
+CREATE OR REPLACE TRIGGER trg_sales_ret_det_master_audit
+AFTER INSERT OR UPDATE OR DELETE ON sales_return_details
+FOR EACH ROW
+DECLARE
+    v_sales_return_id sales_return_details.sales_return_id%TYPE;
+BEGIN
+    IF INSERTING OR UPDATING THEN
+        v_sales_return_id := :NEW.sales_return_id;
+    ELSE
+        v_sales_return_id := :OLD.sales_return_id;
+    END IF;
+
+    UPDATE sales_return_master
+    SET upd_by = USER,
+        upd_dt = SYSDATE
+    WHERE sales_return_id = v_sales_return_id;
+END;
+/
+
 --------------------------------------------------------------------------------
 -- 26. PRODUCT_ORDER_DETAIL
 --------------------------------------------------------------------------------
@@ -1091,6 +1151,26 @@ END IF;
 END;
 /
 
+-- Keep product_order_master audit columns current when any order detail changes
+CREATE OR REPLACE TRIGGER trg_order_det_master_audit
+AFTER INSERT OR UPDATE OR DELETE ON product_order_detail
+FOR EACH ROW
+DECLARE
+    v_order_id product_order_detail.order_id%TYPE;
+BEGIN
+    IF INSERTING OR UPDATING THEN
+        v_order_id := :NEW.order_id;
+    ELSE
+        v_order_id := :OLD.order_id;
+    END IF;
+
+    UPDATE product_order_master
+    SET upd_by = USER,
+        upd_dt = SYSDATE
+    WHERE order_id = v_order_id;
+END;
+/
+
 --------------------------------------------------------------------------------
 -- 27. PRODUCT_RECEIVE_DETAILS
 --------------------------------------------------------------------------------
@@ -1111,6 +1191,26 @@ BEGIN
 IF INSERTING AND :NEW.receive_det_id IS NULL THEN
  :NEW.receive_det_id := 'RDT' || TO_CHAR(recv_det_seq.NEXTVAL); 
 END IF;
+END;
+/
+
+-- Keep product_receive_master audit columns current when any receive detail changes
+CREATE OR REPLACE TRIGGER trg_recv_det_master_audit
+AFTER INSERT OR UPDATE OR DELETE ON product_receive_details
+FOR EACH ROW
+DECLARE
+    v_receive_id product_receive_details.receive_id%TYPE;
+BEGIN
+    IF INSERTING OR UPDATING THEN
+        v_receive_id := :NEW.receive_id;
+    ELSE
+        v_receive_id := :OLD.receive_id;
+    END IF;
+
+    UPDATE product_receive_master
+    SET upd_by = USER,
+        upd_dt = SYSDATE
+    WHERE receive_id = v_receive_id;
 END;
 /
 
@@ -1171,6 +1271,26 @@ BEGIN
 IF INSERTING AND :NEW.return_detail_id IS NULL THEN
 :NEW.return_detail_id := 'PRD' || TO_CHAR(prod_ret_det_seq.NEXTVAL); 
 END IF;
+END;
+/
+
+-- Keep product_return_master audit columns current when any return detail changes
+CREATE OR REPLACE TRIGGER trg_prod_ret_det_master_audit
+AFTER INSERT OR UPDATE OR DELETE ON product_return_details
+FOR EACH ROW
+DECLARE
+    v_return_id product_return_details.return_id%TYPE;
+BEGIN
+    IF INSERTING OR UPDATING THEN
+        v_return_id := :NEW.return_id;
+    ELSE
+        v_return_id := :OLD.return_id;
+    END IF;
+
+    UPDATE product_return_master
+    SET upd_by = USER,
+        upd_dt = SYSDATE
+    WHERE return_id = v_return_id;
 END;
 /
 
@@ -1279,6 +1399,26 @@ BEGIN
 IF INSERTING AND :NEW.damage_detail_id IS NULL THEN
 :NEW.damage_detail_id := 'DDT' || TO_CHAR(damage_det_seq.NEXTVAL);
 END IF; 
+END;
+/
+
+-- Keep damage master audit columns current when any damage detail changes
+CREATE OR REPLACE TRIGGER trg_damage_det_master_audit
+AFTER INSERT OR UPDATE OR DELETE ON damage_detail
+FOR EACH ROW
+DECLARE
+    v_damage_id damage_detail.damage_id%TYPE;
+BEGIN
+    IF INSERTING OR UPDATING THEN
+        v_damage_id := :NEW.damage_id;
+    ELSE
+        v_damage_id := :OLD.damage_id;
+    END IF;
+
+    UPDATE damage
+    SET upd_by = USER,
+        upd_dt = SYSDATE
+    WHERE damage_id = v_damage_id;
 END;
 /
 
