@@ -729,8 +729,13 @@ CREATE SEQUENCE order_seq START WITH 1 INCREMENT BY 1 NOCACHE NOCYCLE;
 CREATE OR REPLACE TRIGGER trg_prod_order_bi
 BEFORE INSERT OR UPDATE ON product_order_master FOR EACH ROW
 BEGIN
+    -- Generate order_id only if null during INSERT
     IF INSERTING AND :NEW.order_id IS NULL THEN
         :NEW.order_id := 'ORD' || TO_CHAR(order_seq.NEXTVAL);
+    END IF;
+    
+    -- Populate audit columns independently (not nested)
+    IF INSERTING THEN
         IF :NEW.status IS NULL THEN :NEW.status := 1; END IF;
         IF :NEW.cre_by IS NULL THEN :NEW.cre_by := USER; END IF;
         IF :NEW.cre_dt IS NULL THEN :NEW.cre_dt := SYSDATE; END IF;
@@ -3678,7 +3683,7 @@ BEGIN
         2200,
         600,
         4600,
-        'Y'
+        'N'
     )
     RETURNING service_id INTO v_service_id;
     
@@ -3691,7 +3696,7 @@ BEGIN
          JOIN product_categories pc ON p.category_id = pc.product_cat_id
          WHERE m.customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000002' AND ROWNUM = 1)
          AND pc.product_cat_name LIKE '%Air Conditioner%' AND ROWNUM = 1),
-        (SELECT parts_id FROM parts WHERE parts_name = 'AC Outdoor Fan Motor' AND ROWNUM = 1), 1, 1200, 1200, 'Y', 'Replaced outdoor fan motor - fan stopped working due to bearing failure');
+        (SELECT parts_id FROM parts WHERE parts_name = 'AC Outdoor Fan Motor' AND ROWNUM = 1), 1, 1200, 1200, 'N', 'Replaced outdoor fan motor - warranty void due to improper installation by unauthorized technician');
     
     INSERT INTO service_details (service_id, product_id, parts_id, quantity, parts_price, line_total, warranty_status, description)
     VALUES (v_service_id, 
@@ -3701,7 +3706,7 @@ BEGIN
          JOIN product_categories pc ON p.category_id = pc.product_cat_id
          WHERE m.customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000002' AND ROWNUM = 1)
          AND pc.product_cat_name LIKE '%Air Conditioner%' AND ROWNUM = 1),
-        (SELECT parts_id FROM parts WHERE parts_name = 'AC Remote Controller' AND ROWNUM = 1), 1, 1000, 1000, 'Y', 'Provided replacement remote controller - original remote was damaged');
+        (SELECT parts_id FROM parts WHERE parts_name = 'AC Remote Controller' AND ROWNUM = 1), 1, 1000, 1000, 'N', 'Remote replacement not covered - physical damage due to customer mishandling');
     
     COMMIT;
 END;
@@ -3798,7 +3803,7 @@ BEGIN
         2500,
         825,
         6325,
-        'Y'
+        'N'
     )
     RETURNING service_id INTO v_service_id;
     
@@ -3810,7 +3815,7 @@ BEGIN
          JOIN product_categories pc ON p.category_id = pc.product_cat_id
          WHERE m.customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000005' AND ROWNUM = 1)
          AND pc.product_cat_name LIKE '%Laptop%' AND ROWNUM = 1),
-        (SELECT parts_id FROM parts WHERE parts_name = 'Laptop Charger Adapter' AND ROWNUM = 1), 1, 1500, 1500, 'Y', 'Replaced damaged laptop charger adapter - original adapter stopped working');
+        (SELECT parts_id FROM parts WHERE parts_name = 'Laptop Charger Adapter' AND ROWNUM = 1), 1, 1500, 1500, 'N', 'Charger damage not covered - warranty void due to liquid spill damage');
     
     INSERT INTO service_details (service_id, product_id, parts_id, quantity, parts_price, line_total, warranty_status, description)
     VALUES (v_service_id, 
@@ -3820,7 +3825,7 @@ BEGIN
          JOIN product_categories pc ON p.category_id = pc.product_cat_id
          WHERE m.customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000005' AND ROWNUM = 1)
          AND pc.product_cat_name LIKE '%Laptop%' AND ROWNUM = 1),
-        (SELECT parts_id FROM parts WHERE parts_name = 'LED TV Power Supply Board' AND ROWNUM = 1), 1, 1000, 1000, 'Y', 'Replaced defective power supply board - laptop not powering on');
+        (SELECT parts_id FROM parts WHERE parts_name = 'LED TV Power Supply Board' AND ROWNUM = 1), 1, 1000, 1000, 'N', 'Power supply failure caused by liquid damage - warranty not applicable');
     
     COMMIT;
 END;
