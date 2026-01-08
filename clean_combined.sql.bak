@@ -1028,31 +1028,26 @@ CREATE OR REPLACE TRIGGER trg_service_det_line_no_bi
 BEFORE INSERT ON service_details
 FOR EACH ROW
 DECLARE
-    v_next_line_no NUMBER := 1;
+    v_next_line_no NUMBER;
 BEGIN
     IF :NEW.line_no IS NOT NULL THEN
         RETURN;
     END IF;
 
-    IF :NEW.service_id IS NOT NULL THEN
-        BEGIN
-            SELECT NVL(MAX(line_no), 0) + 1
-            INTO v_next_line_no
-            FROM service_details
-            WHERE service_id = :NEW.service_id;
-        EXCEPTION
-            WHEN NO_DATA_FOUND THEN
-                v_next_line_no := 1;
-            WHEN OTHERS THEN
-                RAISE_APPLICATION_ERROR(-20060,
-                    'Error generating LINE_NO for service_details: ' || SQLERRM);
-        END;
-    ELSE
-        v_next_line_no := 1;
-    END IF;
+    SELECT NVL(MAX(line_no), 0) + 1
+    INTO v_next_line_no
+    FROM service_details
+    WHERE service_id = :NEW.service_id;
 
     :NEW.line_no := v_next_line_no;
 
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        :NEW.line_no := 1;
+
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20060,
+            'Error generating LINE_NO for service_details: ' || SQLERRM);
 END;
 /
 
@@ -1106,31 +1101,26 @@ CREATE OR REPLACE TRIGGER trg_sales_det_line_no_bi
 BEFORE INSERT ON sales_detail
 FOR EACH ROW
 DECLARE
-    v_next_line_no NUMBER := 1;
+    v_next_line_no NUMBER;
 BEGIN
     IF :NEW.line_no IS NOT NULL THEN
         RETURN;
     END IF;
 
-    IF :NEW.invoice_id IS NOT NULL THEN
-        BEGIN
-            SELECT NVL(MAX(line_no), 0) + 1
-            INTO v_next_line_no
-            FROM sales_detail
-            WHERE invoice_id = :NEW.invoice_id;
-        EXCEPTION
-            WHEN NO_DATA_FOUND THEN
-                v_next_line_no := 1;
-            WHEN OTHERS THEN
-                RAISE_APPLICATION_ERROR(-20061,
-                    'Error generating LINE_NO for sales_detail: ' || SQLERRM);
-        END;
-    ELSE
-        v_next_line_no := 1;
-    END IF;
+    SELECT NVL(MAX(line_no), 0) + 1
+    INTO v_next_line_no
+    FROM sales_detail
+    WHERE invoice_id = :NEW.invoice_id;
 
     :NEW.line_no := v_next_line_no;
 
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        :NEW.line_no := 1;
+
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20061,
+            'Error generating LINE_NO for sales_detail: ' || SQLERRM);
 END;
 /
 
@@ -1234,31 +1224,26 @@ CREATE OR REPLACE TRIGGER trg_sales_ret_det_line_no_bi
 BEFORE INSERT ON sales_return_details
 FOR EACH ROW
 DECLARE
-    v_next_line_no NUMBER := 1;
+    v_next_line_no NUMBER;
 BEGIN
     IF :NEW.line_no IS NOT NULL THEN
         RETURN;
     END IF;
 
-    IF :NEW.sales_return_id IS NOT NULL THEN
-        BEGIN
-            SELECT NVL(MAX(line_no), 0) + 1
-            INTO v_next_line_no
-            FROM sales_return_details
-            WHERE sales_return_id = :NEW.sales_return_id;
-        EXCEPTION
-            WHEN NO_DATA_FOUND THEN
-                v_next_line_no := 1;
-            WHEN OTHERS THEN
-                RAISE_APPLICATION_ERROR(-20062,
-                    'Error generating LINE_NO for sales_return_details: ' || SQLERRM);
-        END;
-    ELSE
-        v_next_line_no := 1;
-    END IF;
+    SELECT NVL(MAX(line_no), 0) + 1
+    INTO v_next_line_no
+    FROM sales_return_details
+    WHERE sales_return_id = :NEW.sales_return_id;
 
     :NEW.line_no := v_next_line_no;
 
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        :NEW.line_no := 1;
+
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20062,
+            'Error generating LINE_NO for sales_return_details: ' || SQLERRM);
 END;
 /
 
@@ -1310,34 +1295,26 @@ CREATE OR REPLACE TRIGGER trg_order_det_line_no_bi
 BEFORE INSERT ON product_order_detail
 FOR EACH ROW
 DECLARE
-    v_next_line_no NUMBER := 1;
+    v_next_line_no NUMBER;
 BEGIN
-    -- Skip if LINE_NO already provided
     IF :NEW.line_no IS NOT NULL THEN
         RETURN;
     END IF;
 
-    -- Only calculate if order_id is provided
-    IF :NEW.order_id IS NOT NULL THEN
-        BEGIN
-            SELECT NVL(MAX(line_no), 0) + 1
-            INTO v_next_line_no
-            FROM product_order_detail
-            WHERE order_id = :NEW.order_id;
-        EXCEPTION
-            WHEN NO_DATA_FOUND THEN
-                v_next_line_no := 1;
-            WHEN OTHERS THEN
-                RAISE_APPLICATION_ERROR(-20063,
-                    'Error generating LINE_NO for product_order_detail: ' || SQLERRM);
-        END;
-    ELSE
-        -- order_id is NULL, default to line_no = 1
-        v_next_line_no := 1;
-    END IF;
+    SELECT NVL(MAX(line_no), 0) + 1
+    INTO v_next_line_no
+    FROM product_order_detail
+    WHERE order_id = :NEW.order_id;
 
     :NEW.line_no := v_next_line_no;
 
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        :NEW.line_no := 1;
+
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20063,
+            'Error generating LINE_NO for product_order_detail: ' || SQLERRM);
 END;
 /
 
@@ -1389,31 +1366,26 @@ CREATE OR REPLACE TRIGGER trg_recv_det_line_no_bi
 BEFORE INSERT ON product_receive_details
 FOR EACH ROW
 DECLARE
-    v_next_line_no NUMBER := 1;
+    v_next_line_no NUMBER;
 BEGIN
     IF :NEW.line_no IS NOT NULL THEN
         RETURN;
     END IF;
 
-    IF :NEW.receive_id IS NOT NULL THEN
-        BEGIN
-            SELECT NVL(MAX(line_no), 0) + 1
-            INTO v_next_line_no
-            FROM product_receive_details
-            WHERE receive_id = :NEW.receive_id;
-        EXCEPTION
-            WHEN NO_DATA_FOUND THEN
-                v_next_line_no := 1;
-            WHEN OTHERS THEN
-                RAISE_APPLICATION_ERROR(-20064,
-                    'Error generating LINE_NO for product_receive_details: ' || SQLERRM);
-        END;
-    ELSE
-        v_next_line_no := 1;
-    END IF;
+    SELECT NVL(MAX(line_no), 0) + 1
+    INTO v_next_line_no
+    FROM product_receive_details
+    WHERE receive_id = :NEW.receive_id;
 
     :NEW.line_no := v_next_line_no;
 
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        :NEW.line_no := 1;
+
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20064,
+            'Error generating LINE_NO for product_receive_details: ' || SQLERRM);
 END;
 /
 
@@ -1567,31 +1539,26 @@ CREATE OR REPLACE TRIGGER trg_prod_ret_det_line_no_bi
 BEFORE INSERT ON product_return_details
 FOR EACH ROW
 DECLARE
-    v_next_line_no NUMBER := 1;
+    v_next_line_no NUMBER;
 BEGIN
     IF :NEW.line_no IS NOT NULL THEN
         RETURN;
     END IF;
 
-    IF :NEW.return_id IS NOT NULL THEN
-        BEGIN
-            SELECT NVL(MAX(line_no), 0) + 1
-            INTO v_next_line_no
-            FROM product_return_details
-            WHERE return_id = :NEW.return_id;
-        EXCEPTION
-            WHEN NO_DATA_FOUND THEN
-                v_next_line_no := 1;
-            WHEN OTHERS THEN
-                RAISE_APPLICATION_ERROR(-20065,
-                    'Error generating LINE_NO for product_return_details: ' || SQLERRM);
-        END;
-    ELSE
-        v_next_line_no := 1;
-    END IF;
+    SELECT NVL(MAX(line_no), 0) + 1
+    INTO v_next_line_no
+    FROM product_return_details
+    WHERE return_id = :NEW.return_id;
 
     :NEW.line_no := v_next_line_no;
 
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        :NEW.line_no := 1;
+
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20065,
+            'Error generating LINE_NO for product_return_details: ' || SQLERRM);
 END;
 /
 
@@ -1743,31 +1710,26 @@ CREATE OR REPLACE TRIGGER trg_exp_det_line_no_bi
 BEFORE INSERT ON expense_details
 FOR EACH ROW
 DECLARE
-    v_next_line_no NUMBER := 1;
+    v_next_line_no NUMBER;
 BEGIN
     IF :NEW.line_no IS NOT NULL THEN
         RETURN;
     END IF;
 
-    IF :NEW.expense_id IS NOT NULL THEN
-        BEGIN
-            SELECT NVL(MAX(line_no), 0) + 1
-            INTO v_next_line_no
-            FROM expense_details
-            WHERE expense_id = :NEW.expense_id;
-        EXCEPTION
-            WHEN NO_DATA_FOUND THEN
-                v_next_line_no := 1;
-            WHEN OTHERS THEN
-                RAISE_APPLICATION_ERROR(-20066,
-                    'Error generating LINE_NO for expense_details: ' || SQLERRM);
-        END;
-    ELSE
-        v_next_line_no := 1;
-    END IF;
+    SELECT NVL(MAX(line_no), 0) + 1
+    INTO v_next_line_no
+    FROM expense_details
+    WHERE expense_id = :NEW.expense_id;
 
     :NEW.line_no := v_next_line_no;
 
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        :NEW.line_no := 1;
+
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20066,
+            'Error generating LINE_NO for expense_details: ' || SQLERRM);
 END;
 /
 
@@ -1820,31 +1782,26 @@ CREATE OR REPLACE TRIGGER trg_damage_det_line_no_bi
 BEFORE INSERT ON damage_detail
 FOR EACH ROW
 DECLARE
-    v_next_line_no NUMBER := 1;
+    v_next_line_no NUMBER;
 BEGIN
     IF :NEW.line_no IS NOT NULL THEN
         RETURN;
     END IF;
 
-    IF :NEW.damage_id IS NOT NULL THEN
-        BEGIN
-            SELECT NVL(MAX(line_no), 0) + 1
-            INTO v_next_line_no
-            FROM damage_detail
-            WHERE damage_id = :NEW.damage_id;
-        EXCEPTION
-            WHEN NO_DATA_FOUND THEN
-                v_next_line_no := 1;
-            WHEN OTHERS THEN
-                RAISE_APPLICATION_ERROR(-20067,
-                    'Error generating LINE_NO for damage_detail: ' || SQLERRM);
-        END;
-    ELSE
-        v_next_line_no := 1;
-    END IF;
+    SELECT NVL(MAX(line_no), 0) + 1
+    INTO v_next_line_no
+    FROM damage_detail
+    WHERE damage_id = :NEW.damage_id;
 
     :NEW.line_no := v_next_line_no;
 
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        :NEW.line_no := 1;
+
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20067,
+            'Error generating LINE_NO for damage_detail: ' || SQLERRM);
 END;
 /
 

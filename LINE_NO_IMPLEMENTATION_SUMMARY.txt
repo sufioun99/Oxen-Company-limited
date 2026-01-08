@@ -1,0 +1,148 @@
+================================================================================
+LINE_NO COLUMN IMPLEMENTATION SUMMARY
+================================================================================
+Date: January 6, 2026
+Changes Applied to: clean_combined.sql
+
+================================================================================
+OVERVIEW
+================================================================================
+Added LINE_NO NUMBER NOT NULL column to all 8 detail tables with auto-populate
+triggers. Each detail record now has an automatically assigned line number 
+within its parent transaction (1, 2, 3, ...).
+
+================================================================================
+TABLES MODIFIED (8 Detail Tables)
+================================================================================
+
+1. service_details
+   - Column: line_no NUMBER NOT NULL (Line 1011)
+   - Trigger: trg_service_det_line_no_bi (Line 1027)
+   - Parent Key: service_id
+
+2. sales_detail
+   - Column: line_no NUMBER NOT NULL (Line 1085)
+   - Trigger: trg_sales_det_line_no_bi (Line 1100)
+   - Parent Key: invoice_id
+
+3. sales_return_details
+   - Column: line_no NUMBER NOT NULL (Line 1208)
+   - Trigger: trg_sales_ret_det_line_no_bi (Line 1223)
+   - Parent Key: sales_return_id
+
+4. product_order_detail
+   - Column: line_no NUMBER NOT NULL (Line 1280)
+   - Trigger: trg_order_det_line_no_bi (Line 1294)
+   - Parent Key: order_id
+
+5. product_receive_details
+   - Column: line_no NUMBER NOT NULL (Line 1351)
+   - Trigger: trg_recv_det_line_no_bi (Line 1365)
+   - Parent Key: receive_id
+
+6. product_return_details
+   - Column: line_no NUMBER NOT NULL (Line 1523)
+   - Trigger: trg_prod_ret_det_line_no_bi (Line 1538)
+   - Parent Key: return_id
+
+7. expense_details
+   - Column: line_no NUMBER NOT NULL (Line 1692)
+   - Trigger: trg_exp_det_line_no_bi (Line 1709)
+   - Parent Key: expense_id
+
+8. damage_detail
+   - Column: line_no NUMBER NOT NULL (Line 1767)
+   - Trigger: trg_damage_det_line_no_bi (Line 1781)
+   - Parent Key: damage_id
+
+================================================================================
+TRIGGER PATTERN
+================================================================================
+Each trigger follows this pattern:
+
+CREATE OR REPLACE TRIGGER trg_<table>_line_no_bi
+BEFORE INSERT ON <table_name>
+FOR EACH ROW
+DECLARE
+    v_next_line_no NUMBER;
+BEGIN
+    -- Skip if LINE_NO already provided
+    IF :NEW.line_no IS NOT NULL THEN
+        RETURN;
+    END IF;
+
+    -- Get next line number for this parent record
+    SELECT NVL(MAX(line_no), 0) + 1
+    INTO v_next_line_no
+    FROM <table_name>
+    WHERE <parent_key> = :NEW.<parent_key>;
+
+    :NEW.line_no := v_next_line_no;
+
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        :NEW.line_no := 1;
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-2006x, 'Error generating LINE_NO...');
+END;
+
+================================================================================
+HOW IT WORKS
+================================================================================
+
+1. When inserting a new detail record, the trigger fires BEFORE INSERT
+2. If LINE_NO is already provided by the application, trigger exits early
+3. Otherwise, it queries the MAX(line_no) for the same parent record
+4. Assigns MAX + 1 as the new LINE_NO (first record gets line_no = 1)
+5. Provides error handling for edge cases
+
+EXAMPLE:
+--------
+Invoice INV1 has 3 sales_detail records:
+  - sales_det_id: SLD1, invoice_id: INV1, line_no: 1
+  - sales_det_id: SLD2, invoice_id: INV1, line_no: 2
+  - sales_det_id: SLD3, invoice_id: INV1, line_no: 3
+
+Invoice INV2 has 2 sales_detail records:
+  - sales_det_id: SLD4, invoice_id: INV2, line_no: 1
+  - sales_det_id: SLD5, invoice_id: INV2, line_no: 2
+
+================================================================================
+BENEFITS
+================================================================================
+
+✓ Automatic line numbering within each parent transaction
+✓ Sequential ordering (1, 2, 3...) for display in forms/reports
+✓ Can be used for ORDER BY in queries
+✓ Manual override possible (application can provide line_no)
+✓ Error handling with unique error codes per table (-20060 to -20067)
+✓ Consistent pattern across all detail tables
+
+================================================================================
+TESTING RECOMMENDATIONS
+================================================================================
+
+After running clean_combined.sql, test with:
+
+-- Insert parent record
+INSERT INTO sales_master (invoice_date, customer_id, grand_total)
+VALUES (SYSDATE, 'CUS1', 1000);
+
+-- Insert detail records (line_no auto-assigned)
+INSERT INTO sales_detail (invoice_id, product_id, quantity, mrp)
+VALUES ('INV1', 'SAM1', 2, 500);  -- Gets line_no = 1
+
+INSERT INTO sales_detail (invoice_id, product_id, quantity, mrp)
+VALUES ('INV1', 'LG2', 1, 1000);  -- Gets line_no = 2
+
+-- Verify line numbers
+SELECT sales_det_id, invoice_id, product_id, line_no
+FROM sales_detail
+WHERE invoice_id = 'INV1'
+ORDER BY line_no;
+
+Expected Result:
+  SLD1  INV1  SAM1  1
+  SLD2  INV1  LG2   2
+
+================================================================================
