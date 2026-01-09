@@ -1,0 +1,1636 @@
+# Complete Trigger Documentation - Oxen Company Limited
+## Electronics Sales and Service Provider Database
+
+**Version**:  1.0  
+**Database**:  Oracle 11g+  
+**Schema User**: msp  
+**Total Triggers**: 50+
+
+---
+
+## Table of Contents
+1. [Trigger Overview](#trigger-overview)
+2. [BEFORE INSERT/UPDATE Triggers (ID Generation & Audit)](#before-insertupdateтриггers-id-generation--audit)
+3. [AFTER INSERT/UPDATE/DELETE Triggers (Business Logic)](#after-insertupdatedelete-triggers-business-logic)
+4. [Master-Detail Audit Triggers](#master-detail-audit-triggers)
+5. [Stock Management Triggers](#stock-management-triggers)
+6. [Automation Triggers](#automation-triggers)
+7. [How to Use in Oracle Forms](#how-to-use-in-oracle-forms)
+8. [Trigger Testing Guide](#trigger-testing-guide)
+
+---
+
+## Trigger Overview
+
+### Trigger Categories
+
+| Category | Count | Purpose | Examples |
+|----------|-------|---------|----------|
+| **ID Generation** | 33 | Auto-generate primary keys | `trg_company_bi`, `trg_products_bi` |
+| **Audit Trail** | 33 | Track who created/updated records | All `_bi` triggers |
+| **Master-Detail Sync** | 8 | Update master when detail changes | `trg_sales_det_master_audit` |
+| **Stock Management** | 4 | Auto-update stock levels | `trg_stock_on_sales_det` |
+| **Total Calculation** | 3 | Auto-calculate totals | `trg_sales_detail_au` |
+| **Timestamp Updates** | 2 | Auto-update last_update | `trg_stock_bi` |
+
+### Naming Conventions
+
+```
+Pattern: trg_<table_name>_<event>
+```
+
+| Suffix | Meaning | When It Fires |
+|--------|---------|---------------|
+| `_bi` | Before Insert | BEFORE INSERT OR UPDATE |
+| `_ai` | After Insert | AFTER INSERT |
+| `_au` | After Update | AFTER INSERT OR UPDATE OR DELETE |
+| `_bd` | Before Delete | BEFORE DELETE |
+| `_ad` | After Delete | AFTER DELETE |
+
+---
+
+## BEFORE INSERT/UPDATE Triggers (ID Generation & Audit)
+
+### Standard Pattern
+
+**All 33 tables follow this pattern** for automatic ID generation and audit column population:
+
+```sql
+CREATE OR REPLACE TRIGGER trg_<table>_bi
+BEFORE INSERT OR UPDATE ON <table> FOR EACH ROW
+DECLARE 
+    v_seq NUMBER; 
+    v_code VARCHAR2(100);
+BEGIN
+    -- Step 1: Generate Primary Key ID (Only on INSERT if NULL)
+    IF INSERTING AND :NEW. <id_column> IS NULL THEN
+        v_seq := <table>_seq.NEXTVAL;
+        v_code := UPPER(SUBSTR(TRIM(: NEW.<name_field>), 1, 3));
+        : NEW.<id_column> := NVL(v_code, '<PREFIX>') || TO_CHAR(v_seq);
+    END IF;
+    
+    -- Step 2: Populate Audit Columns
+    IF INSERTING THEN
+        IF :NEW. status IS NULL THEN : NEW.status := 1; END IF;
+        IF :NEW. cre_by IS NULL THEN :NEW.cre_by := USER; END IF;
+        IF :NEW.cre_dt IS NULL THEN :NEW.cre_dt := SYSDATE; END IF;
+    ELSIF UPDATING THEN
+        : NEW.upd_by := USER;
+        :NEW.upd_dt := SYSDATE;
+    END IF;
+END;
+/
+```
+
+### Complete List of BEFORE INSERT/UPDATE Triggers
+
+#### 1. Infrastructure Tables
+
+| Table | Trigger Name | ID Format | Prefix Logic |
+|-------|-------------|-----------|--------------|
+| `company` | `trg_company_bi` | `ABC001` | First 3 chars of company_name |
+| `jobs` | `trg_jobs_bi` | `MGR001` | First 3 chars of job_title or job_code |
+| `departments` | `trg_departments_bi` | `SAL001` | First 3 chars of dept_name or dept_code |
+| `employees` | `trg_employees_bi` | `JOH001` | First 3 chars of employee_name |
+| `com_users` | `trg_users_bi` | `USR001` | Hardcoded 'USR' |
+
+**Example - Company Trigger**:
+```sql
+CREATE OR REPLACE TRIGGER trg_company_bi
+BEFORE INSERT OR UPDATE ON company FOR EACH ROW
+DECLARE v_seq NUMBER; v_code VARCHAR2(100);
+BEGIN
+    -- Generate company_id only if null during INSERT
+    IF INSERTING AND :NEW.company_id IS NULL THEN
+        v_seq := company_seq.NEXTVAL;
+        v_code := UPPER(SUBSTR(TRIM(:NEW. company_name),1,3));
+        :NEW.company_id := NVL(v_code, 'COM') || TO_CHAR(v_seq);
+    END IF;
+    
+    -- Populate audit columns independently
+    IF INSERTING THEN
+        IF :NEW.status IS NULL THEN :NEW.status := 1; END IF;
+        IF :NEW.cre_by IS NULL THEN :NEW.cre_by := USER; END IF;
+        IF :NEW.cre_dt IS NULL THEN : NEW.cre_dt := SYSDATE; END IF;
+    ELSIF UPDATING THEN
+        :NEW.upd_by := USER;
+        :NEW. upd_dt := SYSDATE;
+    END IF;
+END;
+/
+```
+
+**How to Use in Forms**:
+- ✅ **You don't need to populate ID columns** - triggers handle it automatically
+- ✅ **You don't need to set cre_by, cre_dt** - triggers use current USER and SYSDATE
+- ✅ **Forms will automatically respect these triggers**
+- ⚠️ If you provide an ID manually, the trigger respects it (won't overwrite)
+
+---
+
+#### 2. Product Management Tables
+
+| Table | Trigger Name | ID Format | Prefix Logic |
+|-------|-------------|-----------|--------------|
+| `product_categories` | `trg_prod_cat_bi` | `LED001` | First 3 chars of product_cat_name |
+| `sub_categories` | `trg_sub_cat_bi` | `SMR001` | First 3 chars of sub_cat_name |
+| `brand` | `trg_brand_bi` | `SAM001` | First 3 chars of brand_name |
+| `products` | `trg_products_bi` | `SAM001` | First 3 chars of product_name |
+| `parts_category` | `trg_parts_cat_bi` | `SCR001` | First 3 chars of parts_cat_name |
+| `parts` | `trg_parts_bi` | `LED001` | First 3 chars of parts_name |
+
+**Example - Products Trigger**:
+```sql
+CREATE OR REPLACE TRIGGER trg_products_bi
+BEFORE INSERT OR UPDATE ON products FOR EACH ROW
+DECLARE v_seq NUMBER; v_code VARCHAR2(100);
+BEGIN
+    IF INSERTING AND :NEW.product_id IS NULL THEN
+        v_seq := products_seq.NEXTVAL;
+        v_code := UPPER(SUBSTR(TRIM(:NEW. product_name), 1, 3));
+        :NEW.product_id := NVL(v_code, 'PRD') || TO_CHAR(v_seq);
+    END IF;
+    
+    IF INSERTING THEN
+        IF :NEW.status IS NULL THEN :NEW.status := 1; END IF;
+        IF :NEW.cre_by IS NULL THEN :NEW.cre_by := USER; END IF;
+        IF :NEW.cre_dt IS NULL THEN :NEW.cre_dt := SYSDATE; END IF;
+    ELSIF UPDATING THEN
+        :NEW.upd_by := USER;
+        :NEW.upd_dt := SYSDATE;
+    END IF;
+END;
+/
+```
+
+**How to Use in Forms (Product Entry)**:
+```sql
+-- In WHEN-BUTTON-PRESSED trigger of Save button: 
+BEGIN
+    -- Just fill product_name, supplier_id, category_id, etc.
+    -- DO NOT set product_id, cre_by, cre_dt - triggers handle it! 
+    
+    COMMIT_FORM;
+    
+    -- After commit, product_id is auto-generated
+    MESSAGE('Product saved with ID: ' || : PRODUCTS. PRODUCT_ID);
+END;
+```
+
+---
+
+#### 3. Customer and Supplier Tables
+
+| Table | Trigger Name | ID Format | Prefix Logic |
+|-------|-------------|-----------|--------------|
+| `customers` | `trg_customers_bi` | `MOH001` | First 3 chars of customer_name |
+| `suppliers` | `trg_suppliers_bi` | `SAM001` | First 3 chars of supplier_name |
+
+**Example - Customers Trigger**:
+```sql
+CREATE OR REPLACE TRIGGER trg_customers_bi
+BEFORE INSERT OR UPDATE ON customers FOR EACH ROW
+DECLARE v_seq NUMBER; v_code VARCHAR2(100);
+BEGIN
+    IF INSERTING AND : NEW.customer_id IS NULL THEN
+        v_seq := customers_seq.NEXTVAL;
+        v_code := UPPER(SUBSTR(TRIM(:NEW. customer_name), 1, 3));
+        :NEW.customer_id := NVL(v_code, 'CUS') || TO_CHAR(v_seq);
+    END IF;
+    
+    IF INSERTING THEN
+        IF :NEW.status IS NULL THEN :NEW.status := 1; END IF;
+        IF :NEW.cre_by IS NULL THEN :NEW. cre_by := USER; END IF;
+        IF :NEW. cre_dt IS NULL THEN :NEW.cre_dt := SYSDATE; END IF;
+    ELSIF UPDATING THEN
+        :NEW.upd_by := USER;
+        :NEW.upd_dt := SYSDATE;
+    END IF;
+END;
+/
+```
+
+---
+
+#### 4. Transaction Master Tables
+
+| Table | Trigger Name | ID Format | Notes |
+|-------|-------------|-----------|-------|
+| `sales_master` | `trg_sales_master_bi` | `INV001` | Sales invoice |
+| `product_order_master` | `trg_prod_order_bi` | `ORD001` | Purchase order |
+| `product_receive_master` | `trg_prod_recv_bi` | `RCV001` | Goods receipt |
+| `product_return_master` | `trg_prod_ret_bi` | `PRT001` | Return to supplier |
+| `sales_return_master` | `trg_sales_ret_bi` | `SRT001` | Customer return |
+| `service_master` | `trg_service_master_bi` | `SRV001` | Service ticket |
+| `expense_master` | `trg_expense_master_bi` | `EXP001` | Expense voucher |
+| `damage` | `trg_damage_bi` | `DMG001` | Damaged goods |
+
+**Example - Sales Master Trigger**:
+```sql
+CREATE OR REPLACE TRIGGER trg_sales_master_bi
+BEFORE INSERT OR UPDATE ON sales_master FOR EACH ROW
+BEGIN
+    IF INSERTING AND : NEW.invoice_id IS NULL THEN
+        :NEW.invoice_id := 'INV' || TO_CHAR(sales_seq.NEXTVAL);
+    END IF;
+    
+    IF INSERTING THEN
+        IF :NEW.status IS NULL THEN :NEW.status := 1; END IF;
+        IF :NEW.invoice_date IS NULL THEN :NEW.invoice_date := SYSDATE; END IF;
+        IF :NEW.cre_by IS NULL THEN :NEW.cre_by := USER; END IF;
+        IF :NEW.cre_dt IS NULL THEN :NEW.cre_dt := SYSDATE; END IF;
+    ELSIF UPDATING THEN
+        :NEW.upd_by := USER;
+        :NEW.upd_dt := SYSDATE;
+    END IF;
+END;
+/
+```
+
+**How to Use in Forms (Sales Invoice)**:
+```sql
+-- In SALES_MASTER block WHEN-CREATE-RECORD trigger:
+BEGIN
+    -- Set default values
+    : SALES_MASTER. INVOICE_DATE := SYSDATE;
+    :SALES_MASTER. SALES_BY := : GLOBAL.G_EMPLOYEE_ID; -- From login
+    :SALES_MASTER.STATUS := 1;
+    
+    -- DO NOT set invoice_id - trigger generates it on save
+END;
+
+-- In WHEN-BUTTON-PRESSED trigger of Save button:
+BEGIN
+    IF :SALES_MASTER. CUSTOMER_ID IS NULL THEN
+        MESSAGE('Customer is required! ');
+        RAISE FORM_TRIGGER_FAILURE;
+    END IF;
+    
+    COMMIT_FORM; -- Trigger fires here, generates invoice_id
+    
+    MESSAGE('Invoice saved:  ' || :SALES_MASTER.INVOICE_ID);
+END;
+```
+
+---
+
+#### 5. Transaction Detail Tables
+
+| Table | Trigger Name | ID Format | Notes |
+|-------|-------------|-----------|-------|
+| `sales_detail` | `trg_sales_det_bi` | `SLD001` | Sales line items |
+| `product_order_detail` | `trg_order_det_bi` | `ODT001` | Order line items |
+| `product_receive_details` | `trg_recv_det_bi` | `RDT001` | Receipt line items |
+| `product_return_details` | `trg_prod_ret_det_bi` | `PRD001` | Return line items |
+| `sales_return_details` | `trg_sales_ret_det_bi` | `SRD001` | Customer return items |
+| `service_details` | `trg_service_det_bi` | `SDT001` | Service line items |
+| `expense_details` | `trg_expense_det_bi` | `EXD001` | Expense line items |
+| `damage_detail` | `trg_damage_det_bi` | `DGD001` | Damaged item details |
+
+**Example - Sales Detail Trigger**:
+```sql
+CREATE OR REPLACE TRIGGER trg_sales_det_bi 
+BEFORE INSERT ON sales_detail FOR EACH ROW 
+BEGIN 
+    IF INSERTING AND :NEW.sales_det_id IS NULL THEN
+        :NEW.sales_det_id := 'SLD' || TO_CHAR(sales_det_seq.NEXTVAL); 
+    END IF;
+END;
+/
+```
+
+**⚠️ Important**:  Detail table triggers **only generate IDs**, they **don't populate audit columns**.   
+Audit tracking is done at the **master table level**. 
+
+**How to Use in Forms (Sales Detail Block)**:
+```sql
+-- In WHEN-VALIDATE-ITEM trigger on PRODUCT_ID: 
+DECLARE
+    v_mrp NUMBER;
+    v_purchase_price NUMBER;
+BEGIN
+    IF :SALES_DETAIL.PRODUCT_ID IS NOT NULL THEN
+        -- Get product price
+        SELECT mrp, purchase_price 
+        INTO v_mrp, v_purchase_price
+        FROM products
+        WHERE product_id = : SALES_DETAIL.PRODUCT_ID;
+        
+        : SALES_DETAIL.MRP := v_mrp;
+        :SALES_DETAIL. PURCHASE_PRICE := v_purchase_price;
+        
+        -- Set default quantity
+        IF :SALES_DETAIL. QUANTITY IS NULL THEN
+            : SALES_DETAIL.QUANTITY := 1;
+        END IF;
+        
+        -- DO NOT set sales_det_id - trigger handles it
+    END IF;
+END;
+```
+
+---
+
+#### 6. Special Tables
+
+| Table | Trigger Name | ID Format | Special Logic |
+|-------|-------------|-----------|---------------|
+| `stock` | `trg_stock_bi` | `STK001` | Updates `last_update` timestamp |
+| `payments` | `trg_payments_bi` | `PAY001` | Payment tracking |
+| `service_list` | `trg_service_list_bi` | `REP001` | First 3 chars of service_name |
+| `expense_list` | `trg_expense_list_bi` | `REN001` | First 3 chars of expense_name |
+
+**Example - Stock Trigger (with Timestamp Update)**:
+```sql
+CREATE OR REPLACE TRIGGER trg_stock_bi
+BEFORE INSERT OR UPDATE ON stock FOR EACH ROW
+BEGIN
+    -- Generate stock_id only if null during INSERT
+    IF INSERTING AND : NEW.stock_id IS NULL THEN
+        : NEW.stock_id := 'STK' || TO_CHAR(stock_seq.NEXTVAL);
+    END IF;
+    
+    -- Update timestamp on any change
+    IF UPDATING THEN
+        :NEW.last_update := SYSTIMESTAMP;
+    END IF;
+END;
+/
+```
+
+**How to Use in Forms (Stock Management)**:
+```sql
+-- Stock is usually updated via triggers, but if manual update needed:
+DECLARE
+    v_stock_id VARCHAR2(50);
+BEGIN
+    -- Check if stock record exists
+    BEGIN
+        SELECT stock_id INTO v_stock_id
+        FROM stock
+        WHERE product_id = : BLOCK.PRODUCT_ID
+        AND supplier_id = :BLOCK. SUPPLIER_ID;
+        
+        -- Update existing stock
+        UPDATE stock
+        SET quantity = quantity + :BLOCK.NEW_QUANTITY
+        WHERE stock_id = v_stock_id;
+        -- Trigger auto-updates last_update timestamp
+        
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            -- Insert new stock record
+            INSERT INTO stock (product_id, supplier_id, quantity)
+            VALUES (:BLOCK. PRODUCT_ID, :BLOCK.SUPPLIER_ID, : BLOCK.NEW_QUANTITY);
+            -- Trigger auto-generates stock_id and sets last_update
+    END;
+    
+    COMMIT_FORM;
+END;
+```
+
+---
+
+## AFTER INSERT/UPDATE/DELETE Triggers (Business Logic)
+
+### Master-Detail Audit Triggers
+
+These triggers **keep master table audit columns current** when detail records change. 
+
+#### 1. Sales Detail → Sales Master Audit
+```sql
+CREATE OR REPLACE TRIGGER trg_sales_det_master_audit
+AFTER INSERT OR UPDATE OR DELETE ON sales_detail
+FOR EACH ROW
+DECLARE
+    v_invoice_id sales_detail.invoice_id%TYPE;
+BEGIN
+    IF INSERTING OR UPDATING THEN
+        v_invoice_id := :NEW.invoice_id;
+    ELSE
+        v_invoice_id := :OLD.invoice_id;
+    END IF;
+
+    UPDATE sales_master
+    SET upd_by = USER,
+        upd_dt = SYSDATE
+    WHERE invoice_id = v_invoice_id;
+END;
+/
+```
+
+**Purpose**: When you add/edit/delete a line item in a sales invoice, the invoice header's `upd_by` and `upd_dt` are automatically updated.
+
+**How to Use in Forms**:
+- ✅ **Automatic** - no action needed
+- When user adds item to sales_detail block and commits, master record is tagged with updater
+- Useful for audit trails:  "Who modified this invoice last?"
+
+---
+
+#### 2. Product Order Detail → Product Order Master Audit
+```sql
+CREATE OR REPLACE TRIGGER trg_order_det_master_audit
+AFTER INSERT OR UPDATE OR DELETE ON product_order_detail
+FOR EACH ROW
+DECLARE
+    v_order_id product_order_detail.order_id%TYPE;
+BEGIN
+    IF INSERTING OR UPDATING THEN
+        v_order_id := :NEW. order_id;
+    ELSE
+        v_order_id := :OLD.order_id;
+    END IF;
+
+    UPDATE product_order_master
+    SET upd_by = USER,
+        upd_dt = SYSDATE
+    WHERE order_id = v_order_id;
+END;
+/
+```
+
+---
+
+#### 3. Service Details → Service Master Audit
+```sql
+CREATE OR REPLACE TRIGGER trg_service_det_master_audit
+AFTER INSERT OR UPDATE OR DELETE ON service_details
+FOR EACH ROW
+DECLARE
+    v_service_id service_details.service_id%TYPE;
+BEGIN
+    IF INSERTING OR UPDATING THEN
+        v_service_id := :NEW.service_id;
+    ELSE
+        v_service_id := : OLD.service_id;
+    END IF;
+
+    UPDATE service_master
+    SET upd_by = USER,
+        upd_dt = SYSDATE
+    WHERE service_id = v_service_id;
+END;
+/
+```
+
+---
+
+#### 4. Sales Return Details → Sales Return Master Audit
+```sql
+CREATE OR REPLACE TRIGGER trg_sales_ret_det_master_audit
+AFTER INSERT OR UPDATE OR DELETE ON sales_return_details
+FOR EACH ROW
+DECLARE
+    v_sales_return_id sales_return_details.sales_return_id%TYPE;
+BEGIN
+    IF INSERTING OR UPDATING THEN
+        v_sales_return_id := :NEW.sales_return_id;
+    ELSE
+        v_sales_return_id := :OLD.sales_return_id;
+    END IF;
+
+    UPDATE sales_return_master
+    SET upd_by = USER,
+        upd_dt = SYSDATE
+    WHERE sales_return_id = v_sales_return_id;
+END;
+/
+```
+
+---
+
+### Complete List of Master-Detail Audit Triggers
+
+| Detail Table | Master Table | Trigger Name |
+|-------------|--------------|--------------|
+| `sales_detail` | `sales_master` | `trg_sales_det_master_audit` |
+| `product_order_detail` | `product_order_master` | `trg_order_det_master_audit` |
+| `product_receive_details` | `product_receive_master` | `trg_recv_det_master_audit` |
+| `product_return_details` | `product_return_master` | `trg_prod_ret_det_master_audit` |
+| `sales_return_details` | `sales_return_master` | `trg_sales_ret_det_master_audit` |
+| `service_details` | `service_master` | `trg_service_det_master_audit` |
+| `expense_details` | `expense_master` | `trg_expense_det_master_audit` |
+| `damage_detail` | `damage` | `trg_damage_det_master_audit` |
+
+---
+
+## Stock Management Triggers
+
+### 1. Auto-Update Stock on Sales
+
+```sql
+CREATE OR REPLACE TRIGGER trg_stock_on_sales_det
+AFTER INSERT OR UPDATE OR DELETE ON sales_detail
+FOR EACH ROW
+DECLARE
+    v_target_product sales_detail.product_id%TYPE;
+    v_quantity       sales_detail.quantity%TYPE;
+    v_operation      VARCHAR2(10);
+BEGIN
+    -- Determine which product and quantity to affect
+    IF INSERTING THEN
+        v_target_product := :NEW.product_id;
+        v_quantity := :NEW.quantity;
+        v_operation := 'REDUCE'; -- Reduce stock when selling
+        
+    ELSIF UPDATING THEN
+        -- If product changed or quantity changed
+        IF :OLD. product_id != :NEW.product_id THEN
+            -- Restore old product stock
+            UPDATE stock 
+            SET quantity = quantity + :OLD.quantity
+            WHERE product_id = :OLD.product_id;
+            
+            -- Reduce new product stock
+            UPDATE stock
+            SET quantity = quantity - :NEW.quantity
+            WHERE product_id = : NEW.product_id;
+            RETURN;
+        ELSIF :OLD.quantity != :NEW.quantity THEN
+            v_target_product := :NEW.product_id;
+            v_quantity := :NEW.quantity - :OLD.quantity;
+            v_operation := 'ADJUST';
+        ELSE
+            RETURN; -- No stock impact
+        END IF;
+        
+    ELSIF DELETING THEN
+        v_target_product := :OLD. product_id;
+        v_quantity := :OLD.quantity;
+        v_operation := 'RESTORE'; -- Restore stock when deleting sale
+    END IF;
+    
+    -- Update stock
+    IF v_operation = 'REDUCE' THEN
+        UPDATE stock
+        SET quantity = quantity - v_quantity,
+            last_update = SYSTIMESTAMP
+        WHERE product_id = v_target_product;
+        
+    ELSIF v_operation = 'RESTORE' THEN
+        UPDATE stock
+        SET quantity = quantity + v_quantity,
+            last_update = SYSTIMESTAMP
+        WHERE product_id = v_target_product;
+        
+    ELSIF v_operation = 'ADJUST' THEN
+        UPDATE stock
+        SET quantity = quantity - v_quantity,
+            last_update = SYSTIMESTAMP
+        WHERE product_id = v_target_product;
+    END IF;
+    
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20001, 
+            'Stock update failed: ' || SQLERRM);
+END;
+/
+```
+
+**Purpose**: Automatically reduces stock when products are sold, restores when sales are deleted.
+
+**How to Use in Forms**:
+- ✅ **Fully automatic**
+- When you insert a record in `SALES_DETAIL` block, stock is reduced
+- When you delete a record, stock is restored
+- When you change quantity, stock is adjusted
+
+**Example**:
+```sql
+-- User sells 5 units of product SAM001
+-- In SALES_DETAIL block: 
+: SALES_DETAIL.PRODUCT_ID := 'SAM001';
+:SALES_DETAIL.QUANTITY := 5;
+COMMIT_FORM; -- Trigger fires, reduces stock by 5
+```
+
+---
+
+### 2. Auto-Update Stock on Product Receipt
+
+```sql
+CREATE OR REPLACE TRIGGER trg_stock_on_receive_det
+AFTER INSERT OR UPDATE OR DELETE ON product_receive_details
+FOR EACH ROW
+DECLARE
+    v_product_id VARCHAR2(50);
+    v_supplier_id VARCHAR2(50);
+    v_quantity NUMBER;
+    v_mrp NUMBER;
+    v_purchase_price NUMBER;
+    v_receive_id VARCHAR2(50);
+BEGIN
+    -- Get supplier from master
+    IF INSERTING OR UPDATING THEN
+        v_receive_id := :NEW.receive_id;
+        v_product_id := :NEW.product_id;
+        v_quantity := :NEW.receive_quantity;
+        v_mrp := :NEW.mrp;
+        v_purchase_price := :NEW.purchase_price;
+    ELSE
+        v_receive_id := :OLD. receive_id;
+        v_product_id := :OLD.product_id;
+        v_quantity := :OLD.receive_quantity;
+    END IF;
+    
+    -- Get supplier_id from master
+    SELECT supplier_id INTO v_supplier_id
+    FROM product_receive_master
+    WHERE receive_id = v_receive_id;
+    
+    IF INSERTING THEN
+        -- Add to stock or update existing
+        MERGE INTO stock s
+        USING DUAL ON (s.product_id = v_product_id AND s.supplier_id = v_supplier_id)
+        WHEN MATCHED THEN
+            UPDATE SET 
+                quantity = s.quantity + v_quantity,
+                mrp = v_mrp,
+                purchase_price = v_purchase_price,
+                last_update = SYSTIMESTAMP
+        WHEN NOT MATCHED THEN
+            INSERT (product_id, supplier_id, quantity, mrp, purchase_price, last_update)
+            VALUES (v_product_id, v_supplier_id, v_quantity, v_mrp, v_purchase_price, SYSTIMESTAMP);
+            
+    ELSIF UPDATING THEN
+        -- Adjust stock
+        UPDATE stock
+        SET quantity = quantity - : OLD.receive_quantity + :NEW.receive_quantity,
+            mrp = v_mrp,
+            purchase_price = v_purchase_price,
+            last_update = SYSTIMESTAMP
+        WHERE product_id = v_product_id
+        AND supplier_id = v_supplier_id;
+        
+    ELSIF DELETING THEN
+        -- Reduce stock
+        UPDATE stock
+        SET quantity = quantity - v_quantity,
+            last_update = SYSTIMESTAMP
+        WHERE product_id = v_product_id
+        AND supplier_id = v_supplier_id;
+    END IF;
+    
+END;
+/
+```
+
+**Purpose**: Automatically increases stock when products are received from suppliers. 
+
+**How to Use in Forms (Goods Receipt)**:
+```sql
+-- In PRODUCT_RECEIVE_MASTER block: 
+:PRODUCT_RECEIVE_MASTER.SUPPLIER_ID := 'SAM001'; -- Select from LOV
+:PRODUCT_RECEIVE_MASTER.RECEIVE_DATE := SYSDATE;
+
+-- In PRODUCT_RECEIVE_DETAILS block:
+:PRODUCT_RECEIVE_DETAILS. PRODUCT_ID := 'SAM001'; -- Select from LOV
+: PRODUCT_RECEIVE_DETAILS. RECEIVE_QUANTITY := 100;
+:PRODUCT_RECEIVE_DETAILS.MRP := 50000;
+:PRODUCT_RECEIVE_DETAILS.PURCHASE_PRICE := 45000;
+
+COMMIT_FORM; -- Trigger fires, adds 100 units to stock
+```
+
+---
+
+### 3. Auto-Update Stock on Product Return (to Supplier)
+
+```sql
+CREATE OR REPLACE TRIGGER trg_stock_on_prod_return
+AFTER INSERT OR UPDATE OR DELETE ON product_return_details
+FOR EACH ROW
+DECLARE
+    v_product_id VARCHAR2(50);
+    v_supplier_id VARCHAR2(50);
+    v_quantity NUMBER;
+    v_return_id VARCHAR2(50);
+BEGIN
+    IF INSERTING OR UPDATING THEN
+        v_return_id := :NEW.return_id;
+        v_product_id := : NEW.product_id;
+        v_quantity := :NEW.quantity;
+    ELSE
+        v_return_id := :OLD. return_id;
+        v_product_id := :OLD.product_id;
+        v_quantity := :OLD.quantity;
+    END IF;
+    
+    -- Get supplier from master
+    SELECT supplier_id INTO v_supplier_id
+    FROM product_return_master
+    WHERE return_id = v_return_id;
+    
+    IF INSERTING THEN
+        -- Reduce stock (returning to supplier)
+        UPDATE stock
+        SET quantity = quantity - v_quantity,
+            last_update = SYSTIMESTAMP
+        WHERE product_id = v_product_id
+        AND supplier_id = v_supplier_id;
+        
+    ELSIF UPDATING THEN
+        -- Adjust stock
+        UPDATE stock
+        SET quantity = quantity + : OLD.quantity - :NEW.quantity,
+            last_update = SYSTIMESTAMP
+        WHERE product_id = v_product_id
+        AND supplier_id = v_supplier_id;
+        
+    ELSIF DELETING THEN
+        -- Restore stock
+        UPDATE stock
+        SET quantity = quantity + v_quantity,
+            last_update = SYSTIMESTAMP
+        WHERE product_id = v_product_id
+        AND supplier_id = v_supplier_id;
+    END IF;
+END;
+/
+```
+
+**Purpose**: Automatically reduces stock when defective products are returned to supplier.
+
+---
+
+### 4. Auto-Update Stock on Sales Return (from Customer)
+
+```sql
+CREATE OR REPLACE TRIGGER trg_stock_on_sales_return
+AFTER INSERT OR UPDATE OR DELETE ON sales_return_details
+FOR EACH ROW
+DECLARE
+    v_product_id VARCHAR2(50);
+    v_quantity NUMBER;
+BEGIN
+    IF INSERTING OR UPDATING THEN
+        v_product_id := :NEW.product_id;
+        v_quantity := :NEW.quantity;
+    ELSE
+        v_product_id := :OLD.product_id;
+        v_quantity := :OLD.quantity;
+    END IF;
+    
+    IF INSERTING THEN
+        -- Restore stock (customer returned)
+        UPDATE stock
+        SET quantity = quantity + v_quantity,
+            last_update = SYSTIMESTAMP
+        WHERE product_id = v_product_id;
+        
+    ELSIF UPDATING THEN
+        -- Adjust stock
+        UPDATE stock
+        SET quantity = quantity - :OLD.quantity + :NEW.quantity,
+            last_update = SYSTIMESTAMP
+        WHERE product_id = v_product_id;
+        
+    ELSIF DELETING THEN
+        -- Remove from stock
+        UPDATE stock
+        SET quantity = quantity - v_quantity,
+            last_update = SYSTIMESTAMP
+        WHERE product_id = v_product_id;
+    END IF;
+END;
+/
+```
+
+**Purpose**: Automatically increases stock when customers return products.
+
+---
+
+### Stock Management Trigger Summary
+
+| Trigger | Event | Stock Impact |
+|---------|-------|--------------|
+| `trg_stock_on_sales_det` | Sales | **Reduces** stock |
+| `trg_stock_on_receive_det` | Goods receipt | **Increases** stock |
+| `trg_stock_on_prod_return` | Return to supplier | **Reduces** stock |
+| `trg_stock_on_sales_return` | Customer return | **Increases** stock |
+
+**Visual Flow**:
+```
+Purchase/Receipt → Stock INCREASES (+)
+         ↓
+    [STOCK TABLE]
+         ↓
+Sales/Damage → Stock REDUCES (-)
+```
+
+---
+
+## Automation Triggers (from automation_pkg. sql)
+
+### 1. Auto-Calculate Sales Master Total
+
+```sql
+CREATE OR REPLACE TRIGGER trg_sales_detail_au
+AFTER INSERT OR UPDATE OR DELETE ON sales_detail
+FOR EACH ROW
+DECLARE
+    v_invoice_id VARCHAR2(50);
+    v_total      NUMBER;
+BEGIN
+    IF INSERTING OR UPDATING THEN
+        v_invoice_id := :NEW.invoice_id;
+    ELSE
+        v_invoice_id := :OLD.invoice_id;
+    END IF;
+    
+    -- Calculate new total from all detail records
+    SELECT NVL(SUM((mrp * quantity) + NVL(vat, 0)), 0)
+    INTO v_total
+    FROM sales_detail
+    WHERE invoice_id = v_invoice_id;
+    
+    -- Update sales master (don't update if status is completed)
+    UPDATE sales_master
+    SET grand_total = v_total - NVL(discount, 0),
+        upd_by = USER,
+        upd_dt = SYSDATE
+    WHERE invoice_id = v_invoice_id
+    AND status != 3; -- Don't update completed invoices
+    
+END;
+/
+```
+
+**Purpose**: Automatically recalculates invoice total whenever line items change.
+
+**How to Use in Forms**:
+```sql
+-- When user adds/edits/deletes items in SALES_DETAIL block: 
+BEGIN
+    -- User enters product and quantity
+    :SALES_DETAIL.PRODUCT_ID := 'SAM001';
+    : SALES_DETAIL.QUANTITY := 2;
+    : SALES_DETAIL.MRP := 50000;
+    :SALES_DETAIL.VAT := 5000;
+    
+    COMMIT_FORM; -- Trigger fires, recalculates grand_total in sales_master
+    
+    -- Refresh master block to see updated total
+    GO_BLOCK('SALES_MASTER');
+    EXECUTE_QUERY;
+END;
+```
+
+---
+
+### 2. Auto-Calculate Order Master Total
+
+```sql
+CREATE OR REPLACE TRIGGER trg_order_detail_au
+AFTER INSERT OR UPDATE OR DELETE ON product_order_detail
+FOR EACH ROW
+DECLARE
+    v_order_id VARCHAR2(50);
+    v_total    NUMBER;
+BEGIN
+    IF INSERTING OR UPDATING THEN
+        v_order_id := : NEW.order_id;
+    ELSE
+        v_order_id := :OLD.order_id;
+    END IF;
+    
+    -- Calculate new total
+    SELECT NVL(SUM(purchase_price * quantity), 0)
+    INTO v_total
+    FROM product_order_detail
+    WHERE order_id = v_order_id;
+    
+    -- Update order master
+    UPDATE product_order_master
+    SET total_amount = v_total,
+        grand_total = v_total + NVL(vat, 0),
+        upd_by = USER,
+        upd_dt = SYSDATE
+    WHERE order_id = v_order_id
+    AND status = 1; -- Only update pending orders
+    
+END;
+/
+```
+
+**Purpose**: Automatically recalculates order total when order items change.
+
+---
+
+### 3. Auto-Calculate Expense Master Total
+
+```sql
+CREATE OR REPLACE TRIGGER trg_expense_detail_au
+AFTER INSERT OR UPDATE OR DELETE ON expense_details
+FOR EACH ROW
+DECLARE
+    v_expense_id VARCHAR2(50);
+    v_total      NUMBER;
+BEGIN
+    IF INSERTING OR UPDATING THEN
+        v_expense_id := : NEW.expense_id;
+    ELSE
+        v_expense_id := :OLD.expense_id;
+    END IF;
+    
+    -- Calculate total (if expense_master has total column - future enhancement)
+    SELECT NVL(SUM(NVL(amount, 0)), 0)
+    INTO v_total
+    FROM expense_details
+    WHERE expense_id = v_expense_id;
+    
+    -- Update expense master audit columns
+    UPDATE expense_master
+    SET upd_by = USER,
+        upd_dt = SYSDATE
+    WHERE expense_id = v_expense_id;
+    
+    -- Note: expense_master doesn't have total_amount column currently
+    -- Add this column if you want to track total expenses
+END;
+/
+```
+
+---
+
+## How to Use Triggers in Oracle Forms
+
+### 1. Understanding Trigger Interaction
+
+Oracle Forms triggers interact with database triggers in this order: 
+
+```
+Form Level: 
+├── PRE-INSERT (Form)
+│   └── Populate form fields
+│
+Database Level:
+├── BEFORE INSERT Trigger
+│   ├── Generate ID
+│   └── Set audit columns
+│
+├── AFTER INSERT Trigger
+│   ├── Update stock
+│   ├── Calculate totals
+│   └── Update master audit
+```
+
+### 2. Best Practices for Forms Development
+
+#### ✅ DO: 
+
+1. **Let database triggers handle IDs**
+   ```sql
+   -- In WHEN-CREATE-RECORD trigger:
+   BEGIN
+       -- Set default values only
+       : SALES_MASTER.INVOICE_DATE := SYSDATE;
+       :SALES_MASTER.STATUS := 1;
+       -- DO NOT set invoice_id - let trigger handle it
+   END;
+   ```
+
+2. **Refresh after commit to see generated IDs**
+   ```sql
+   -- In WHEN-BUTTON-PRESSED (Save button):
+   BEGIN
+       COMMIT_FORM;
+       
+       -- Show generated ID
+       MESSAGE('Saved with ID: ' || :SALES_MASTER.INVOICE_ID);
+       
+       -- Refresh to see calculated totals
+       EXECUTE_QUERY;
+   END;
+   ```
+
+3. **Use POST-QUERY to display related data**
+   ```sql
+   -- In POST-QUERY trigger on SALES_MASTER block:
+   DECLARE
+       v_customer_name VARCHAR2(150);
+   BEGIN
+       IF :SALES_MASTER. CUSTOMER_ID IS NOT NULL THEN
+           SELECT customer_name INTO v_customer_name
+           FROM customers
+           WHERE customer_id = :SALES_MASTER.CUSTOMER_ID;
+           
+           : SALES_MASTER.CUSTOMER_NAME_DISPLAY := v_customer_name;
+       END IF;
+   END;
+   ```
+
+4. **Validate before triggering stock updates**
+   ```sql
+   -- In PRE-INSERT trigger on SALES_DETAIL block: 
+   DECLARE
+       v_stock_qty NUMBER;
+   BEGIN
+       -- Check stock before allowing insert
+       SELECT NVL(quantity, 0) INTO v_stock_qty
+       FROM stock
+       WHERE product_id = : SALES_DETAIL.PRODUCT_ID;
+       
+       IF v_stock_qty < :SALES_DETAIL. QUANTITY THEN
+           MESSAGE('Insufficient stock!  Available: ' || v_stock_qty);
+           RAISE FORM_TRIGGER_FAILURE;
+       END IF;
+   END;
+   ```
+
+#### ❌ DON'T:
+
+1. **Don't manually set auto-generated IDs**
+   ```sql
+   -- ❌ WRONG: 
+   :SALES_MASTER.INVOICE_ID := 'INV' || TO_CHAR(sales_seq.NEXTVAL);
+   
+   -- ✅ CORRECT:
+   -- Leave it NULL, let database trigger handle it
+   ```
+
+2. **Don't set audit columns manually**
+   ```sql
+   -- ❌ WRONG: 
+   :SALES_MASTER. CRE_BY := USER;
+   :SALES_MASTER.CRE_DT := SYSDATE;
+   
+   -- ✅ CORRECT: 
+   -- Database triggers set these automatically
+   ```
+
+3. **Don't bypass triggers with direct SQL**
+   ```sql
+   -- ❌ WRONG:
+   EXECUTE IMMEDIATE 'UPDATE stock SET quantity = quantity - 5 
+                      WHERE product_id = ''SAM001''';
+   -- This bypasses audit triggers! 
+   
+   -- ✅ CORRECT:
+   -- Use normal COMMIT_FORM, let triggers handle stock
+   ```
+
+### 3. Complete Form Example:  Sales Invoice
+
+#### Form Structure:
+- **SALES_MASTER** block (based on sales_master table)
+- **SALES_DETAIL** block (based on sales_detail table)
+- Master-Detail relationship on invoice_id
+
+#### Triggers Configuration:
+
+**Form-Level Triggers**:
+```sql
+-- ON-ERROR (suppress Oracle errors)
+DECLARE
+    v_error_code NUMBER := ERROR_CODE;
+    v_error_text VARCHAR2(200) := ERROR_TEXT;
+BEGIN
+    IF v_error_code = 40508 THEN
+        MESSAGE('Cannot delete - record has been changed by another user.');
+    ELSIF v_error_code IN (40202, 40401) THEN
+        NULL; -- Suppress "Do you want to save changes?"
+    ELSE
+        MESSAGE('Error ' || v_error_code || ': ' || v_error_text);
+    END IF;
+END;
+
+-- ON-MESSAGE (suppress system messages)
+DECLARE
+    v_msg_code NUMBER := MESSAGE_CODE;
+BEGIN
+    IF v_msg_code IN (40202, 40400, 40401) THEN
+        NULL; -- Suppress save prompts
+    END IF;
+END;
+```
+
+**SALES_MASTER Block Triggers**:
+```sql
+-- WHEN-CREATE-RECORD
+BEGIN
+    :SALES_MASTER.INVOICE_DATE := SYSDATE;
+    : SALES_MASTER. SALES_BY := : GLOBAL.G_EMPLOYEE_ID; -- From login
+    :SALES_MASTER. STATUS := 1;
+    -- invoice_id will be auto-generated by trigger on commit
+END;
+
+-- WHEN-VALIDATE-ITEM on CUSTOMER_ID
+DECLARE
+    v_name VARCHAR2(150);
+    v_phone VARCHAR2(50);
+BEGIN
+    IF :SALES_MASTER.CUSTOMER_ID IS NOT NULL THEN
+        SELECT customer_name, phone_no INTO v_name, v_phone
+        FROM customers
+        WHERE customer_id = :SALES_MASTER.CUSTOMER_ID;
+        
+        :SALES_MASTER.CUSTOMER_NAME_DISPLAY := v_name;
+        :SALES_MASTER. CUSTOMER_PHONE_DISPLAY := v_phone;
+    END IF;
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        MESSAGE('Customer not found! ');
+        RAISE FORM_TRIGGER_FAILURE;
+END;
+
+-- POST-QUERY
+DECLARE
+    v_customer_name VARCHAR2(150);
+BEGIN
+    IF :SALES_MASTER.CUSTOMER_ID IS NOT NULL THEN
+        SELECT customer_name INTO v_customer_name
+        FROM customers
+        WHERE customer_id = : SALES_MASTER.CUSTOMER_ID;
+        
+        : SALES_MASTER.CUSTOMER_NAME_DISPLAY := v_customer_name;
+    END IF;
+END;
+```
+
+**SALES_DETAIL Block Triggers**:
+```sql
+-- WHEN-NEW-RECORD-INSTANCE
+BEGIN
+    -- Set master invoice_id in detail
+    :SALES_DETAIL.INVOICE_ID := : SALES_MASTER.INVOICE_ID;
+END;
+
+-- WHEN-VALIDATE-ITEM on PRODUCT_ID
+DECLARE
+    v_mrp NUMBER;
+    v_purchase_price NUMBER;
+    v_product_name VARCHAR2(150);
+    v_stock_qty NUMBER;
+BEGIN
+    IF :SALES_DETAIL. PRODUCT_ID IS NOT NULL THEN
+        -- Get product details
+        SELECT p.mrp, p.purchase_price, p.product_name, NVL(s.quantity, 0)
+        INTO v_mrp, v_purchase_price, v_product_name, v_stock_qty
+        FROM products p
+        LEFT JOIN stock s ON p.product_id = s.product_id
+        WHERE p.product_id = :SALES_DETAIL. PRODUCT_ID;
+        
+        : SALES_DETAIL.MRP := v_mrp;
+        :SALES_DETAIL. PURCHASE_PRICE := v_purchase_price;
+        :SALES_DETAIL.PRODUCT_NAME_DISPLAY := v_product_name;
+        
+        -- Set default quantity
+        IF : SALES_DETAIL.QUANTITY IS NULL THEN
+            : SALES_DETAIL.QUANTITY := 1;
+        END IF;
+        
+        -- Show stock warning
+        IF v_stock_qty < 10 THEN
+            MESSAGE('Low stock! Only ' || v_stock_qty || ' units available');
+        END IF;
+    END IF;
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        MESSAGE('Product not found!');
+        RAISE FORM_TRIGGER_FAILURE;
+END;
+
+-- WHEN-VALIDATE-ITEM on QUANTITY
+DECLARE
+    v_stock_qty NUMBER;
+BEGIN
+    IF :SALES_DETAIL. PRODUCT_ID IS NOT NULL AND :SALES_DETAIL. QUANTITY IS NOT NULL THEN
+        SELECT NVL(quantity, 0) INTO v_stock_qty
+        FROM stock
+        WHERE product_id = :SALES_DETAIL.PRODUCT_ID;
+        
+        IF v_stock_qty < :SALES_DETAIL.QUANTITY THEN
+            MESSAGE('Insufficient stock! Available: ' || v_stock_qty);
+            RAISE FORM_TRIGGER_FAILURE;
+        END IF;
+    END IF;
+END;
+
+-- POST-TEXT-ITEM on QUANTITY (calculate line total)
+BEGIN
+    IF :SALES_DETAIL.MRP IS NOT NULL AND :SALES_DETAIL. QUANTITY IS NOT NULL THEN
+        :SALES_DETAIL.LINE_TOTAL := :SALES_DETAIL.MRP * : SALES_DETAIL.QUANTITY + 
+                                     NVL(: SALES_DETAIL.VAT, 0);
+    END IF;
+END;
+```
+
+**Button Triggers**:
+```sql
+-- BTN_SAVE (WHEN-BUTTON-PRESSED)
+BEGIN
+    IF :SALES_MASTER. CUSTOMER_ID IS NULL THEN
+        MESSAGE('Customer is required!');
+        RAISE FORM_TRIGGER_FAILURE;
+    END IF;
+    
+    -- Validate form
+    IF NOT FORM_SUCCESS THEN
+        MESSAGE('Please correct errors before saving.');
+        RAISE FORM_TRIGGER_FAILURE;
+    END IF;
+    
+    -- Save
+    COMMIT_FORM;
+    
+    IF NOT FORM_SUCCESS THEN
+        MESSAGE('Save failed! ');
+        RAISE FORM_TRIGGER_FAILURE;
+    ELSE
+        MESSAGE('Invoice saved:  ' || :SALES_MASTER.INVOICE_ID || 
+                ' - Total: ' || TO_CHAR(:SALES_MASTER.GRAND_TOTAL, '999,999,999'));
+        
+        -- Refresh to see updated totals from trigger
+        EXECUTE_QUERY;
+    END IF;
+END;
+
+-- BTN_FINALIZE (WHEN-BUTTON-PRESSED)
+-- This commits and locks the invoice (status = 3)
+DECLARE
+    v_result VARCHAR2(500);
+BEGIN
+    IF :SALES_MASTER. INVOICE_ID IS NULL THEN
+        MESSAGE('Please save the invoice first!');
+        RAISE FORM_TRIGGER_FAILURE;
+    END IF;
+    
+    IF SHOW_ALERT('ALERT_CONFIRM_FINALIZE') = ALERT_BUTTON1 THEN
+        -- Update status to finalized
+        UPDATE sales_master
+        SET status = 3,
+            upd_by = USER,
+            upd_dt = SYSDATE
+        WHERE invoice_id = :SALES_MASTER.INVOICE_ID;
+        
+        COMMIT;
+        
+        MESSAGE('Invoice finalized successfully!');
+        
+        -- Refresh
+        EXECUTE_QUERY;
+    END IF;
+END;
+```
+
+**Execution Flow**:
+```
+1. User creates new record → WHEN-CREATE-RECORD fires → sets defaults
+2. User selects customer → WHEN-VALIDATE-ITEM fires → displays customer info
+3. User adds product to detail → WHEN-VALIDATE-ITEM fires → auto-fills price
+4. User enters quantity → WHEN-VALIDATE-ITEM fires → checks stock
+5. User clicks Save → BTN_SAVE fires → COMMIT_FORM
+6. Database triggers fire: 
+   ├── trg_sales_master_bi → generates invoice_id
+   ├── trg_sales_det_bi → generates sales_det_id
+   ├── trg_stock_on_sales_det → reduces stock
+   ├── trg_sales_detail_au → calculates grand_total
+   └── trg_sales_det_master_audit → updates master audit columns
+7. Form refreshes → displays generated invoice_id and calculated total
+```
+
+---
+
+## Trigger Testing Guide
+
+### 1. Test ID Auto-Generation
+
+```sql
+-- Test company trigger
+INSERT INTO company (company_name, phone_no, email)
+VALUES ('Oxen Electronics Ltd', '01711111111', 'info@oxen.com');
+-- Trigger should generate company_id like 'OXE1'
+
+-- Test products trigger
+INSERT INTO products (product_name, supplier_id, category_id, warranty)
+VALUES ('Samsung Galaxy S23', 
+    (SELECT supplier_id FROM suppliers WHERE ROWNUM = 1),
+    (SELECT product_cat_id FROM product_categories WHERE ROWNUM = 1),
+    12);
+-- Trigger should generate product_id like 'SAM1'
+
+COMMIT;
+
+-- Verify
+SELECT company_id, company_name, cre_by, cre_dt 
+FROM company 
+ORDER BY cre_dt DESC FETCH FIRST 1 ROW ONLY;
+
+SELECT product_id, product_name, cre_by, cre_dt 
+FROM products 
+ORDER BY cre_dt DESC FETCH FIRST 1 ROW ONLY;
+```
+
+### 2. Test Audit Column Population
+
+```sql
+-- Insert with user tracking
+INSERT INTO customers (customer_name, phone_no, address, rewards)
+VALUES ('Mohammad Rahman', '01711111111', 'Dhaka', 0);
+
+-- Check audit columns
+SELECT customer_id, customer_name, status, cre_by, cre_dt
+FROM customers
+WHERE customer_name = 'Mohammad Rahman';
+-- Should show: status=1, cre_by=MSP (or current user), cre_dt=current date
+
+-- Test update tracking
+UPDATE customers
+SET rewards = 100
+WHERE customer_name = 'Mohammad Rahman';
+
+-- Check update audit
+SELECT customer_id, customer_name, upd_by, upd_dt
+FROM customers
+WHERE customer_name = 'Mohammad Rahman';
+-- Should show: upd_by=MSP, upd_dt=current date
+
+COMMIT;
+```
+
+### 3. Test Stock Management Triggers
+
+```sql
+-- Setup test data
+INSERT INTO products (product_name, supplier_id, category_id, warranty)
+VALUES ('Test Product',
+    (SELECT supplier_id FROM suppliers WHERE ROWNUM = 1),
+    (SELECT product_cat_id FROM product_categories WHERE ROWNUM = 1),
+    12);
+
+INSERT INTO stock (product_id, supplier_id, quantity)
+VALUES (
+    (SELECT product_id FROM products WHERE product_name = 'Test Product'),
+    (SELECT supplier_id FROM suppliers WHERE ROWNUM = 1),
+    100
+);
+COMMIT;
+
+-- Check initial stock
+SELECT product_id, quantity FROM stock 
+WHERE product_id = (SELECT product_id FROM products WHERE product_name = 'Test Product');
+-- Should show: quantity = 100
+
+-- Test sales (should reduce stock)
+INSERT INTO sales_master (customer_id, sales_by, discount)
+VALUES (
+    (SELECT customer_id FROM customers WHERE ROWNUM = 1),
+    (SELECT employee_id FROM employees WHERE ROWNUM = 1),
+    0
+);
+
+INSERT INTO sales_detail (invoice_id, product_id, quantity, mrp, purchase_price)
+VALUES (
+    (SELECT invoice_id FROM sales_master WHERE ROWNUM = 1),
+    (SELECT product_id FROM products WHERE product_name = 'Test Product'),
+    10,
+    50000,
+    45000
+);
+COMMIT;
+
+-- Check stock after sales
+SELECT product_id, quantity FROM stock 
+WHERE product_id = (SELECT product_id FROM products WHERE product_name = 'Test Product');
+-- Should show: quantity = 90 (100 - 10)
+
+-- Cleanup
+DELETE FROM sales_detail WHERE product_id = (SELECT product_id FROM products WHERE product_name = 'Test Product');
+DELETE FROM sales_master WHERE invoice_id NOT IN (SELECT DISTINCT invoice_id FROM sales_detail);
+DELETE FROM stock WHERE product_id = (SELECT product_id FROM products WHERE product_name = 'Test Product');
+DELETE FROM products WHERE product_name = 'Test Product';
+COMMIT;
+```
+
+### 4. Test Master-Detail Audit Triggers
+
+```sql
+-- Create sales invoice
+INSERT INTO sales_master (customer_id, sales_by, discount)
+VALUES (
+    (SELECT customer_id FROM customers WHERE ROWNUM = 1),
+    (SELECT employee_id FROM employees WHERE ROWNUM = 1),
+    0
+);
+
+-- Check master audit columns
+SELECT invoice_id, cre_by, cre_dt, upd_by, upd_dt
+FROM sales_master
+WHERE invoice_id = (SELECT invoice_id FROM sales_master ORDER BY cre_dt DESC FETCH FIRST 1 ROW ONLY);
+-- upd_by and upd_dt should be NULL (no updates yet)
+
+-- Add detail (this should trigger master audit update)
+INSERT INTO sales_detail (invoice_id, product_id, quantity, mrp, purchase_price)
+VALUES (
+    (SELECT invoice_id FROM sales_master ORDER BY cre_dt DESC FETCH FIRST 1 ROW ONLY),
+    (SELECT product_id FROM products WHERE ROWNUM = 1),
+    1,
+    50000,
+    45000
+);
+COMMIT;
+
+-- Check master audit columns again
+SELECT invoice_id, cre_by, cre_dt, upd_by, upd_dt
+FROM sales_master
+WHERE invoice_id = (SELECT invoice_id FROM sales_master ORDER BY cre_dt DESC FETCH FIRST 1 ROW ONLY);
+-- upd_by and upd_dt should NOW be populated (triggered by detail insert)
+```
+
+### 5. Test Auto-Total Calculation Triggers
+
+```sql
+-- Create order
+INSERT INTO product_order_master (supplier_id, order_date, delivery_date)
+VALUES (
+    (SELECT supplier_id FROM suppliers WHERE ROWNUM = 1),
+    SYSDATE,
+    SYSDATE + 7
+);
+
+-- Add items
+INSERT INTO product_order_detail (order_id, product_id, quantity, purchase_price)
+VALUES (
+    (SELECT order_id FROM product_order_master ORDER BY order_date DESC FETCH FIRST 1 ROW ONLY),
+    (SELECT product_id FROM products WHERE ROWNUM = 1),
+    10,
+    45000
+);
+
+INSERT INTO product_order_detail (order_id, product_id, quantity, purchase_price)
+VALUES (
+    (SELECT order_id FROM product_order_master ORDER BY order_date DESC FETCH FIRST 1 ROW ONLY),
+    (SELECT product_id FROM products WHERE product_id != 
+        (SELECT product_id FROM products WHERE ROWNUM = 1) AND ROWNUM = 1),
+    5,
+    30000
+);
+COMMIT;
+
+-- Check calculated total
+SELECT order_id, total_amount, grand_total
+FROM product_order_master
+WHERE order_id = (SELECT order_id FROM product_order_master ORDER BY order_date DESC FETCH FIRST 1 ROW ONLY);
+-- total_amount should be:  (10 * 45000) + (5 * 30000) = 450000 + 150000 = 600000
+-- grand_total should be: total_amount + vat
+```
+
+---
+
+## Troubleshooting Common Trigger Issues
+
+### Issue 1: "Mutating table error"
+
+**Error**: `ORA-04091: table is mutating, trigger may not see it`
+
+**Cause**: Trying to query the same table that triggered the trigger (common in AFTER ROW triggers)
+
+**Solution**: Use statement-level trigger or compound trigger
+
+```sql
+-- ❌ WRONG (causes mutating table error):
+CREATE OR REPLACE TRIGGER trg_sales_check
+AFTER INSERT ON sales_detail FOR EACH ROW
+DECLARE
+    v_total NUMBER;
+BEGIN
+    SELECT SUM(quantity) INTO v_total
+    FROM sales_detail  -- SAME TABLE!
+    WHERE invoice_id = :NEW.invoice_id;
+END;
+
+-- ✅ CORRECT (use statement-level trigger):
+CREATE OR REPLACE TRIGGER trg_sales_check
+AFTER INSERT ON sales_detail
+DECLARE
+    v_total NUMBER;
+BEGIN
+    FOR rec IN (SELECT invoice_id, SUM(quantity) as total
+                FROM sales_detail
+                GROUP BY invoice_id) LOOP
+        -- Process totals
+        NULL;
+    END LOOP;
+END;
+```
+
+### Issue 2: "Trigger does not fire in Oracle Forms"
+
+**Cause**: Form cached data or trigger disabled
+
+**Solutions**:
+1. Check if trigger is enabled:
+   ```sql
+   SELECT trigger_name, status FROM user_triggers WHERE trigger_name = 'TRG_SALES_MASTER_BI';
+   ```
+
+2. Re-enable if disabled:
+   ```sql
+   ALTER TRIGGER trg_sales_master_bi ENABLE;
+   ```
+
+3. Recompile trigger:
+   ```sql
+   ALTER TRIGGER trg_sales_master_bi COMPILE;
+   ```
+
+4. In Forms, ensure you're committing: 
+   ```sql
+   COMMIT_FORM; -- NOT just COMMIT;
+   ```
+
+### Issue 3: "ID not generated after insert"
+
+**Cause**: Primary key column not NULL in insert statement
+
+**Solution**: Ensure ID column is NULL when inserting
+
+```sql
+-- ❌ WRONG: 
+INSERT INTO products (product_id, product_name, ...)
+VALUES ('', 'Samsung TV', ...); -- Empty string is NOT NULL! 
+
+-- ✅ CORRECT:
+INSERT INTO products (product_name, .. .) -- Don't include product_id
+VALUES ('Samsung TV', ...);
+
+-- OR: 
+INSERT INTO products (product_id, product_name, ...)
+VALUES (NULL, 'Samsung TV', ... ); -- Explicit NULL
+```
+
+### Issue 4: "Audit columns are NULL"
+
+**Cause**: Nested IF blocks (old trigger pattern - should be fixed in clean_combined. sql)
+
+**Verification**:
+```sql
+-- Check trigger code
+SELECT text FROM user_source 
+WHERE name = 'TRG_COMPANY_BI' 
+AND type = 'TRIGGER'
+ORDER BY line;
+```
+
+**Correct pattern** (from TRIGGER_FIX_SUMMARY.md):
+```sql
+-- Step 1: ID Generation
+IF INSERTING AND :NEW.company_id IS NULL THEN
+    : NEW.company_id := ... ;
+END IF;
+
+-- Step 2: Audit Columns (SEPARATE block)
+IF INSERTING THEN
+    IF :NEW.status IS NULL THEN : NEW.status := 1; END IF;
+    IF : NEW.cre_by IS NULL THEN :NEW.cre_by := USER; END IF;
+    ... 
+ELSIF UPDATING THEN
+    : NEW.upd_by := USER;
+    :NEW.upd_dt := SYSDATE;
+END IF;
+```
+
+### Issue 5: "Stock goes negative"
+
+**Cause**: No constraint to prevent negative stock
+
+**Solution**: Add check constraint
+
+```sql
+ALTER TABLE stock ADD CONSTRAINT chk_stock_qty CHECK (quantity >= 0);
+```
+
+---
+
+## Summary of All Triggers
+
+### By Table (33 Tables = 50+ Triggers)
+
+| # | Table | BEFORE INSERT | AFTER ROW | AFTER STATEMENT |
+|---|-------|---------------|-----------|-----------------|
+| 1 | company | `trg_company_bi` | - | - |
+| 2 | jobs | `trg_jobs_bi` | - | - |
+| 3 | departments | `trg_departments_bi` | - | - |
+| 4 | employees | `trg_employees_bi` | - | - |
+| 5 | com_users | `trg_users_bi` | - | - |
+| 6 | product_categories | `trg_prod_cat_bi` | - | - |
+| 7 | sub_categories | `trg_sub_cat_bi` | - | - |
+| 8 | brand | `trg_brand_bi` | - | - |
+| 9 | products | `trg_products_bi` | - | - |
+| 10 | parts_category | `trg_parts_cat_bi` | - | - |
+| 11 | parts | `trg_parts_bi` | - | - |
+| 12 | customers | `trg_customers_bi` | - | - |
+| 13 | suppliers | `trg_suppliers_bi` | - | - |
+| 14 | stock | `trg_stock_bi` | - | - |
+| 15 | sales_master | `trg_sales_master_bi` | - | - |
+| 16 | sales_detail | `trg_sales_det_bi` | `trg_sales_det_master_audit`<br>`trg_stock_on_sales_det` | `trg_sales_detail_au` |
+| 17 | product_order_master | `trg_prod_order_bi` | - | - |
+| 18 | product_order_detail | `trg_order_det_bi` | `trg_order_det_master_audit` | `trg_order_detail_au` |
+| 19 | product_receive_master | `trg_prod_recv_bi` | - | - |
+| 20 | product_receive_details | `trg_recv_det_bi` | `trg_recv_det_master_audit`<br>`trg_stock_on_receive_det` | - |
+| 21 | product_return_master | `trg_prod_ret_bi` | - | - |
+| 22 | product_return_details | `trg_prod_ret_det_bi` | `trg_prod_ret_det_master_audit`<br>`trg_stock_on_prod_return` | - |
+| 23 | sales_return_master | `trg_sales_ret_bi
