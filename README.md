@@ -19,13 +19,16 @@ This repository contains a comprehensive Oracle database schema for managing an 
 
 | File | Description |
 |------|-------------|
+| `clean_combined.sql` | Complete database setup script (33 tables with sample data) |
 | `Schema.sql` | Original database schema with 33 tables |
-| `combined schema with insert data` | Full schema with sample data (combined file) |
 | `Insert data` | Sample data insertion scripts |
 | `DYNAMIC LIST CRATION` | Oracle Forms dynamic list creation trigger |
-| `apex_views.sql` | **NEW** - Oracle APEX ready views for LOV, reports, dashboards |
-| `automation_pkg.sql` | **NEW** - PL/SQL package for business automation |
-| `forms_lov.sql` | **NEW** - Oracle 11g Forms LOV queries and triggers |
+| `automation_pkg.sql` | PL/SQL package for business automation |
+| `forms_lov.sql` | Oracle 11g Forms LOV queries and triggers |
+| `oracle_reports.sql` | Oracle Reports templates and queries |
+| **`ORACLE_FORMS_11G_ARCHITECTURE_GUIDE.md`** | **📘 Complete Oracle Forms 11g architecture and development guide** |
+| **`FORMS_QUICK_REFERENCE.md`** | **⚡ Quick reference code snippets for Forms development** |
+| **`FORMS_TEST_QUERIES.sql`** | **🧪 Test queries and validation scripts** |
 
 ## Database Tables
 
@@ -100,14 +103,14 @@ GRANT CONNECT, RESOURCE, CREATE VIEW, CREATE PROCEDURE TO msp;
 2. **Run Schema Script**
 ```sql
 -- Connect as msp user
-@Schema.sql
--- OR for combined schema with data:
-@"combined schema with insert data"
+sqlplus msp/msp @clean_combined.sql
+-- This creates all 33 tables with sample data
 ```
 
-3. **Install APEX Views (Optional)**
+3. **Verify Installation**
 ```sql
-@apex_views.sql
+-- Test queries provided in FORMS_TEST_QUERIES.sql
+sqlplus msp/msp @FORMS_TEST_QUERIES.sql
 ```
 
 4. **Install Automation Package (Optional)**
@@ -115,53 +118,44 @@ GRANT CONNECT, RESOURCE, CREATE VIEW, CREATE PROCEDURE TO msp;
 @automation_pkg.sql
 ```
 
-## Oracle APEX Usage
+## Oracle Forms 11g Development
 
-### LOV (List of Values) Views
-All LOV views are prefixed with `lov_` and return two columns:
-- `return_value` - The ID to store
-- `display_value` - The text to display
+### 📘 Complete Architecture Guide
+See **[ORACLE_FORMS_11G_ARCHITECTURE_GUIDE.md](ORACLE_FORMS_11G_ARCHITECTURE_GUIDE.md)** for comprehensive documentation including:
+- Complete schema analysis with all 33 tables
+- Primary keys and foreign key relationships
+- Form-level triggers (ON-ERROR, ON-MESSAGE)
+- Save/Delete button implementations
+- Login form step-by-step guide with authentication
+- Parameter passing between forms
+- Best practices and troubleshooting
 
-Example usage in APEX:
-```sql
-SELECT display_value AS d, return_value AS r
-FROM lov_products_v
-ORDER BY 1
-```
+### ⚡ Quick Reference
+See **[FORMS_QUICK_REFERENCE.md](FORMS_QUICK_REFERENCE.md)** for ready-to-use code snippets:
+- Form-level triggers (ON-ERROR, ON-MESSAGE, WHEN-NEW-FORM-INSTANCE)
+- Button triggers (Save, Delete, Query, Exit)
+- Item-level triggers and validations
+- LOV queries for all master tables
+- Navigation and utility functions
+- Master-detail coordination examples
 
-### Dashboard Views
-Dashboard views are prefixed with `dashboard_` and provide pre-aggregated data:
-- `dashboard_sales_summary_v` - Daily sales summary
-- `dashboard_sales_monthly_v` - Monthly sales trends
-- `dashboard_top_products_v` - Top selling products
-- `dashboard_top_customers_v` - Top customers by revenue
-- `dashboard_stock_alerts_v` - Low stock alerts
-- `dashboard_supplier_due_v` - Supplier payment dues
-- `dashboard_kpi_v` - Key performance indicators
-
-### Report Views
-Report views are suffixed with `_report_v`:
-- `sales_invoice_report_v` - Sales invoice listing
-- `sales_detail_report_v` - Sales detail with calculations
-- `purchase_order_report_v` - Purchase orders
-- `product_receive_report_v` - Goods receipts
-- `service_report_v` - Service tickets
-- `stock_report_v` - Stock status with valuation
-
-## Oracle Forms Usage
+### 🧪 Testing & Validation
+Run **[FORMS_TEST_QUERIES.sql](FORMS_TEST_QUERIES.sql)** to:
+- Validate schema integrity (all 33 tables)
+- Test user authentication queries
+- Create test users (admin/admin123, testuser/test123)
+- Verify foreign key relationships
+- Get LOV queries for forms development
 
 ### Dynamic LOV Initialization
 Copy the trigger code from `forms_lov.sql` into your form's `WHEN-NEW-FORM-INSTANCE` trigger to automatically populate all LOVs.
 
-### Cascading LOVs
-The file includes code for cascading LOVs (e.g., sub-categories based on category selection).
-
-### Form Triggers
-Pre-built triggers for:
-- Product price auto-population
-- Stock availability checking
-- Invoice total calculation
-- Service charge auto-fill
+### Key Features for Forms Development
+- **Seamless Save**: Bypass standard Oracle alerts with custom ON-MESSAGE trigger
+- **User-Friendly Errors**: ON-ERROR trigger converts ORA- codes to readable messages
+- **Authentication**: Complete login form with credential validation against `com_users` table
+- **Parameter Passing**: Examples using CALL_FORM, global variables, and parameter lists
+- **Master-Detail**: Pre-built coordination for sales, purchases, and service forms
 
 ## Automation Package
 
