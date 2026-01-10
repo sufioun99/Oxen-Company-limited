@@ -2613,42 +2613,1685 @@ END;
 
 ## Part 5: Purchase Transaction Forms
 
+---
+
 ## 18. Purchase Order Form (Master-Detail)
-**Tables**: `product_order_master` + `product_order_detail`
 
-Similar to Sales Invoice but for ordering from suppliers:
-- Select supplier instead of customer
-- Enter products and quantities to order
-- Status: Draft → Approved → Sent
-- Database trigger `trg_order_detail_au` auto-calculates total_amount
+### 📋 Tables: `product_order_master` + `product_order_detail`
+**Purpose**: Create purchase orders to suppliers  
+**Type**: Master-Detail transaction  
+**Complexity**: ⭐⭐⭐⭐ Very Complex
 
-## 19. Goods Receipt Form (Master-Detail)
-**Tables**: `product_receive_master` + `product_receive_details`
+### Database Structure
 
-Records products received from suppliers:
-- Reference purchase order (optional)
-- **Critical**: Database trigger `trg_stock_on_receive_det` automatically INCREASES stock
-- Validates received quantity against ordered quantity
-- Updates supplier's purchase_total
-
-### Key Trigger Example
+#### product_order_master
 ```sql
--- WHEN-VALIDATE-ITEM on RECEIVE_QUANTITY
-IF :PRODUCT_RECEIVE_DETAILS.RECEIVE_QUANTITY > :PRODUCT_RECEIVE_DETAILS.ORDER_QTY THEN
-    MESSAGE('Received quantity exceeds ordered quantity!');
-    -- Allow but warn
-END IF;
+product_order_master (
+    order_id VARCHAR2(50) PRIMARY KEY,        -- Auto: ORD001
+    order_date DATE NOT NULL DEFAULT SYSDATE,
+    expected_date DATE,
+    supplier_id VARCHAR2(50) NOT NULL,        -- FK to suppliers
+    employee_id VARCHAR2(50),                 -- FK to employees (ordered by)
+    total_amount NUMBER(20,4) DEFAULT 0,      -- Auto-calculated
+    discount NUMBER(20,4) DEFAULT 0,
+    vat NUMBER(20,4) DEFAULT 0,
+    grand_total NUMBER(20,4) DEFAULT 0,       -- Auto-calculated
+    status NUMBER DEFAULT 1,                  -- 1=Draft, 2=Approved, 3=Sent
+    remarks VARCHAR2(500),
+    cre_by VARCHAR2(100),
+    cre_dt DATE,
+    upd_by VARCHAR2(100),
+    upd_dt DATE,
+    FOREIGN KEY (supplier_id) REFERENCES suppliers(supplier_id),
+    FOREIGN KEY (employee_id) REFERENCES employees(employee_id)
+)
 ```
 
-## 20. Purchase Return Form (Master-Detail)
-**Tables**: `product_return_master` + `product_return_details`
+#### product_order_detail
+```sql
+product_order_detail (
+    order_det_id VARCHAR2(50) PRIMARY KEY,    -- Auto: POD001
+    order_id VARCHAR2(50) NOT NULL,           -- FK to product_order_master
+    product_id VARCHAR2(50) NOT NULL,         -- FK to products
+    quantity NUMBER NOT NULL,
+    unit_price NUMBER(20,4),
+    line_total NUMBER(20,4),                  -- Calculated: quantity * unit_price
+    status NUMBER DEFAULT 1,
+    cre_by VARCHAR2(100),
+    cre_dt DATE,
+    upd_by VARCHAR2(100),
+    upd_dt DATE,
+    FOREIGN KEY (order_id) REFERENCES product_order_master(order_id),
+    FOREIGN KEY (product_id) REFERENCES products(product_id)
+)
+```
 
-Return defective products to supplier:
-- Database trigger `trg_stock_on_prod_return` automatically DECREASES stock
-- Update supplier's purchase_total (reduce due)
+### Canvas Layout
+```
+┌──────────────────────────────────────────────────────────────────┐
+│ Purchase Order Form                                              │
+├──────────────────────────────────────────────────────────────────┤
+│ ┌─ ORDER MASTER ─────────────────────────────────────────────┐  │
+│ │ Order ID: [AUTO]        Date: [__________]                 │  │
+│ │ Supplier: [______________________ [🔍]]                     │  │
+│ │           ABC Electronics Ltd.                              │  │
+│ │           Phone: 01712345678                                │  │
+│ │ Expected: [__________]    Status: [Draft ▼]                │  │
+│ │ Ordered By: [________________ [🔍]] Ahmed Rahman           │  │
+│ │ Remarks: [________________________________________]         │  │
+│ └─────────────────────────────────────────────────────────────┘  │
+│ ┌─ ORDER DETAILS ────────────────────────────────────────────┐  │
+│ │ Product           │Stock│ Qty │ Unit Price │ Line Total    │  │
+│ │ [Product [🔍]]    │ [_] │ [_] │ [_______]  │ [_________]   │  │
+│ │ iPhone 13 Pro     │  5  │ 10  │  85,000.00 │   850,000.00  │  │
+│ │ Samsung 55" TV    │  2  │  5  │  45,000.00 │   225,000.00  │  │
+│ │ Walton Fridge     │  8  │  3  │  32,000.00 │    96,000.00  │  │
+│ │ [+ Add Product]                                             │  │
+│ └─────────────────────────────────────────────────────────────┘  │
+│ ┌─ TOTALS ──────────────────────────────────────────────────┐   │
+│ │ Sub Total:    [1,171,000.00]    Discount: [____] BDT      │   │
+│ │ VAT (5%):     [58,550.00]       Grand Total: [1,229,550]  │   │
+│ └────────────────────────────────────────────────────────────┘  │
+├──────────────────────────────────────────────────────────────────┤
+│ [Save] [Delete] [Finalize] [Clear] [Print] [Exit]               │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+### Step 1: Create Master Block
+1. **Block Name**: PRODUCT_ORDER_MASTER
+2. **Table**: product_order_master
+3. **Columns**: order_date, expected_date, supplier_id, employee_id, total_amount, discount, vat, grand_total, status, remarks
+4. **Exclude**: order_id (auto-generated), cre_by, cre_dt, upd_by, upd_dt
+5. **Records Displayed**: 1
+
+### Step 2: Create Detail Block
+1. **Block Name**: PRODUCT_ORDER_DETAIL
+2. **Table**: product_order_detail
+3. **Columns**: product_id, quantity, unit_price, line_total
+4. **Exclude**: order_det_id (auto-generated), order_id (copied from master), cre_by, cre_dt, upd_by, upd_dt
+5. **Records Displayed**: 10
+
+### Step 3: Set Master-Detail Relationship
+1. **Master Block**: PRODUCT_ORDER_MASTER
+2. **Detail Block**: PRODUCT_ORDER_DETAIL
+3. **Join Condition**: PRODUCT_ORDER_MASTER.ORDER_ID = PRODUCT_ORDER_DETAIL.ORDER_ID
+4. **Delete Record Behavior**: Non-Isolated
+5. **Coordination**: Auto-Query
+6. **Deferred Coordination**: No
+7. **Master Deletes**: Cascading
+
+### Step 4: Create LOVs
+
+#### SUPPLIER_LOV
+```sql
+SELECT s.supplier_id,
+       s.supplier_name,
+       s.phone_no,
+       s.address,
+       NVL(s.due, 0) AS due_amount
+FROM suppliers s
+WHERE s.status = 1
+ORDER BY s.supplier_name
+```
+
+**LOV Configuration**:
+- **Title**: Select Supplier
+- **Width**: 600
+- **Height**: 400
+- **Column Mapping**:
+  - SUPPLIER_ID → SUPPLIER_ID (Return Value)
+  - SUPPLIER_NAME → Display
+  - PHONE_NO → Display
+  - ADDRESS → Display
+  - DUE_AMOUNT → Display
+
+#### PRODUCT_LOV (for detail block)
+```sql
+SELECT p.product_id,
+       p.product_name,
+       p.product_code,
+       b.brand_name,
+       p.purchase_price,
+       NVL(s.quantity, 0) AS stock_qty
+FROM products p
+LEFT JOIN brand b ON p.brand_id = b.brand_id
+LEFT JOIN stock s ON p.product_id = s.product_id
+WHERE p.status = 1
+ORDER BY p.product_name
+```
+
+**LOV Configuration**:
+- **Title**: Select Product
+- **Width**: 700
+- **Column Mapping**:
+  - PRODUCT_ID → PRODUCT_ID (Return Value)
+  - PRODUCT_NAME → Display
+  - BRAND_NAME → Display
+  - PURCHASE_PRICE → Display
+  - STOCK_QTY → Display (shows current stock)
+
+#### EMPLOYEE_LOV
+```sql
+SELECT e.employee_id,
+       e.employee_name,
+       j.job_title,
+       d.dept_name
+FROM employees e
+LEFT JOIN jobs j ON e.job_id = j.job_id
+LEFT JOIN departments d ON e.dept_id = d.dept_id
+WHERE e.status = 1
+ORDER BY e.employee_name
+```
+
+**LOV Configuration**:
+- **Title**: Select Employee
+- **Width**: 600
+- **Column Mapping**:
+  - EMPLOYEE_ID → EMPLOYEE_ID (Return Value)
+  - EMPLOYEE_NAME → Display
+  - JOB_TITLE → Display
+  - DEPT_NAME → Display
+
+### Step 5: Add Non-Database Items
+
+#### Master Block Display Items
+```sql
+-- SUPPLIER_NAME_DISPLAY (Display Item)
+-- SUPPLIER_PHONE_DISPLAY (Display Item)
+-- EMPLOYEE_NAME_DISPLAY (Display Item)
+```
+
+#### Detail Block Display Items
+```sql
+-- PRODUCT_NAME_DISPLAY (Display Item)
+-- STOCK_DISPLAY (Display Item) - Shows current stock level
+```
+
+### Step 6: Master Block Triggers
+
+#### WHEN-CREATE-RECORD (PRODUCT_ORDER_MASTER)
+```sql
+BEGIN
+    -- Set default values
+    :PRODUCT_ORDER_MASTER.ORDER_DATE := SYSDATE;
+    :PRODUCT_ORDER_MASTER.EXPECTED_DATE := SYSDATE + 7;  -- Default 7 days delivery
+    :PRODUCT_ORDER_MASTER.STATUS := 1;  -- Draft
+    :PRODUCT_ORDER_MASTER.DISCOUNT := 0;
+    :PRODUCT_ORDER_MASTER.VAT := 0;
+    :PRODUCT_ORDER_MASTER.TOTAL_AMOUNT := 0;
+    :PRODUCT_ORDER_MASTER.GRAND_TOTAL := 0;
+    
+    -- Set employee from login (if available)
+    IF :GLOBAL.G_EMPLOYEE_ID IS NOT NULL THEN
+        :PRODUCT_ORDER_MASTER.EMPLOYEE_ID := :GLOBAL.G_EMPLOYEE_ID;
+    END IF;
+    
+    -- order_id will be auto-generated by database trigger on save
+END;
+```
+
+#### WHEN-VALIDATE-ITEM on SUPPLIER_ID
+```sql
+DECLARE
+    v_supplier_name VARCHAR2(150);
+    v_phone VARCHAR2(50);
+    v_address VARCHAR2(250);
+    v_due_amount NUMBER;
+BEGIN
+    IF :PRODUCT_ORDER_MASTER.SUPPLIER_ID IS NOT NULL THEN
+        BEGIN
+            SELECT supplier_name, phone_no, address, NVL(due, 0)
+            INTO v_supplier_name, v_phone, v_address, v_due_amount
+            FROM suppliers
+            WHERE supplier_id = :PRODUCT_ORDER_MASTER.SUPPLIER_ID
+            AND status = 1;
+            
+            -- Display supplier information
+            :PRODUCT_ORDER_MASTER.SUPPLIER_NAME_DISPLAY := v_supplier_name;
+            :PRODUCT_ORDER_MASTER.SUPPLIER_PHONE_DISPLAY := v_phone;
+            
+            -- Show due amount if exists
+            IF v_due_amount > 0 THEN
+                MESSAGE('Supplier Due Amount: BDT ' || TO_CHAR(v_due_amount, '999,999,999.99'));
+            END IF;
+            
+        EXCEPTION
+            WHEN NO_DATA_FOUND THEN
+                MESSAGE('Invalid or inactive supplier!');
+                :PRODUCT_ORDER_MASTER.SUPPLIER_NAME_DISPLAY := NULL;
+                :PRODUCT_ORDER_MASTER.SUPPLIER_PHONE_DISPLAY := NULL;
+                RAISE FORM_TRIGGER_FAILURE;
+        END;
+    ELSE
+        :PRODUCT_ORDER_MASTER.SUPPLIER_NAME_DISPLAY := NULL;
+        :PRODUCT_ORDER_MASTER.SUPPLIER_PHONE_DISPLAY := NULL;
+    END IF;
+END;
+```
+
+#### WHEN-VALIDATE-ITEM on EMPLOYEE_ID
+```sql
+DECLARE
+    v_employee_name VARCHAR2(150);
+BEGIN
+    IF :PRODUCT_ORDER_MASTER.EMPLOYEE_ID IS NOT NULL THEN
+        BEGIN
+            SELECT employee_name
+            INTO v_employee_name
+            FROM employees
+            WHERE employee_id = :PRODUCT_ORDER_MASTER.EMPLOYEE_ID
+            AND status = 1;
+            
+            :PRODUCT_ORDER_MASTER.EMPLOYEE_NAME_DISPLAY := v_employee_name;
+            
+        EXCEPTION
+            WHEN NO_DATA_FOUND THEN
+                MESSAGE('Invalid or inactive employee!');
+                :PRODUCT_ORDER_MASTER.EMPLOYEE_NAME_DISPLAY := NULL;
+                RAISE FORM_TRIGGER_FAILURE;
+        END;
+    ELSE
+        :PRODUCT_ORDER_MASTER.EMPLOYEE_NAME_DISPLAY := NULL;
+    END IF;
+END;
+```
+
+#### WHEN-VALIDATE-ITEM on EXPECTED_DATE
+```sql
+BEGIN
+    IF :PRODUCT_ORDER_MASTER.EXPECTED_DATE IS NOT NULL THEN
+        IF :PRODUCT_ORDER_MASTER.EXPECTED_DATE < :PRODUCT_ORDER_MASTER.ORDER_DATE THEN
+            MESSAGE('Expected date cannot be before order date!');
+            RAISE FORM_TRIGGER_FAILURE;
+        END IF;
+        
+        -- Warn if expected date is too far in future
+        IF :PRODUCT_ORDER_MASTER.EXPECTED_DATE > ADD_MONTHS(:PRODUCT_ORDER_MASTER.ORDER_DATE, 3) THEN
+            MESSAGE('WARNING: Expected delivery is more than 3 months away!');
+            -- Allow but warn
+        END IF;
+    END IF;
+END;
+```
+
+#### POST-QUERY (PRODUCT_ORDER_MASTER)
+```sql
+BEGIN
+    -- Display supplier name
+    IF :PRODUCT_ORDER_MASTER.SUPPLIER_ID IS NOT NULL THEN
+        BEGIN
+            SELECT supplier_name, phone_no
+            INTO :PRODUCT_ORDER_MASTER.SUPPLIER_NAME_DISPLAY,
+                 :PRODUCT_ORDER_MASTER.SUPPLIER_PHONE_DISPLAY
+            FROM suppliers
+            WHERE supplier_id = :PRODUCT_ORDER_MASTER.SUPPLIER_ID;
+        EXCEPTION
+            WHEN NO_DATA_FOUND THEN
+                :PRODUCT_ORDER_MASTER.SUPPLIER_NAME_DISPLAY := 'Unknown Supplier';
+        END;
+    END IF;
+    
+    -- Display employee name
+    IF :PRODUCT_ORDER_MASTER.EMPLOYEE_ID IS NOT NULL THEN
+        BEGIN
+            SELECT employee_name
+            INTO :PRODUCT_ORDER_MASTER.EMPLOYEE_NAME_DISPLAY
+            FROM employees
+            WHERE employee_id = :PRODUCT_ORDER_MASTER.EMPLOYEE_ID;
+        EXCEPTION
+            WHEN NO_DATA_FOUND THEN
+                :PRODUCT_ORDER_MASTER.EMPLOYEE_NAME_DISPLAY := 'Unknown Employee';
+        END;
+    END IF;
+EXCEPTION
+    WHEN OTHERS THEN
+        NULL;
+END;
+```
+
+### Step 7: Detail Block Triggers
+
+#### WHEN-NEW-RECORD-INSTANCE (PRODUCT_ORDER_DETAIL)
+```sql
+BEGIN
+    IF :SYSTEM.CURSOR_BLOCK = 'PRODUCT_ORDER_DETAIL' THEN
+        -- Copy order_id from master
+        IF :PRODUCT_ORDER_MASTER.ORDER_ID IS NOT NULL THEN
+            :PRODUCT_ORDER_DETAIL.ORDER_ID := :PRODUCT_ORDER_MASTER.ORDER_ID;
+        END IF;
+        
+        -- Set default quantity
+        IF :PRODUCT_ORDER_DETAIL.QUANTITY IS NULL THEN
+            :PRODUCT_ORDER_DETAIL.QUANTITY := 1;
+        END IF;
+    END IF;
+END;
+```
+
+#### WHEN-VALIDATE-ITEM on PRODUCT_ID (Detail Block)
+```sql
+DECLARE
+    v_product_name VARCHAR2(150);
+    v_purchase_price NUMBER;
+    v_stock_qty NUMBER;
+    v_brand_name VARCHAR2(100);
+BEGIN
+    IF :PRODUCT_ORDER_DETAIL.PRODUCT_ID IS NOT NULL THEN
+        BEGIN
+            -- Get product details with current stock
+            SELECT p.product_name, 
+                   p.purchase_price, 
+                   NVL(s.quantity, 0),
+                   b.brand_name
+            INTO v_product_name, v_purchase_price, v_stock_qty, v_brand_name
+            FROM products p
+            LEFT JOIN stock s ON p.product_id = s.product_id
+            LEFT JOIN brand b ON p.brand_id = b.brand_id
+            WHERE p.product_id = :PRODUCT_ORDER_DETAIL.PRODUCT_ID
+            AND p.status = 1;
+            
+            -- Display product information
+            :PRODUCT_ORDER_DETAIL.PRODUCT_NAME_DISPLAY := v_product_name || ' (' || NVL(v_brand_name, 'No Brand') || ')';
+            :PRODUCT_ORDER_DETAIL.STOCK_DISPLAY := v_stock_qty;
+            :PRODUCT_ORDER_DETAIL.UNIT_PRICE := v_purchase_price;
+            
+            -- Show stock status message
+            IF v_stock_qty = 0 THEN
+                MESSAGE('⚠️ Product is OUT OF STOCK. Good time to order!');
+            ELSIF v_stock_qty < 10 THEN
+                MESSAGE('📊 Low stock (' || v_stock_qty || ' units). Consider ordering more.');
+            ELSE
+                MESSAGE('✅ Current stock: ' || v_stock_qty || ' units');
+            END IF;
+            
+            -- Calculate line total if quantity exists
+            IF :PRODUCT_ORDER_DETAIL.QUANTITY IS NOT NULL THEN
+                :PRODUCT_ORDER_DETAIL.LINE_TOTAL := 
+                    :PRODUCT_ORDER_DETAIL.QUANTITY * :PRODUCT_ORDER_DETAIL.UNIT_PRICE;
+            END IF;
+            
+        EXCEPTION
+            WHEN NO_DATA_FOUND THEN
+                MESSAGE('Product not found or inactive!');
+                :PRODUCT_ORDER_DETAIL.PRODUCT_NAME_DISPLAY := NULL;
+                :PRODUCT_ORDER_DETAIL.STOCK_DISPLAY := NULL;
+                RAISE FORM_TRIGGER_FAILURE;
+        END;
+    ELSE
+        :PRODUCT_ORDER_DETAIL.PRODUCT_NAME_DISPLAY := NULL;
+        :PRODUCT_ORDER_DETAIL.STOCK_DISPLAY := NULL;
+    END IF;
+END;
+```
+
+#### WHEN-VALIDATE-ITEM on QUANTITY (Detail Block)
+```sql
+BEGIN
+    IF :PRODUCT_ORDER_DETAIL.QUANTITY IS NOT NULL THEN
+        -- Validate quantity is positive
+        IF :PRODUCT_ORDER_DETAIL.QUANTITY <= 0 THEN
+            MESSAGE('Quantity must be greater than zero!');
+            RAISE FORM_TRIGGER_FAILURE;
+        END IF;
+        
+        -- Warn if ordering very large quantity
+        IF :PRODUCT_ORDER_DETAIL.QUANTITY > 100 THEN
+            MESSAGE('⚠️ WARNING: Large order quantity (' || :PRODUCT_ORDER_DETAIL.QUANTITY || ' units). Please verify.');
+            -- Allow but warn
+        END IF;
+        
+        -- Calculate line total
+        IF :PRODUCT_ORDER_DETAIL.UNIT_PRICE IS NOT NULL THEN
+            :PRODUCT_ORDER_DETAIL.LINE_TOTAL := 
+                :PRODUCT_ORDER_DETAIL.QUANTITY * :PRODUCT_ORDER_DETAIL.UNIT_PRICE;
+        END IF;
+    END IF;
+END;
+```
+
+#### POST-TEXT-ITEM on QUANTITY or UNIT_PRICE
+```sql
+BEGIN
+    -- Recalculate line total when either value changes
+    IF :PRODUCT_ORDER_DETAIL.QUANTITY IS NOT NULL 
+       AND :PRODUCT_ORDER_DETAIL.UNIT_PRICE IS NOT NULL THEN
+        :PRODUCT_ORDER_DETAIL.LINE_TOTAL := 
+            :PRODUCT_ORDER_DETAIL.QUANTITY * :PRODUCT_ORDER_DETAIL.UNIT_PRICE;
+    END IF;
+END;
+```
+
+#### WHEN-VALIDATE-ITEM on UNIT_PRICE
+```sql
+BEGIN
+    IF :PRODUCT_ORDER_DETAIL.UNIT_PRICE IS NOT NULL THEN
+        IF :PRODUCT_ORDER_DETAIL.UNIT_PRICE <= 0 THEN
+            MESSAGE('Unit price must be greater than zero!');
+            RAISE FORM_TRIGGER_FAILURE;
+        END IF;
+        
+        -- Calculate line total
+        IF :PRODUCT_ORDER_DETAIL.QUANTITY IS NOT NULL THEN
+            :PRODUCT_ORDER_DETAIL.LINE_TOTAL := 
+                :PRODUCT_ORDER_DETAIL.QUANTITY * :PRODUCT_ORDER_DETAIL.UNIT_PRICE;
+        END IF;
+    END IF;
+END;
+```
+
+#### POST-QUERY (PRODUCT_ORDER_DETAIL)
+```sql
+DECLARE
+    v_product_name VARCHAR2(150);
+    v_brand_name VARCHAR2(100);
+    v_stock_qty NUMBER;
+BEGIN
+    IF :PRODUCT_ORDER_DETAIL.PRODUCT_ID IS NOT NULL THEN
+        BEGIN
+            SELECT p.product_name, 
+                   NVL(b.brand_name, 'No Brand'),
+                   NVL(s.quantity, 0)
+            INTO v_product_name, v_brand_name, v_stock_qty
+            FROM products p
+            LEFT JOIN brand b ON p.brand_id = b.brand_id
+            LEFT JOIN stock s ON p.product_id = s.product_id
+            WHERE p.product_id = :PRODUCT_ORDER_DETAIL.PRODUCT_ID;
+            
+            :PRODUCT_ORDER_DETAIL.PRODUCT_NAME_DISPLAY := v_product_name || ' (' || v_brand_name || ')';
+            :PRODUCT_ORDER_DETAIL.STOCK_DISPLAY := v_stock_qty;
+        EXCEPTION
+            WHEN NO_DATA_FOUND THEN
+                :PRODUCT_ORDER_DETAIL.PRODUCT_NAME_DISPLAY := 'Unknown Product';
+                :PRODUCT_ORDER_DETAIL.STOCK_DISPLAY := 0;
+        END;
+    END IF;
+EXCEPTION
+    WHEN OTHERS THEN
+        NULL;
+END;
+```
+
+#### POST-BLOCK (PRODUCT_ORDER_DETAIL)
+```sql
+DECLARE
+    v_sub_total NUMBER := 0;
+BEGIN
+    -- Calculate total from all detail records
+    BEGIN
+        SELECT NVL(SUM(line_total), 0)
+        INTO v_sub_total
+        FROM product_order_detail
+        WHERE order_id = :PRODUCT_ORDER_MASTER.ORDER_ID
+        AND status = 1;
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            v_sub_total := 0;
+    END;
+    
+    -- Update master totals
+    GO_BLOCK('PRODUCT_ORDER_MASTER');
+    
+    :PRODUCT_ORDER_MASTER.TOTAL_AMOUNT := v_sub_total;
+    
+    -- Calculate VAT (if applicable)
+    IF :PRODUCT_ORDER_MASTER.VAT > 0 THEN
+        :PRODUCT_ORDER_MASTER.VAT := v_sub_total * 0.05;  -- 5% VAT
+    END IF;
+    
+    -- Calculate grand total
+    :PRODUCT_ORDER_MASTER.GRAND_TOTAL := 
+        v_sub_total + 
+        NVL(:PRODUCT_ORDER_MASTER.VAT, 0) - 
+        NVL(:PRODUCT_ORDER_MASTER.DISCOUNT, 0);
+    
+    GO_BLOCK('PRODUCT_ORDER_DETAIL');
+    
+EXCEPTION
+    WHEN OTHERS THEN
+        NULL;
+END;
+```
+
+### Step 8: Button Triggers
+
+#### BTN_SAVE (WHEN-BUTTON-PRESSED)
+```sql
+BEGIN
+    -- Validate master block
+    IF :PRODUCT_ORDER_MASTER.SUPPLIER_ID IS NULL THEN
+        MESSAGE('❌ Supplier is required!');
+        GO_BLOCK('PRODUCT_ORDER_MASTER');
+        GO_ITEM('SUPPLIER_ID');
+        RAISE FORM_TRIGGER_FAILURE;
+    END IF;
+    
+    IF :PRODUCT_ORDER_MASTER.ORDER_DATE IS NULL THEN
+        MESSAGE('❌ Order date is required!');
+        GO_BLOCK('PRODUCT_ORDER_MASTER');
+        GO_ITEM('ORDER_DATE');
+        RAISE FORM_TRIGGER_FAILURE;
+    END IF;
+    
+    -- Check if there are detail records
+    GO_BLOCK('PRODUCT_ORDER_DETAIL');
+    FIRST_RECORD;
+    
+    IF :PRODUCT_ORDER_DETAIL.PRODUCT_ID IS NULL THEN
+        MESSAGE('❌ At least one product is required in order details!');
+        RAISE FORM_TRIGGER_FAILURE;
+    END IF;
+    
+    -- Validate all detail records
+    DECLARE
+        v_detail_count NUMBER := 0;
+    BEGIN
+        GO_BLOCK('PRODUCT_ORDER_DETAIL');
+        FIRST_RECORD;
+        
+        LOOP
+            IF :PRODUCT_ORDER_DETAIL.PRODUCT_ID IS NOT NULL THEN
+                v_detail_count := v_detail_count + 1;
+                
+                IF :PRODUCT_ORDER_DETAIL.QUANTITY IS NULL OR :PRODUCT_ORDER_DETAIL.QUANTITY <= 0 THEN
+                    MESSAGE('❌ Invalid quantity for product: ' || :PRODUCT_ORDER_DETAIL.PRODUCT_NAME_DISPLAY);
+                    RAISE FORM_TRIGGER_FAILURE;
+                END IF;
+                
+                IF :PRODUCT_ORDER_DETAIL.UNIT_PRICE IS NULL OR :PRODUCT_ORDER_DETAIL.UNIT_PRICE <= 0 THEN
+                    MESSAGE('❌ Invalid unit price for product: ' || :PRODUCT_ORDER_DETAIL.PRODUCT_NAME_DISPLAY);
+                    RAISE FORM_TRIGGER_FAILURE;
+                END IF;
+            END IF;
+            
+            NEXT_RECORD;
+        END LOOP;
+        
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            NULL;  -- End of records
+        WHEN FORM_TRIGGER_FAILURE THEN
+            RAISE;
+    END;
+    
+    -- Save the order
+    GO_BLOCK('PRODUCT_ORDER_MASTER');
+    COMMIT_FORM;
+    
+    IF FORM_SUCCESS THEN
+        MESSAGE('✅ Purchase order saved successfully! Order ID: ' || 
+                :PRODUCT_ORDER_MASTER.ORDER_ID ||
+                ' | Total: BDT ' || TO_CHAR(:PRODUCT_ORDER_MASTER.GRAND_TOTAL, '999,999,999.99'));
+        
+        -- Refresh to show generated IDs
+        EXECUTE_QUERY;
+    ELSE
+        MESSAGE('❌ Failed to save purchase order!');
+        RAISE FORM_TRIGGER_FAILURE;
+    END IF;
+    
+EXCEPTION
+    WHEN FORM_TRIGGER_FAILURE THEN
+        RAISE;
+    WHEN OTHERS THEN
+        MESSAGE('❌ Error saving purchase order: ' || SQLERRM);
+        RAISE FORM_TRIGGER_FAILURE;
+END;
+```
+
+#### BTN_DELETE (WHEN-BUTTON-PRESSED)
+```sql
+DECLARE
+    v_alert_button NUMBER;
+    v_order_id VARCHAR2(50);
+BEGIN
+    v_order_id := :PRODUCT_ORDER_MASTER.ORDER_ID;
+    
+    IF v_order_id IS NULL THEN
+        MESSAGE('No record to delete!');
+        RAISE FORM_TRIGGER_FAILURE;
+    END IF;
+    
+    -- Check if order has been finalized
+    IF :PRODUCT_ORDER_MASTER.STATUS = 3 THEN
+        MESSAGE('❌ Cannot delete finalized orders! Order status: Sent to Supplier');
+        RAISE FORM_TRIGGER_FAILURE;
+    END IF;
+    
+    -- Check if order has been received
+    DECLARE
+        v_received_count NUMBER;
+    BEGIN
+        SELECT COUNT(*)
+        INTO v_received_count
+        FROM product_receive_master
+        WHERE order_id = v_order_id;
+        
+        IF v_received_count > 0 THEN
+            MESSAGE('❌ Cannot delete! This order has associated goods receipts.');
+            RAISE FORM_TRIGGER_FAILURE;
+        END IF;
+    END;
+    
+    -- Show confirmation alert
+    SET_ALERT_PROPERTY('ALERT_CONFIRM', TITLE, 'Confirm Delete');
+    SET_ALERT_PROPERTY('ALERT_CONFIRM', ALERT_MESSAGE, 
+        'Are you sure you want to delete Purchase Order: ' || v_order_id || '?' || CHR(10) ||
+        'This will also delete all associated order details.');
+    v_alert_button := SHOW_ALERT('ALERT_CONFIRM');
+    
+    IF v_alert_button = ALERT_BUTTON1 THEN
+        -- Delete the record (cascade will delete details)
+        DELETE_RECORD;
+        COMMIT_FORM;
+        
+        IF FORM_SUCCESS THEN
+            MESSAGE('✅ Purchase order deleted successfully!');
+            CLEAR_FORM(NO_COMMIT);
+            EXECUTE_QUERY;
+        ELSE
+            MESSAGE('❌ Failed to delete purchase order!');
+        END IF;
+    END IF;
+    
+EXCEPTION
+    WHEN FORM_TRIGGER_FAILURE THEN
+        RAISE;
+    WHEN OTHERS THEN
+        MESSAGE('❌ Cannot delete! Error: ' || SQLERRM);
+        RAISE FORM_TRIGGER_FAILURE;
+END;
+```
+
+#### BTN_FINALIZE (WHEN-BUTTON-PRESSED)
+```sql
+DECLARE
+    v_alert_button NUMBER;
+BEGIN
+    IF :PRODUCT_ORDER_MASTER.ORDER_ID IS NULL THEN
+        MESSAGE('❌ Please save the order first!');
+        RAISE FORM_TRIGGER_FAILURE;
+    END IF;
+    
+    IF :PRODUCT_ORDER_MASTER.STATUS = 3 THEN
+        MESSAGE('ℹ️ Order is already finalized and sent to supplier!');
+        RETURN;
+    END IF;
+    
+    -- Validate order has details
+    DECLARE
+        v_detail_count NUMBER;
+    BEGIN
+        SELECT COUNT(*)
+        INTO v_detail_count
+        FROM product_order_detail
+        WHERE order_id = :PRODUCT_ORDER_MASTER.ORDER_ID
+        AND status = 1;
+        
+        IF v_detail_count = 0 THEN
+            MESSAGE('❌ Cannot finalize! Order has no products.');
+            RAISE FORM_TRIGGER_FAILURE;
+        END IF;
+    END;
+    
+    -- Confirm finalization
+    SET_ALERT_PROPERTY('ALERT_CONFIRM', TITLE, 'Finalize Purchase Order');
+    SET_ALERT_PROPERTY('ALERT_CONFIRM', ALERT_MESSAGE,
+        'Finalize and send this purchase order to supplier?' || CHR(10) ||
+        'Order ID: ' || :PRODUCT_ORDER_MASTER.ORDER_ID || CHR(10) ||
+        'Supplier: ' || :PRODUCT_ORDER_MASTER.SUPPLIER_NAME_DISPLAY || CHR(10) ||
+        'Total Amount: BDT ' || TO_CHAR(:PRODUCT_ORDER_MASTER.GRAND_TOTAL, '999,999,999.99') || CHR(10) ||
+        CHR(10) ||
+        'After finalization, the order cannot be modified.');
+    v_alert_button := SHOW_ALERT('ALERT_CONFIRM');
+    
+    IF v_alert_button = ALERT_BUTTON1 THEN
+        -- Set status to Sent (3)
+        :PRODUCT_ORDER_MASTER.STATUS := 3;
+        
+        COMMIT_FORM;
+        
+        IF FORM_SUCCESS THEN
+            MESSAGE('✅ Purchase order finalized and sent to supplier!' || CHR(10) ||
+                   'Order ID: ' || :PRODUCT_ORDER_MASTER.ORDER_ID);
+            
+            -- Optionally print or email the order
+            -- CALL_REPORT('PURCHASE_ORDER_REPORT', :PRODUCT_ORDER_MASTER.ORDER_ID);
+            
+            EXECUTE_QUERY;
+        ELSE
+            MESSAGE('❌ Failed to finalize order!');
+            RAISE FORM_TRIGGER_FAILURE;
+        END IF;
+    END IF;
+    
+EXCEPTION
+    WHEN FORM_TRIGGER_FAILURE THEN
+        RAISE;
+    WHEN OTHERS THEN
+        MESSAGE('❌ Error finalizing order: ' || SQLERRM);
+        RAISE FORM_TRIGGER_FAILURE;
+END;
+```
+
+#### BTN_CLEAR (WHEN-BUTTON-PRESSED)
+```sql
+BEGIN
+    IF :SYSTEM.FORM_STATUS = 'CHANGED' THEN
+        SET_ALERT_PROPERTY('ALERT_CONFIRM', TITLE, 'Unsaved Changes');
+        SET_ALERT_PROPERTY('ALERT_CONFIRM', ALERT_MESSAGE,
+            'You have unsaved changes. Clear form anyway?');
+        
+        IF SHOW_ALERT('ALERT_CONFIRM') = ALERT_BUTTON2 THEN
+            RAISE FORM_TRIGGER_FAILURE;
+        END IF;
+    END IF;
+    
+    CLEAR_FORM(NO_COMMIT);
+    GO_BLOCK('PRODUCT_ORDER_MASTER');
+    
+    MESSAGE('Form cleared. Ready for new purchase order.');
+    
+EXCEPTION
+    WHEN FORM_TRIGGER_FAILURE THEN
+        RAISE;
+    WHEN OTHERS THEN
+        MESSAGE('Error clearing form: ' || SQLERRM);
+END;
+```
+
+#### BTN_EXIT (WHEN-BUTTON-PRESSED)
+```sql
+BEGIN
+    IF :SYSTEM.FORM_STATUS = 'CHANGED' THEN
+        SET_ALERT_PROPERTY('ALERT_CONFIRM', TITLE, 'Unsaved Changes');
+        SET_ALERT_PROPERTY('ALERT_CONFIRM', ALERT_MESSAGE,
+            'You have unsaved changes. Do you want to save before exiting?');
+        
+        CASE SHOW_ALERT('ALERT_CONFIRM')
+            WHEN ALERT_BUTTON1 THEN
+                -- Yes, save and exit
+                COMMIT_FORM;
+                IF FORM_SUCCESS THEN
+                    MESSAGE('Purchase order saved. Closing form...');
+                    EXIT_FORM(NO_VALIDATE);
+                ELSE
+                    MESSAGE('Save failed! Form not closed.');
+                    RAISE FORM_TRIGGER_FAILURE;
+                END IF;
+            WHEN ALERT_BUTTON2 THEN
+                -- No, exit without saving
+                EXIT_FORM(NO_VALIDATE);
+            ELSE
+                -- Cancel
+                RAISE FORM_TRIGGER_FAILURE;
+        END CASE;
+    ELSE
+        EXIT_FORM(NO_VALIDATE);
+    END IF;
+    
+EXCEPTION
+    WHEN FORM_TRIGGER_FAILURE THEN
+        RAISE;
+    WHEN OTHERS THEN
+        EXIT_FORM(NO_VALIDATE);
+END;
+```
+
+### Step 9: Testing Checklist
+
+- [ ] **Create New Order**
+  - [ ] Form opens with default values (date = today, expected = +7 days, status = Draft)
+  - [ ] Order ID is empty (will be auto-generated)
+
+- [ ] **Select Supplier**
+  - [ ] LOV opens with all active suppliers
+  - [ ] Can search by supplier name
+  - [ ] After selection, supplier name and phone display correctly
+  - [ ] If supplier has due amount, message shows the amount
+
+- [ ] **Select Employee**
+  - [ ] LOV shows all active employees with job titles
+  - [ ] Employee name displays after selection
+
+- [ ] **Add Products to Order**
+  - [ ] Navigate to detail block
+  - [ ] LOV shows products with current stock levels
+  - [ ] Product name and stock display after selection
+  - [ ] Unit price auto-fills from product master
+  - [ ] Warning shows for out-of-stock products
+  - [ ] Message shows for low-stock products (< 10 units)
+
+- [ ] **Quantity Validation**
+  - [ ] Cannot enter zero or negative quantity
+  - [ ] Warning shows for large quantities (> 100)
+  - [ ] Line total calculates automatically
+
+- [ ] **Price Validation**
+  - [ ] Cannot enter zero or negative price
+  - [ ] Line total recalculates when price changes
+
+- [ ] **Add Multiple Products**
+  - [ ] Can add multiple products to same order
+  - [ ] Each product shows current stock level
+  - [ ] Line totals calculate correctly
+
+- [ ] **Total Calculations**
+  - [ ] Sub total sums all line totals correctly
+  - [ ] VAT calculates at 5% if enabled
+  - [ ] Discount subtracts from total
+  - [ ] Grand total = Sub Total + VAT - Discount
+
+- [ ] **Save Order**
+  - [ ] Cannot save without supplier
+  - [ ] Cannot save without at least one product
+  - [ ] Order ID generates automatically (e.g., ORD001)
+  - [ ] Success message shows order ID and grand total
+  - [ ] Audit columns populate (cre_by, cre_dt)
+
+- [ ] **Query Existing Order**
+  - [ ] Can query orders by order ID or date
+  - [ ] Master and details load correctly
+  - [ ] All display fields (supplier name, product names) show in POST-QUERY
+  - [ ] Totals display correctly
+
+- [ ] **Finalize Order**
+  - [ ] Cannot finalize unsaved order
+  - [ ] Cannot finalize order with no details
+  - [ ] Confirmation alert shows order summary
+  - [ ] Status changes to 3 (Sent)
+  - [ ] Success message confirms finalization
+  - [ ] Cannot modify finalized order
+
+- [ ] **Delete Order**
+  - [ ] Cannot delete finalized orders
+  - [ ] Cannot delete orders with goods receipts
+  - [ ] Confirmation alert shows before deletion
+  - [ ] Both master and details delete (cascade)
+  - [ ] Success message confirms deletion
+
+- [ ] **Validation Tests**
+  - [ ] Expected date cannot be before order date
+  - [ ] Warning shows if expected date > 3 months future
+  - [ ] Invalid supplier ID rejected
+  - [ ] Invalid employee ID rejected
+  - [ ] Invalid product ID rejected
+
+- [ ] **Stock Display**
+  - [ ] Current stock shows for each product
+  - [ ] Updates when different product selected
+  - [ ] Shows 0 for products not in stock table
+
+- [ ] **Audit Trail**
+  - [ ] Created by and date populate on first save
+  - [ ] Updated by and date populate on modifications
+  - [ ] Database trigger handles all audit columns
+
+### Step 10: Database Automation Summary
+
+#### Automatic Triggers (No Form Code Needed)
+
+1. **trg_prod_order_bi** (BEFORE INSERT - product_order_master)
+   - Generates order_id: 'ORD' + sequence number
+   - Sets audit columns: cre_by, cre_dt on INSERT
+   - Sets audit columns: upd_by, upd_dt on UPDATE
+
+2. **trg_order_detail_bi** (BEFORE INSERT - product_order_detail)
+   - Generates order_det_id: 'POD' + sequence number
+   - Sets audit columns: cre_by, cre_dt on INSERT
+   - Sets audit columns: upd_by, upd_dt on UPDATE
+
+3. **trg_order_detail_au** (AFTER UPDATE - product_order_detail)
+   - Auto-calculates master total_amount from sum of detail line_totals
+   - Updates master upd_by and upd_dt when details change
+   - Ensures data consistency between master and details
+
+#### What Forms Must Handle
+
+- ✅ User input validation
+- ✅ Business rule enforcement (stock checks, supplier validation)
+- ✅ LOV display values
+- ✅ Calculate line totals (quantity × unit_price)
+- ✅ User confirmation for finalize and delete
+- ✅ Status management (Draft → Approved → Sent)
+
+#### What Forms Don't Need to Handle
+
+- ❌ Generating order_id (trigger does this)
+- ❌ Generating order_det_id (trigger does this)
+- ❌ Setting cre_by, cre_dt, upd_by, upd_dt (trigger does this)
+- ❌ Updating master totals when details change (trigger does this)
+- ❌ Stock updates (happens in Goods Receipt form, not here)
+
+### Business Rules Summary
+
+1. **Order Lifecycle**: Draft (1) → Approved (2) → Sent (3)
+2. **Draft orders** can be modified and deleted
+3. **Sent orders** cannot be modified or deleted
+4. **Goods Receipt** references this order to receive products
+5. **Stock levels** shown but not affected by creating order
+6. **Supplier due** shown but not affected until goods received
+7. **Expected delivery date** typically 7 days after order date
+8. **VAT** optional, typically 5% of subtotal
+9. **Discount** optional, reduces grand total
 
 ---
 
+## 19. Goods Receipt Form (Master-Detail)
+
+### 📋 Tables: `product_receive_master` + `product_receive_details`
+**Purpose**: Record products received from suppliers  
+**Type**: Master-Detail transaction  
+**Complexity**: ⭐⭐⭐⭐ Very Complex
+
+### Database Structure
+
+#### product_receive_master
+```sql
+product_receive_master (
+    receive_id VARCHAR2(50) PRIMARY KEY,      -- Auto: RCV001
+    receive_date DATE NOT NULL DEFAULT SYSDATE,
+    order_id VARCHAR2(50),                    -- FK to product_order_master (optional)
+    supplier_id VARCHAR2(50) NOT NULL,        -- FK to suppliers
+    invoice_no VARCHAR2(100),
+    total_amount NUMBER(20,4) DEFAULT 0,      -- Auto-calculated
+    status NUMBER DEFAULT 1,                  -- 1=Draft, 2=Verified, 3=Completed
+    remarks VARCHAR2(500),
+    cre_by VARCHAR2(100),
+    cre_dt DATE,
+    upd_by VARCHAR2(100),
+    upd_dt DATE,
+    FOREIGN KEY (order_id) REFERENCES product_order_master(order_id),
+    FOREIGN KEY (supplier_id) REFERENCES suppliers(supplier_id)
+)
+```
+
+#### product_receive_details
+```sql
+product_receive_details (
+    receive_det_id VARCHAR2(50) PRIMARY KEY,  -- Auto: RCD001
+    receive_id VARCHAR2(50) NOT NULL,         -- FK to product_receive_master
+    product_id VARCHAR2(50) NOT NULL,         -- FK to products
+    order_qty NUMBER,                         -- Quantity from PO (if applicable)
+    receive_quantity NUMBER NOT NULL,         -- Actual received quantity
+    unit_price NUMBER(20,4),
+    line_total NUMBER(20,4),                  -- Calculated: receive_quantity * unit_price
+    status NUMBER DEFAULT 1,
+    cre_by VARCHAR2(100),
+    cre_dt DATE,
+    upd_by VARCHAR2(100),
+    upd_dt DATE,
+    FOREIGN KEY (receive_id) REFERENCES product_receive_master(receive_id),
+    FOREIGN KEY (product_id) REFERENCES products(product_id)
+)
+```
+
+### Canvas Layout
+```
+┌──────────────────────────────────────────────────────────────────┐
+│ Goods Receipt Form                                               │
+├──────────────────────────────────────────────────────────────────┤
+│ ┌─ RECEIPT MASTER ───────────────────────────────────────────┐  │
+│ │ Receipt ID: [AUTO]         Date: [__________]              │  │
+│ │ Purchase Order: [__________ [🔍]] (Optional)               │  │
+│ │ Supplier: [______________________ [🔍]]                     │  │
+│ │           ABC Electronics Ltd.                              │  │
+│ │           Phone: 01712345678                                │  │
+│ │ Invoice No: [__________________]  Status: [Received ▼]     │  │
+│ │ Remarks: [________________________________________]         │  │
+│ └─────────────────────────────────────────────────────────────┘  │
+│ ┌─ RECEIPT DETAILS ──────────────────────────────────────────┐  │
+│ │ Product           │Ordered│Received│ Price  │ Total        │  │
+│ │ [Product [🔍]]    │ [__]  │ [___]  │ [____] │ [________]   │  │
+│ │ iPhone 13 Pro     │  10   │   10   │ 85,000 │   850,000    │  │
+│ │ Samsung 55" TV    │   5   │    4   │ 45,000 │   180,000    │  │
+│ │ Walton Fridge     │   3   │    3   │ 32,000 │    96,000    │  │
+│ │ [+ Add Product]                                             │  │
+│ └─────────────────────────────────────────────────────────────┘  │
+│ ⚠️ Stock will be INCREASED automatically upon saving!            │
+│ ┌─ TOTALS ──────────────────────────────────────────────────┐   │
+│ │ Total Amount: [1,126,000.00]                               │   │
+│ └────────────────────────────────────────────────────────────┘  │
+├──────────────────────────────────────────────────────────────────┤
+│ [Save] [Delete] [Load PO] [Clear] [Print] [Exit]                │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+### Key Features
+1. **Optional Purchase Order Reference**: Can receive goods with or without PO
+2. **Automatic Stock Update**: Database trigger `trg_stock_on_receive_det` increases stock
+3. **Quantity Validation**: Warns if received > ordered
+4. **Supplier Auto-fill**: If PO selected, supplier auto-populates
+5. **Invoice Reference**: Track supplier invoice number
+
+### Step 1: Create Master Block
+1. **Block Name**: PRODUCT_RECEIVE_MASTER
+2. **Table**: product_receive_master
+3. **Columns**: receive_date, order_id, supplier_id, invoice_no, total_amount, status, remarks
+4. **Exclude**: receive_id (auto-generated), cre_by, cre_dt, upd_by, upd_dt
+5. **Records Displayed**: 1
+
+### Step 2: Create Detail Block
+1. **Block Name**: PRODUCT_RECEIVE_DETAILS
+2. **Table**: product_receive_details
+3. **Columns**: product_id, order_qty, receive_quantity, unit_price, line_total
+4. **Exclude**: receive_det_id (auto-generated), receive_id (copied from master), cre_by, cre_dt, upd_by, upd_dt
+5. **Records Displayed**: 10
+
+### Step 3: Set Master-Detail Relationship
+1. **Master Block**: PRODUCT_RECEIVE_MASTER
+2. **Detail Block**: PRODUCT_RECEIVE_DETAILS
+3. **Join Condition**: PRODUCT_RECEIVE_MASTER.RECEIVE_ID = PRODUCT_RECEIVE_DETAILS.RECEIVE_ID
+4. **Delete Record Behavior**: Non-Isolated
+5. **Coordination**: Auto-Query
+
+### Step 4: Create LOVs
+
+#### ORDER_LOV (Purchase Orders)
+```sql
+SELECT pom.order_id,
+       pom.order_date,
+       s.supplier_name,
+       pom.grand_total,
+       pom.status
+FROM product_order_master pom
+JOIN suppliers s ON pom.supplier_id = s.supplier_id
+WHERE pom.status IN (2, 3)  -- Approved or Sent
+ORDER BY pom.order_date DESC
+```
+
+#### SUPPLIER_LOV
+```sql
+SELECT s.supplier_id,
+       s.supplier_name,
+       s.phone_no,
+       s.address
+FROM suppliers s
+WHERE s.status = 1
+ORDER BY s.supplier_name
+```
+
+#### PRODUCT_LOV
+```sql
+SELECT p.product_id,
+       p.product_name,
+       b.brand_name,
+       p.purchase_price,
+       NVL(s.quantity, 0) AS current_stock
+FROM products p
+LEFT JOIN brand b ON p.brand_id = b.brand_id
+LEFT JOIN stock s ON p.product_id = s.product_id
+WHERE p.status = 1
+ORDER BY p.product_name
+```
+
+### Step 5: Add Non-Database Items
+```sql
+-- Master Block:
+-- ORDER_ID_DISPLAY (Display Item)
+-- SUPPLIER_NAME_DISPLAY (Display Item)
+-- SUPPLIER_PHONE_DISPLAY (Display Item)
+
+-- Detail Block:
+-- PRODUCT_NAME_DISPLAY (Display Item)
+-- STOCK_DISPLAY (Display Item)
+```
+
+### Step 6: Master Block Triggers
+
+#### WHEN-CREATE-RECORD (PRODUCT_RECEIVE_MASTER)
+```sql
+BEGIN
+    :PRODUCT_RECEIVE_MASTER.RECEIVE_DATE := SYSDATE;
+    :PRODUCT_RECEIVE_MASTER.STATUS := 1;  -- Draft
+    :PRODUCT_RECEIVE_MASTER.TOTAL_AMOUNT := 0;
+END;
+```
+
+#### WHEN-VALIDATE-ITEM on ORDER_ID
+```sql
+DECLARE
+    v_supplier_id VARCHAR2(50);
+    v_supplier_name VARCHAR2(150);
+    v_order_date DATE;
+    v_grand_total NUMBER;
+BEGIN
+    IF :PRODUCT_RECEIVE_MASTER.ORDER_ID IS NOT NULL THEN
+        BEGIN
+            -- Get PO details
+            SELECT pom.supplier_id, s.supplier_name, pom.order_date, pom.grand_total
+            INTO v_supplier_id, v_supplier_name, v_order_date, v_grand_total
+            FROM product_order_master pom
+            JOIN suppliers s ON pom.supplier_id = s.supplier_id
+            WHERE pom.order_id = :PRODUCT_RECEIVE_MASTER.ORDER_ID
+            AND pom.status IN (2, 3);
+            
+            -- Auto-populate supplier
+            :PRODUCT_RECEIVE_MASTER.SUPPLIER_ID := v_supplier_id;
+            :PRODUCT_RECEIVE_MASTER.SUPPLIER_NAME_DISPLAY := v_supplier_name;
+            
+            MESSAGE('PO Date: ' || TO_CHAR(v_order_date, 'DD-MON-YYYY') || 
+                   ' | Amount: BDT ' || TO_CHAR(v_grand_total, '999,999,999.99'));
+            
+        EXCEPTION
+            WHEN NO_DATA_FOUND THEN
+                MESSAGE('Invalid or inactive Purchase Order!');
+                RAISE FORM_TRIGGER_FAILURE;
+        END;
+    END IF;
+END;
+```
+
+#### WHEN-VALIDATE-ITEM on SUPPLIER_ID
+```sql
+DECLARE
+    v_supplier_name VARCHAR2(150);
+    v_phone VARCHAR2(50);
+BEGIN
+    IF :PRODUCT_RECEIVE_MASTER.SUPPLIER_ID IS NOT NULL THEN
+        BEGIN
+            SELECT supplier_name, phone_no
+            INTO v_supplier_name, v_phone
+            FROM suppliers
+            WHERE supplier_id = :PRODUCT_RECEIVE_MASTER.SUPPLIER_ID
+            AND status = 1;
+            
+            :PRODUCT_RECEIVE_MASTER.SUPPLIER_NAME_DISPLAY := v_supplier_name;
+            :PRODUCT_RECEIVE_MASTER.SUPPLIER_PHONE_DISPLAY := v_phone;
+            
+        EXCEPTION
+            WHEN NO_DATA_FOUND THEN
+                MESSAGE('Invalid or inactive supplier!');
+                RAISE FORM_TRIGGER_FAILURE;
+        END;
+    END IF;
+END;
+```
+
+#### POST-QUERY (PRODUCT_RECEIVE_MASTER)
+```sql
+BEGIN
+    -- Display supplier name
+    IF :PRODUCT_RECEIVE_MASTER.SUPPLIER_ID IS NOT NULL THEN
+        BEGIN
+            SELECT supplier_name, phone_no
+            INTO :PRODUCT_RECEIVE_MASTER.SUPPLIER_NAME_DISPLAY,
+                 :PRODUCT_RECEIVE_MASTER.SUPPLIER_PHONE_DISPLAY
+            FROM suppliers
+            WHERE supplier_id = :PRODUCT_RECEIVE_MASTER.SUPPLIER_ID;
+        EXCEPTION
+            WHEN NO_DATA_FOUND THEN
+                :PRODUCT_RECEIVE_MASTER.SUPPLIER_NAME_DISPLAY := 'Unknown';
+        END;
+    END IF;
+EXCEPTION
+    WHEN OTHERS THEN
+        NULL;
+END;
+```
+
+### Step 7: Detail Block Triggers
+
+#### WHEN-NEW-RECORD-INSTANCE (PRODUCT_RECEIVE_DETAILS)
+```sql
+BEGIN
+    IF :SYSTEM.CURSOR_BLOCK = 'PRODUCT_RECEIVE_DETAILS' THEN
+        :PRODUCT_RECEIVE_DETAILS.RECEIVE_ID := :PRODUCT_RECEIVE_MASTER.RECEIVE_ID;
+        :PRODUCT_RECEIVE_DETAILS.RECEIVE_QUANTITY := 0;
+    END IF;
+END;
+```
+
+#### WHEN-VALIDATE-ITEM on PRODUCT_ID
+```sql
+DECLARE
+    v_product_name VARCHAR2(150);
+    v_purchase_price NUMBER;
+    v_stock_qty NUMBER;
+BEGIN
+    IF :PRODUCT_RECEIVE_DETAILS.PRODUCT_ID IS NOT NULL THEN
+        SELECT p.product_name, p.purchase_price, NVL(s.quantity, 0)
+        INTO v_product_name, v_purchase_price, v_stock_qty
+        FROM products p
+        LEFT JOIN stock s ON p.product_id = s.product_id
+        WHERE p.product_id = :PRODUCT_RECEIVE_DETAILS.PRODUCT_ID;
+        
+        :PRODUCT_RECEIVE_DETAILS.PRODUCT_NAME_DISPLAY := v_product_name;
+        :PRODUCT_RECEIVE_DETAILS.UNIT_PRICE := v_purchase_price;
+        :PRODUCT_RECEIVE_DETAILS.STOCK_DISPLAY := v_stock_qty;
+        
+        MESSAGE('Current stock: ' || v_stock_qty || ' units');
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            MESSAGE('Product not found!');
+            RAISE FORM_TRIGGER_FAILURE;
+    END;
+END;
+```
+
+#### WHEN-VALIDATE-ITEM on RECEIVE_QUANTITY
+```sql
+BEGIN
+    IF :PRODUCT_RECEIVE_DETAILS.RECEIVE_QUANTITY IS NOT NULL THEN
+        IF :PRODUCT_RECEIVE_DETAILS.RECEIVE_QUANTITY <= 0 THEN
+            MESSAGE('Received quantity must be greater than zero!');
+            RAISE FORM_TRIGGER_FAILURE;
+        END IF;
+        
+        -- Warn if received > ordered
+        IF :PRODUCT_RECEIVE_DETAILS.ORDER_QTY IS NOT NULL THEN
+            IF :PRODUCT_RECEIVE_DETAILS.RECEIVE_QUANTITY > :PRODUCT_RECEIVE_DETAILS.ORDER_QTY THEN
+                MESSAGE('⚠️ WARNING: Receiving more than ordered! Ordered: ' || 
+                       :PRODUCT_RECEIVE_DETAILS.ORDER_QTY || 
+                       ', Receiving: ' || :PRODUCT_RECEIVE_DETAILS.RECEIVE_QUANTITY);
+            END IF;
+        END IF;
+        
+        -- Calculate line total
+        IF :PRODUCT_RECEIVE_DETAILS.UNIT_PRICE IS NOT NULL THEN
+            :PRODUCT_RECEIVE_DETAILS.LINE_TOTAL := 
+                :PRODUCT_RECEIVE_DETAILS.RECEIVE_QUANTITY * 
+                :PRODUCT_RECEIVE_DETAILS.UNIT_PRICE;
+        END IF;
+    END IF;
+END;
+```
+
+#### POST-TEXT-ITEM on RECEIVE_QUANTITY or UNIT_PRICE
+```sql
+BEGIN
+    IF :PRODUCT_RECEIVE_DETAILS.RECEIVE_QUANTITY IS NOT NULL 
+       AND :PRODUCT_RECEIVE_DETAILS.UNIT_PRICE IS NOT NULL THEN
+        :PRODUCT_RECEIVE_DETAILS.LINE_TOTAL := 
+            :PRODUCT_RECEIVE_DETAILS.RECEIVE_QUANTITY * 
+            :PRODUCT_RECEIVE_DETAILS.UNIT_PRICE;
+    END IF;
+END;
+```
+
+#### PRE-INSERT (PRODUCT_RECEIVE_DETAILS)
+```sql
+BEGIN
+    MESSAGE('⚠️ Stock will be increased for: ' || 
+            :PRODUCT_RECEIVE_DETAILS.PRODUCT_NAME_DISPLAY || 
+            ' (+' || :PRODUCT_RECEIVE_DETAILS.RECEIVE_QUANTITY || ' units)');
+END;
+```
+
+#### POST-QUERY (PRODUCT_RECEIVE_DETAILS)
+```sql
+BEGIN
+    IF :PRODUCT_RECEIVE_DETAILS.PRODUCT_ID IS NOT NULL THEN
+        SELECT p.product_name, NVL(s.quantity, 0)
+        INTO :PRODUCT_RECEIVE_DETAILS.PRODUCT_NAME_DISPLAY,
+             :PRODUCT_RECEIVE_DETAILS.STOCK_DISPLAY
+        FROM products p
+        LEFT JOIN stock s ON p.product_id = s.product_id
+        WHERE p.product_id = :PRODUCT_RECEIVE_DETAILS.PRODUCT_ID;
+    END IF;
+EXCEPTION
+    WHEN OTHERS THEN
+        NULL;
+END;
+```
+
+### Step 8: Custom Button - Load PO
+
+#### BTN_LOAD_PO (WHEN-BUTTON-PRESSED)
+```sql
+DECLARE
+    CURSOR c_po_details IS
+        SELECT product_id, quantity, unit_price
+        FROM product_order_detail
+        WHERE order_id = :PRODUCT_RECEIVE_MASTER.ORDER_ID
+        AND status = 1;
+BEGIN
+    IF :PRODUCT_RECEIVE_MASTER.ORDER_ID IS NULL THEN
+        MESSAGE('Please select a Purchase Order first!');
+        RAISE FORM_TRIGGER_FAILURE;
+    END IF;
+    
+    -- Clear existing details
+    GO_BLOCK('PRODUCT_RECEIVE_DETAILS');
+    CLEAR_BLOCK(NO_VALIDATE);
+    
+    -- Load from PO
+    FOR rec IN c_po_details LOOP
+        CREATE_RECORD;
+        :PRODUCT_RECEIVE_DETAILS.RECEIVE_ID := :PRODUCT_RECEIVE_MASTER.RECEIVE_ID;
+        :PRODUCT_RECEIVE_DETAILS.PRODUCT_ID := rec.product_id;
+        :PRODUCT_RECEIVE_DETAILS.ORDER_QTY := rec.quantity;
+        :PRODUCT_RECEIVE_DETAILS.RECEIVE_QUANTITY := rec.quantity;
+        :PRODUCT_RECEIVE_DETAILS.UNIT_PRICE := rec.unit_price;
+        
+        -- Trigger validation
+        VALIDATE_ITEM('PRODUCT_RECEIVE_DETAILS.PRODUCT_ID');
+        
+        NEXT_RECORD;
+    END LOOP;
+    
+    MESSAGE('Products loaded from Purchase Order. Adjust quantities as needed.');
+    FIRST_RECORD;
+    
+EXCEPTION
+    WHEN OTHERS THEN
+        MESSAGE('Error loading PO: ' || SQLERRM);
+        RAISE FORM_TRIGGER_FAILURE;
+END;
+```
+
+### Step 9: Save Button
+
+#### BTN_SAVE (WHEN-BUTTON-PRESSED)
+```sql
+BEGIN
+    IF :PRODUCT_RECEIVE_MASTER.SUPPLIER_ID IS NULL THEN
+        MESSAGE('Supplier is required!');
+        RAISE FORM_TRIGGER_FAILURE;
+    END IF;
+    
+    -- Confirm stock update
+    SET_ALERT_PROPERTY('ALERT_CONFIRM', ALERT_MESSAGE,
+        '⚠️ This will INCREASE stock levels. Continue?');
+    IF SHOW_ALERT('ALERT_CONFIRM') != ALERT_BUTTON1 THEN
+        RAISE FORM_TRIGGER_FAILURE;
+    END IF;
+    
+    -- Save (stock updated by trg_stock_on_receive_det)
+    COMMIT_FORM;
+    
+    IF FORM_SUCCESS THEN
+        MESSAGE('✅ Goods received successfully! Receipt ID: ' || 
+                :PRODUCT_RECEIVE_MASTER.RECEIVE_ID || 
+                ' - Stock updated automatically');
+        EXECUTE_QUERY;
+    ELSE
+        MESSAGE('❌ Receipt failed!');
+        RAISE FORM_TRIGGER_FAILURE;
+    END IF;
+END;
+```
+
+### Step 10: Testing Checklist
+
+- [ ] Create receipt without PO (direct receipt)
+- [ ] Create receipt with PO reference
+- [ ] Test "Load PO" button to auto-populate products
+- [ ] Verify warning when received > ordered
+- [ ] Add products and receive quantities
+- [ ] Save and verify stock INCREASES in stock table
+- [ ] Check supplier's purchase_total updates
+- [ ] Verify partial receipts (receive less than ordered)
+- [ ] Test over-receipt (receive more than ordered)
+- [ ] Query and verify all displays work
+
+### Step 11: Database Automation Summary
+
+#### Automatic Triggers
+- **trg_prod_recv_bi**: Generates receive_id, audit columns
+- **trg_receive_det_bi**: Generates receive_det_id, audit columns
+- **trg_stock_on_receive_det**: **CRITICAL** - Automatically INCREASES stock.quantity
+- **trg_receive_det_au**: Auto-calculates master total_amount
+
+---
+
+## 20. Purchase Return Form (Master-Detail)
+
+### 📋 Tables: `product_return_master` + `product_return_details`
+**Purpose**: Return defective/excess products to supplier  
+**Type**: Master-Detail transaction  
+**Complexity**: ⭐⭐⭐⭐ Very Complex
+
+### Database Structure
+
+#### product_return_master
+```sql
+product_return_master (
+    return_id VARCHAR2(50) PRIMARY KEY,       -- Auto: RTN001
+    return_date DATE NOT NULL DEFAULT SYSDATE,
+    receive_id VARCHAR2(50),                  -- FK to product_receive_master (optional)
+    supplier_id VARCHAR2(50) NOT NULL,        -- FK to suppliers
+    return_reason VARCHAR2(500),
+    total_amount NUMBER(20,4) DEFAULT 0,      -- Auto-calculated
+    status NUMBER DEFAULT 1,                  -- 1=Draft, 2=Approved, 3=Completed
+    remarks VARCHAR2(500),
+    cre_by VARCHAR2(100),
+    cre_dt DATE,
+    upd_by VARCHAR2(100),
+    upd_dt DATE,
+    FOREIGN KEY (receive_id) REFERENCES product_receive_master(receive_id),
+    FOREIGN KEY (supplier_id) REFERENCES suppliers(supplier_id)
+)
+```
+
+#### product_return_details
+```sql
+product_return_details (
+    return_det_id VARCHAR2(50) PRIMARY KEY,   -- Auto: RTD001
+    return_id VARCHAR2(50) NOT NULL,          -- FK to product_return_master
+    product_id VARCHAR2(50) NOT NULL,         -- FK to products
+    receive_qty NUMBER,                       -- Quantity from receipt (if applicable)
+    return_quantity NUMBER NOT NULL,          -- Actual return quantity
+    unit_price NUMBER(20,4),
+    line_total NUMBER(20,4),                  -- Calculated
+    return_reason VARCHAR2(200),
+    status NUMBER DEFAULT 1,
+    cre_by VARCHAR2(100),
+    cre_dt DATE,
+    upd_by VARCHAR2(100),
+    upd_dt DATE,
+    FOREIGN KEY (return_id) REFERENCES product_return_master(return_id),
+    FOREIGN KEY (product_id) REFERENCES products(product_id)
+)
+```
+
+### Canvas Layout
+```
+┌──────────────────────────────────────────────────────────────────┐
+│ Purchase Return Form                                             │
+├──────────────────────────────────────────────────────────────────┤
+│ ┌─ RETURN MASTER ────────────────────────────────────────────┐  │
+│ │ Return ID: [AUTO]      Date: [__________]                  │  │
+│ │ Receipt Ref: [__________ [🔍]] (Optional)                  │  │
+│ │ Supplier: [______________________ [🔍]]                     │  │
+│ │           ABC Electronics Ltd.                              │  │
+│ │ Return Reason: [_________________________________]          │  │
+│ │ Status: [Pending ▼]                                         │  │
+│ └─────────────────────────────────────────────────────────────┘  │
+│ ┌─ RETURN DETAILS ───────────────────────────────────────────┐  │
+│ │ Product       │Received│Return│ Price  │Reason  │ Total    │  │
+│ │ [Product [🔍]]│ [___]  │ [__] │ [____] │[_____] │ [_____]  │  │
+│ │ iPhone 13 Pro │  10    │  2   │ 85,000 │Defect  │ 170,000  │  │
+│ │ Samsung TV    │   4    │  1   │ 45,000 │Damaged │  45,000  │  │
+│ └─────────────────────────────────────────────────────────────┘  │
+│ ⚠️ Stock will be DECREASED automatically upon saving!            │
+│ ┌─ TOTALS ──────────────────────────────────────────────────┐   │
+│ │ Total Return Amount: [215,000.00]                          │   │
+│ └────────────────────────────────────────────────────────────┘  │
+├──────────────────────────────────────────────────────────────────┤
+│ [Save] [Delete] [Load Receipt] [Clear] [Print] [Exit]           │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+### Key Features
+1. **Return Reasons**: Track why products are returned (defective, damaged, wrong item)
+2. **Automatic Stock Decrease**: Database trigger `trg_stock_on_prod_return` reduces stock
+3. **Quantity Validation**: Cannot return more than received
+4. **Supplier Credit Update**: Reduces supplier's purchase_total
+
+### Master Block Triggers
+
+#### WHEN-CREATE-RECORD (PRODUCT_RETURN_MASTER)
+```sql
+BEGIN
+    :PRODUCT_RETURN_MASTER.RETURN_DATE := SYSDATE;
+    :PRODUCT_RETURN_MASTER.STATUS := 1;
+END;
+```
+
+#### WHEN-VALIDATE-ITEM on RECEIVE_ID
+```sql
+DECLARE
+    v_supplier_id VARCHAR2(50);
+    v_supplier_name VARCHAR2(150);
+    v_receive_date DATE;
+BEGIN
+    IF :PRODUCT_RETURN_MASTER.RECEIVE_ID IS NOT NULL THEN
+        BEGIN
+            SELECT prm.supplier_id, s.supplier_name, prm.receive_date
+            INTO v_supplier_id, v_supplier_name, v_receive_date
+            FROM product_receive_master prm
+            JOIN suppliers s ON prm.supplier_id = s.supplier_id
+            WHERE prm.receive_id = :PRODUCT_RETURN_MASTER.RECEIVE_ID
+            AND prm.status IN (1, 3);
+            
+            :PRODUCT_RETURN_MASTER.SUPPLIER_ID := v_supplier_id;
+            :PRODUCT_RETURN_MASTER.SUPPLIER_NAME_DISPLAY := v_supplier_name;
+            
+            MESSAGE('Receipt Date: ' || TO_CHAR(v_receive_date, 'DD-MON-YYYY'));
+            
+        EXCEPTION
+            WHEN NO_DATA_FOUND THEN
+                MESSAGE('Invalid or inactive Goods Receipt!');
+                RAISE FORM_TRIGGER_FAILURE;
+        END;
+    END IF;
+END;
+```
+
+### Detail Block Triggers
+
+#### WHEN-VALIDATE-ITEM on RETURN_QUANTITY
+```sql
+BEGIN
+    IF :PRODUCT_RETURN_DETAILS.RETURN_QUANTITY IS NOT NULL THEN
+        IF :PRODUCT_RETURN_DETAILS.RETURN_QUANTITY <= 0 THEN
+            MESSAGE('Return quantity must be greater than zero!');
+            RAISE FORM_TRIGGER_FAILURE;
+        END IF;
+        
+        -- Cannot return more than received
+        IF :PRODUCT_RETURN_DETAILS.RECEIVE_QTY IS NOT NULL THEN
+            IF :PRODUCT_RETURN_DETAILS.RETURN_QUANTITY > :PRODUCT_RETURN_DETAILS.RECEIVE_QTY THEN
+                MESSAGE('Cannot return more than received! Received: ' || 
+                       :PRODUCT_RETURN_DETAILS.RECEIVE_QTY);
+                RAISE FORM_TRIGGER_FAILURE;
+            END IF;
+        END IF;
+        
+        -- Check current stock
+        DECLARE
+            v_stock NUMBER;
+        BEGIN
+            SELECT NVL(quantity, 0) INTO v_stock
+            FROM stock
+            WHERE product_id = :PRODUCT_RETURN_DETAILS.PRODUCT_ID;
+            
+            IF v_stock < :PRODUCT_RETURN_DETAILS.RETURN_QUANTITY THEN
+                MESSAGE('⚠️ WARNING: Insufficient stock! Current: ' || v_stock ||
+                       ', Returning: ' || :PRODUCT_RETURN_DETAILS.RETURN_QUANTITY);
+                RAISE FORM_TRIGGER_FAILURE;
+            END IF;
+        END;
+        
+        -- Calculate line total
+        IF :PRODUCT_RETURN_DETAILS.UNIT_PRICE IS NOT NULL THEN
+            :PRODUCT_RETURN_DETAILS.LINE_TOTAL := 
+                :PRODUCT_RETURN_DETAILS.RETURN_QUANTITY * 
+                :PRODUCT_RETURN_DETAILS.UNIT_PRICE;
+        END IF;
+    END IF;
+END;
+```
+
+#### BTN_LOAD_RECEIPT
+```sql
+DECLARE
+    CURSOR c_receipt_details IS
+        SELECT product_id, receive_quantity, unit_price
+        FROM product_receive_details
+        WHERE receive_id = :PRODUCT_RETURN_MASTER.RECEIVE_ID
+        AND status = 1;
+BEGIN
+    IF :PRODUCT_RETURN_MASTER.RECEIVE_ID IS NULL THEN
+        MESSAGE('Please select a Goods Receipt first!');
+        RAISE FORM_TRIGGER_FAILURE;
+    END IF;
+    
+    GO_BLOCK('PRODUCT_RETURN_DETAILS');
+    CLEAR_BLOCK(NO_VALIDATE);
+    
+    FOR rec IN c_receipt_details LOOP
+        CREATE_RECORD;
+        :PRODUCT_RETURN_DETAILS.RETURN_ID := :PRODUCT_RETURN_MASTER.RETURN_ID;
+        :PRODUCT_RETURN_DETAILS.PRODUCT_ID := rec.product_id;
+        :PRODUCT_RETURN_DETAILS.RECEIVE_QTY := rec.receive_quantity;
+        :PRODUCT_RETURN_DETAILS.RETURN_QUANTITY := 0;
+        :PRODUCT_RETURN_DETAILS.UNIT_PRICE := rec.unit_price;
+        
+        VALIDATE_ITEM('PRODUCT_RETURN_DETAILS.PRODUCT_ID');
+        NEXT_RECORD;
+    END LOOP;
+    
+    MESSAGE('Products loaded. Enter return quantities and reasons.');
+    FIRST_RECORD;
+END;
+```
+
+### Save Button
+```sql
+BEGIN
+    IF :PRODUCT_RETURN_MASTER.SUPPLIER_ID IS NULL THEN
+        MESSAGE('Supplier is required!');
+        RAISE FORM_TRIGGER_FAILURE;
+    END IF;
+    
+    IF :PRODUCT_RETURN_MASTER.RETURN_REASON IS NULL THEN
+        MESSAGE('Return reason is required!');
+        RAISE FORM_TRIGGER_FAILURE;
+    END IF;
+    
+    -- Confirm stock decrease
+    SET_ALERT_PROPERTY('ALERT_CONFIRM', ALERT_MESSAGE,
+        '⚠️ This will DECREASE stock levels and credit supplier. Continue?');
+    IF SHOW_ALERT('ALERT_CONFIRM') != ALERT_BUTTON1 THEN
+        RAISE FORM_TRIGGER_FAILURE;
+    END IF;
+    
+    COMMIT_FORM;
+    
+    IF FORM_SUCCESS THEN
+        MESSAGE('✅ Purchase return processed! Return ID: ' || 
+                :PRODUCT_RETURN_MASTER.RETURN_ID || 
+                ' - Stock decreased, supplier credited');
+        EXECUTE_QUERY;
+    ELSE
+        MESSAGE('❌ Return failed!');
+        RAISE FORM_TRIGGER_FAILURE;
+    END IF;
+END;
+```
+
+### Testing Checklist
+
+- [ ] Create return without receipt reference
+- [ ] Create return with receipt reference
+- [ ] Test "Load Receipt" button
+- [ ] Try returning more than received (should fail)
+- [ ] Try returning more than current stock (should fail)
+- [ ] Enter return reasons for each product
+- [ ] Save and verify stock DECREASES
+- [ ] Verify supplier's purchase_total is credited
+- [ ] Test partial returns
+- [ ] Query and verify POST-QUERY displays
+
+### Database Automation Summary
+
+- **trg_prod_ret_bi**: Generates return_id, audit columns
+- **trg_prod_ret_det_bi**: Generates return_det_id, audit columns
+- **trg_stock_on_prod_return**: **CRITICAL** - Automatically DECREASES stock.quantity
+- **trg_prod_ret_det_au**: Auto-calculates master total_amount
+
+---
 ## Part 6: Service Management Forms
 
 ## 21. Service List Form
