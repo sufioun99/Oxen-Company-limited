@@ -749,10 +749,9 @@ CREATE TABLE service_master (
     customer_id         VARCHAR2(50) NULL,
     invoice_id          VARCHAR2(50) NULL, 
     warranty_applicable CHAR(1),
-    servicelist_id      VARCHAR2(50) NULL,
     service_by          VARCHAR2(50) NULL,
-    service_charge      NUMBER DEFAULT 0,
     parts_price         NUMBER DEFAULT 0,
+    service_charge      NUMBER DEFAULT 0,
     total_price         NUMBER(20,4)DEFAULT 0,
     vat                 NUMBER(20,4)DEFAULT 0,
     grand_total         NUMBER(20,4)DEFAULT 0,
@@ -762,7 +761,6 @@ CREATE TABLE service_master (
     upd_by              VARCHAR2(100),
     upd_dt              DATE,
     CONSTRAINT fk_sm_cust FOREIGN KEY (customer_id) REFERENCES customers(customer_id),
-    CONSTRAINT fk_sm_list FOREIGN KEY (servicelist_id) REFERENCES service_list(servicelist_id),
     CONSTRAINT fk_sm_emp  FOREIGN KEY (service_by) REFERENCES employees(employee_id),
     CONSTRAINT fk_sm_inv  FOREIGN KEY (invoice_id) REFERENCES sales_master(invoice_id)
 );
@@ -1001,28 +999,49 @@ END;
 CREATE TABLE service_details (
     service_det_id     VARCHAR2(50) PRIMARY KEY,
     service_id         VARCHAR2(50) NULL,
-    product_id         VARCHAR2(50) NULL, 
+    product_id         VARCHAR2(50) NULL,
+    servicelist_id     VARCHAR2(50) NULL,
     parts_id           VARCHAR2(50) NULL,
+    service_charge     NUMBER DEFAULT 0,
     parts_price        NUMBER DEFAULT 0,
     quantity           NUMBER DEFAULT 1, 
     line_total         NUMBER DEFAULT 0,
     description        VARCHAR2(1000), 
     warranty_status    VARCHAR2(50),
+    status             NUMBER DEFAULT 1,
+    cre_by             VARCHAR2(100),
+    cre_dt             DATE,
+    upd_by             VARCHAR2(100),
+    upd_dt             DATE,
     CONSTRAINT fk_sd_master FOREIGN KEY (service_id) REFERENCES service_master(service_id),
+    CONSTRAINT fk_sd_list   FOREIGN KEY (servicelist_id) REFERENCES service_list(servicelist_id),
     CONSTRAINT fk_sd_parts  FOREIGN KEY (parts_id) REFERENCES parts(parts_id),
     CONSTRAINT fk_sd_prod   FOREIGN KEY (product_id) REFERENCES products(product_id)
 );
 
 CREATE SEQUENCE service_det_seq START WITH 1 INCREMENT BY 1 NOCACHE NOCYCLE;
 
--- Trigger for service_details - handles ID generation
+-- Trigger for service_details - handles ID generation and line total calculation
 CREATE OR REPLACE TRIGGER trg_service_det_bi 
-BEFORE INSERT ON service_details 
+BEFORE INSERT OR UPDATE ON service_details 
 FOR EACH ROW 
 BEGIN 
     -- Generate service_det_id
     IF :NEW.service_det_id IS NULL THEN
         :NEW.service_det_id := 'SDT' || TO_CHAR(service_det_seq.NEXTVAL);  
+    END IF;
+    
+    -- Calculate line_total = service_charge + (parts_price * quantity)
+    :NEW.line_total := NVL(:NEW.service_charge, 0) + (NVL(:NEW.parts_price, 0) * NVL(:NEW.quantity, 1));
+    
+    -- Auto-populate audit columns
+    IF INSERTING THEN
+        IF :NEW.status IS NULL THEN :NEW.status := 1; END IF;
+        IF :NEW.cre_by IS NULL THEN :NEW.cre_by := USER; END IF;
+        IF :NEW.cre_dt IS NULL THEN :NEW.cre_dt := SYSDATE; END IF;
+    ELSIF UPDATING THEN
+        :NEW.upd_by := USER;
+        :NEW.upd_dt := SYSDATE;
     END IF;
 END;
 /
