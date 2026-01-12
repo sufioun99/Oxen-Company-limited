@@ -1000,7 +1000,6 @@ END;
 --------------------------------------------------------------------------------
 CREATE TABLE service_details (
     service_det_id     VARCHAR2(50) PRIMARY KEY,
-    line_no            NUMBER NOT NULL,
     service_id         VARCHAR2(50) NULL,
     product_id         VARCHAR2(50) NULL, 
     parts_id           VARCHAR2(50) NULL,
@@ -1016,43 +1015,15 @@ CREATE TABLE service_details (
 
 CREATE SEQUENCE service_det_seq START WITH 1 INCREMENT BY 1 NOCACHE NOCYCLE;
 
-CREATE OR REPLACE TRIGGER trg_service_det_bi BEFORE INSERT ON service_details FOR EACH ROW 
+-- Trigger for service_details - handles ID generation
+CREATE OR REPLACE TRIGGER trg_service_det_bi 
+BEFORE INSERT ON service_details 
+FOR EACH ROW 
 BEGIN 
-IF INSERTING AND :NEW.service_det_id IS NULL THEN
-	:NEW.service_det_id := 'SDT' || TO_CHAR(service_det_seq.NEXTVAL);  
-END IF;
-END;
-/
-
-CREATE OR REPLACE TRIGGER trg_service_det_line_no_bi
-BEFORE INSERT ON service_details
-FOR EACH ROW
-DECLARE
-    v_next_line_no NUMBER := 1;
-BEGIN
-    IF :NEW.line_no IS NOT NULL THEN
-        RETURN;
+    -- Generate service_det_id
+    IF :NEW.service_det_id IS NULL THEN
+        :NEW.service_det_id := 'SDT' || TO_CHAR(service_det_seq.NEXTVAL);  
     END IF;
-
-    IF :NEW.service_id IS NOT NULL THEN
-        BEGIN
-            SELECT NVL(MAX(line_no), 0) + 1
-            INTO v_next_line_no
-            FROM service_details
-            WHERE service_id = :NEW.service_id;
-        EXCEPTION
-            WHEN NO_DATA_FOUND THEN
-                v_next_line_no := 1;
-            WHEN OTHERS THEN
-                RAISE_APPLICATION_ERROR(-20060,
-                    'Error generating LINE_NO for service_details: ' || SQLERRM);
-        END;
-    ELSE
-        v_next_line_no := 1;
-    END IF;
-
-    :NEW.line_no := v_next_line_no;
-
 END;
 /
 
@@ -1081,7 +1052,6 @@ END;
 --------------------------------------------------------------------------------
 CREATE TABLE sales_detail (
     sales_det_id   VARCHAR2(50) PRIMARY KEY,
-    line_no        NUMBER NOT NULL,
     invoice_id     VARCHAR2(50) NULL,
     product_id     VARCHAR2(50) NULL,
     mrp            NUMBER,
@@ -1102,41 +1072,7 @@ END IF;
 END;
 /
 
-CREATE OR REPLACE TRIGGER trg_sales_det_line_no_bi
-BEFORE INSERT ON sales_detail
-FOR EACH ROW
-DECLARE
-    v_next_line_no NUMBER := 1;
-BEGIN
-    IF :NEW.line_no IS NOT NULL THEN
-        RETURN;
-    END IF;
-
-    IF :NEW.invoice_id IS NOT NULL THEN
-        BEGIN
-            SELECT NVL(MAX(line_no), 0) + 1
-            INTO v_next_line_no
-            FROM sales_detail
-            WHERE invoice_id = :NEW.invoice_id;
-        EXCEPTION
-            WHEN NO_DATA_FOUND THEN
-                v_next_line_no := 1;
-            WHEN OTHERS THEN
-                RAISE_APPLICATION_ERROR(-20061,
-                    'Error generating LINE_NO for sales_detail: ' || SQLERRM);
-        END;
-    ELSE
-        v_next_line_no := 1;
-    END IF;
-
-    :NEW.line_no := v_next_line_no;
-
-END;
-/
-
 -- Auto-update stock when sales details change
--- Stock automation trigger disabled - using manual stock inserts
-/*
 CREATE OR REPLACE TRIGGER trg_stock_on_sales_det
 AFTER INSERT OR UPDATE OR DELETE ON sales_detail
 FOR EACH ROW
@@ -1181,7 +1117,6 @@ BEGIN
         WHERE stock_id = v_stock_id;
     END IF;
 END;
-*/
 /
 
 -- Keep sales_master audit columns current when any sales detail changes
@@ -1209,7 +1144,6 @@ END;
 --------------------------------------------------------------------------------
 CREATE TABLE sales_return_details (
     sales_return_det_id VARCHAR2(50) PRIMARY KEY,
-    line_no             NUMBER NOT NULL,
     sales_return_id     VARCHAR2(50) NULL,
     product_id          VARCHAR2(50) NULL,
     mrp                 NUMBER,
@@ -1227,38 +1161,6 @@ BEGIN
 IF INSERTING AND :NEW.sales_return_det_id IS NULL THEN
 	:NEW.sales_return_det_id := 'SRD' || TO_CHAR(sales_ret_det_seq.NEXTVAL); 
 END IF;
-END;
-/
-
-CREATE OR REPLACE TRIGGER trg_sales_ret_det_line_no_bi
-BEFORE INSERT ON sales_return_details
-FOR EACH ROW
-DECLARE
-    v_next_line_no NUMBER := 1;
-BEGIN
-    IF :NEW.line_no IS NOT NULL THEN
-        RETURN;
-    END IF;
-
-    IF :NEW.sales_return_id IS NOT NULL THEN
-        BEGIN
-            SELECT NVL(MAX(line_no), 0) + 1
-            INTO v_next_line_no
-            FROM sales_return_details
-            WHERE sales_return_id = :NEW.sales_return_id;
-        EXCEPTION
-            WHEN NO_DATA_FOUND THEN
-                v_next_line_no := 1;
-            WHEN OTHERS THEN
-                RAISE_APPLICATION_ERROR(-20062,
-                    'Error generating LINE_NO for sales_return_details: ' || SQLERRM);
-        END;
-    ELSE
-        v_next_line_no := 1;
-    END IF;
-
-    :NEW.line_no := v_next_line_no;
-
 END;
 /
 
@@ -1287,7 +1189,6 @@ END;
 --------------------------------------------------------------------------------
 CREATE TABLE product_order_detail (
     order_detail_id VARCHAR2(50) PRIMARY KEY,
-    line_no         NUMBER NOT NULL,
     order_id        VARCHAR2(50) NULL,
     product_id      VARCHAR2(50) NULL,
     mrp             NUMBER, 
@@ -1303,41 +1204,6 @@ BEGIN
 IF INSERTING AND :NEW.order_detail_id IS NULL THEN
 	:NEW.order_detail_id := 'ODT' || TO_CHAR(order_det_seq.NEXTVAL); 
 END IF;
-END;
-/
-
-CREATE OR REPLACE TRIGGER trg_order_det_line_no_bi
-BEFORE INSERT ON product_order_detail
-FOR EACH ROW
-DECLARE
-    v_next_line_no NUMBER := 1;
-BEGIN
-    -- Skip if LINE_NO already provided
-    IF :NEW.line_no IS NOT NULL THEN
-        RETURN;
-    END IF;
-
-    -- Only calculate if order_id is provided
-    IF :NEW.order_id IS NOT NULL THEN
-        BEGIN
-            SELECT NVL(MAX(line_no), 0) + 1
-            INTO v_next_line_no
-            FROM product_order_detail
-            WHERE order_id = :NEW.order_id;
-        EXCEPTION
-            WHEN NO_DATA_FOUND THEN
-                v_next_line_no := 1;
-            WHEN OTHERS THEN
-                RAISE_APPLICATION_ERROR(-20063,
-                    'Error generating LINE_NO for product_order_detail: ' || SQLERRM);
-        END;
-    ELSE
-        -- order_id is NULL, default to line_no = 1
-        v_next_line_no := 1;
-    END IF;
-
-    :NEW.line_no := v_next_line_no;
-
 END;
 /
 
@@ -1366,7 +1232,6 @@ END;
 --------------------------------------------------------------------------------
 CREATE TABLE product_receive_details (
     receive_det_id   VARCHAR2(50) PRIMARY KEY,
-    line_no          NUMBER NOT NULL,
     receive_id       VARCHAR2(50) NULL,
     product_id       VARCHAR2(50) NULL,
     mrp              NUMBER,             
@@ -1385,41 +1250,7 @@ END IF;
 END;
 /
 
-CREATE OR REPLACE TRIGGER trg_recv_det_line_no_bi
-BEFORE INSERT ON product_receive_details
-FOR EACH ROW
-DECLARE
-    v_next_line_no NUMBER := 1;
-BEGIN
-    IF :NEW.line_no IS NOT NULL THEN
-        RETURN;
-    END IF;
-
-    IF :NEW.receive_id IS NOT NULL THEN
-        BEGIN
-            SELECT NVL(MAX(line_no), 0) + 1
-            INTO v_next_line_no
-            FROM product_receive_details
-            WHERE receive_id = :NEW.receive_id;
-        EXCEPTION
-            WHEN NO_DATA_FOUND THEN
-                v_next_line_no := 1;
-            WHEN OTHERS THEN
-                RAISE_APPLICATION_ERROR(-20064,
-                    'Error generating LINE_NO for product_receive_details: ' || SQLERRM);
-        END;
-    ELSE
-        v_next_line_no := 1;
-    END IF;
-
-    :NEW.line_no := v_next_line_no;
-
-END;
-/
-
 -- Auto-update stock when receive details change
--- Stock automation trigger disabled - using manual stock inserts
-/*
 CREATE OR REPLACE TRIGGER trg_stock_on_receive_det
 AFTER INSERT OR UPDATE OR DELETE ON product_receive_details
 FOR EACH ROW
@@ -1484,7 +1315,6 @@ BEGIN
         END;
     END IF;
 END;
-*/
 /
 
 -- Keep product_receive_master audit columns current when any receive detail changes
@@ -1507,9 +1337,7 @@ BEGIN
 END;
 /
 
--- Validation trigger disabled temporarily for testing
--- To re-enable, uncomment and run this trigger
-/*
+-- Validation trigger - ensures products are ordered before receiving
 CREATE OR REPLACE TRIGGER trg_validate_receive_direct
 BEFORE INSERT OR UPDATE ON product_receive_details
 FOR EACH ROW
@@ -1534,7 +1362,6 @@ BEGIN
             'Warning: Product not ordered from this supplier');
     END IF;
 END;
-*/
 /
 
 --------------------------------------------------------------------------------
@@ -1542,7 +1369,6 @@ END;
 --------------------------------------------------------------------------------
 CREATE TABLE product_return_details (
     return_detail_id VARCHAR2(50) PRIMARY KEY,
-    line_no          NUMBER NOT NULL,
     return_id        VARCHAR2(50) NULL,
     product_id       VARCHAR2(50) NULL,
     mrp              NUMBER,             
@@ -1563,41 +1389,7 @@ END IF;
 END;
 /
 
-CREATE OR REPLACE TRIGGER trg_prod_ret_det_line_no_bi
-BEFORE INSERT ON product_return_details
-FOR EACH ROW
-DECLARE
-    v_next_line_no NUMBER := 1;
-BEGIN
-    IF :NEW.line_no IS NOT NULL THEN
-        RETURN;
-    END IF;
-
-    IF :NEW.return_id IS NOT NULL THEN
-        BEGIN
-            SELECT NVL(MAX(line_no), 0) + 1
-            INTO v_next_line_no
-            FROM product_return_details
-            WHERE return_id = :NEW.return_id;
-        EXCEPTION
-            WHEN NO_DATA_FOUND THEN
-                v_next_line_no := 1;
-            WHEN OTHERS THEN
-                RAISE_APPLICATION_ERROR(-20065,
-                    'Error generating LINE_NO for product_return_details: ' || SQLERRM);
-        END;
-    ELSE
-        v_next_line_no := 1;
-    END IF;
-
-    :NEW.line_no := v_next_line_no;
-
-END;
-/
-
 -- Auto-update stock when product return details change (returns to supplier)
--- Stock automation trigger disabled - using manual stock inserts
-/*
 CREATE OR REPLACE TRIGGER trg_stock_on_prod_return_det
 AFTER INSERT OR UPDATE OR DELETE ON product_return_details
 FOR EACH ROW
@@ -1651,7 +1443,6 @@ BEGIN
         WHERE stock_id = v_stock_id;
     END IF;
 END;
-*/
 /
 
 -- Keep product_return_master audit columns current when any return detail changes
@@ -1716,7 +1507,6 @@ END;
 --------------------------------------------------------------------------------
 CREATE TABLE expense_details (
     expense_det_id    VARCHAR2(50) PRIMARY KEY,
-    line_no           NUMBER NOT NULL,
     expense_id        VARCHAR2(50) NOT NULL,
     expense_type_id   VARCHAR2(50) NOT NULL,
     description       VARCHAR2(1000),
@@ -1736,38 +1526,6 @@ BEGIN
         :NEW.expense_det_id := 'EXD' || TO_CHAR(v_seq);
     END IF;
     :NEW.line_total := NVL(:NEW.amount,0) * NVL(:NEW.quantity,1); 
-END;
-/
-
-CREATE OR REPLACE TRIGGER trg_exp_det_line_no_bi
-BEFORE INSERT ON expense_details
-FOR EACH ROW
-DECLARE
-    v_next_line_no NUMBER := 1;
-BEGIN
-    IF :NEW.line_no IS NOT NULL THEN
-        RETURN;
-    END IF;
-
-    IF :NEW.expense_id IS NOT NULL THEN
-        BEGIN
-            SELECT NVL(MAX(line_no), 0) + 1
-            INTO v_next_line_no
-            FROM expense_details
-            WHERE expense_id = :NEW.expense_id;
-        EXCEPTION
-            WHEN NO_DATA_FOUND THEN
-                v_next_line_no := 1;
-            WHEN OTHERS THEN
-                RAISE_APPLICATION_ERROR(-20066,
-                    'Error generating LINE_NO for expense_details: ' || SQLERRM);
-        END;
-    ELSE
-        v_next_line_no := 1;
-    END IF;
-
-    :NEW.line_no := v_next_line_no;
-
 END;
 /
 
@@ -1796,7 +1554,6 @@ END;
 --------------------------------------------------------------------------------
 CREATE TABLE damage_detail (
     damage_detail_id VARCHAR2(50) PRIMARY KEY,
-    line_no          NUMBER NOT NULL,
     damage_id        VARCHAR2(50),
     product_id       VARCHAR2(50),
     mrp              NUMBER,
@@ -1816,41 +1573,7 @@ END IF;
 END;
 /
 
-CREATE OR REPLACE TRIGGER trg_damage_det_line_no_bi
-BEFORE INSERT ON damage_detail
-FOR EACH ROW
-DECLARE
-    v_next_line_no NUMBER := 1;
-BEGIN
-    IF :NEW.line_no IS NOT NULL THEN
-        RETURN;
-    END IF;
-
-    IF :NEW.damage_id IS NOT NULL THEN
-        BEGIN
-            SELECT NVL(MAX(line_no), 0) + 1
-            INTO v_next_line_no
-            FROM damage_detail
-            WHERE damage_id = :NEW.damage_id;
-        EXCEPTION
-            WHEN NO_DATA_FOUND THEN
-                v_next_line_no := 1;
-            WHEN OTHERS THEN
-                RAISE_APPLICATION_ERROR(-20067,
-                    'Error generating LINE_NO for damage_detail: ' || SQLERRM);
-        END;
-    ELSE
-        v_next_line_no := 1;
-    END IF;
-
-    :NEW.line_no := v_next_line_no;
-
-END;
-/
-
 -- Auto-update stock when damage details change (write-offs)
--- Stock automation trigger disabled - using manual stock inserts
-/*
 CREATE OR REPLACE TRIGGER trg_stock_on_damage_det
 AFTER INSERT OR UPDATE OR DELETE ON damage_detail
 FOR EACH ROW
@@ -1895,7 +1618,6 @@ BEGIN
         WHERE stock_id = v_stock_id;
     END IF;
 END;
-*/
 /
 
 -- Keep damage master audit columns current when any damage detail changes
@@ -2034,7 +1756,7 @@ BEGIN
     -- Warranty logic (SAFE)
     IF INSERTING AND :NEW.invoice_id IS NOT NULL THEN
         BEGIN
-            SELECT m.invoice_date, p.warranty
+            SELECT m.invoice_date, NVL(p.warranty, 0)
             INTO v_inv_date, v_warranty
             FROM sales_master m
             JOIN sales_detail d ON m.invoice_id = d.invoice_id
@@ -2042,15 +1764,22 @@ BEGIN
             WHERE m.invoice_id = :NEW.invoice_id
             AND ROWNUM = 1;
 
-            IF v_inv_date + (v_warranty * 30) >= SYSDATE THEN
+            IF v_warranty > 0 AND v_inv_date + (v_warranty * 30) >= SYSDATE THEN
                 :NEW.warranty_applicable := 'Y';
             ELSE
                 :NEW.warranty_applicable := 'N';
             END IF;
         EXCEPTION
+            WHEN NO_DATA_FOUND THEN
+                :NEW.warranty_applicable := 'N';
             WHEN OTHERS THEN
                 :NEW.warranty_applicable := 'N';
         END;
+    ELSIF INSERTING THEN
+        -- If no invoice_id provided, set warranty to 'N' by default
+        IF :NEW.warranty_applicable IS NULL THEN
+            :NEW.warranty_applicable := 'N';
+        END IF;
     END IF;
 END;
 /

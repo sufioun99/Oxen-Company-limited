@@ -5,15 +5,27 @@ This is an **Electronics Sales and Service Provider** database system built on *
 
 ## Quick Start
 
+### Prerequisites
+**User Creation (One-time, requires SYSDBA)**:
+```sql
+-- Connect as SYSDBA first
+sqlplus sys as sysdba
+
+CREATE USER msp IDENTIFIED BY msp 
+DEFAULT TABLESPACE users 
+QUOTA UNLIMITED ON users;
+GRANT CONNECT, RESOURCE TO msp;
+```
+See [LOCAL_SQL_SETUP_GUIDE.md](LOCAL_SQL_SETUP_GUIDE.md) for detailed setup if errors occur.
+
 ### Setup Database (Choose One)
 ```bash
-# Fresh installation (drops and recreates msp user)
+# Recommended: Fresh installation with all-in-one script
 sqlplus sys as sysdba @clean_combined.sql
 
-# Or separate execution
-sqlplus sys as sysdba
-@Schema.sql      # Creates 33 tables, sequences, triggers
-@"Insert data"   # Populates master tables
+# Alternative: Separate execution (for schema modifications)
+sqlplus sys as sysdba @Schema.sql      # Creates 33 tables + triggers
+sqlplus msp/msp @"Insert data"         # Populates master tables
 ```
 
 ### Connect as Application User
@@ -27,8 +39,11 @@ sqlplus msp/msp
 SELECT COUNT(*) FROM user_tables;  -- Should return 33
 
 -- Check sample data
-SELECT company_id, company_name FROM company;
-SELECT product_id, product_name, warranty FROM products WHERE ROWNUM <= 5;
+SELECT company_id, company_name FROM company ROWNUM <= 2;
+SELECT COUNT(*) as product_count FROM products;
+
+-- Quick integrity check
+@check_data_integrity.sql
 
 -- Check automation package (if installed)
 SELECT DISTINCT object_name FROM user_procedures WHERE object_type = 'PACKAGE';
@@ -80,6 +95,38 @@ ORDER BY m.invoice_date DESC;
 ```
 
 ## Critical Database Conventions
+
+### Trigger Design Pattern - CRITICAL for Data Integrity
+**NEVER create multiple triggers of the same type on the same table** (e.g., two BEFORE INSERT triggers on `service_details`). This causes **ORA-40508** in Oracle 11g.
+
+**Correct approach**: Combine all BEFORE INSERT logic into ONE trigger:
+```sql
+-- ✅ CORRECT: Single trigger with multiple responsibilities
+CREATE OR REPLACE TRIGGER trg_service_det_bi
+BEFORE INSERT ON service_details FOR EACH ROW
+BEGIN
+    -- Generate ID
+    IF :NEW.service_det_id IS NULL THEN
+        :NEW.service_det_id := 'SDT' || TO_CHAR(service_det_seq.NEXTVAL);
+    END IF;
+    
+    -- Generate line_no
+    IF :NEW.line_no IS NULL THEN
+        SELECT NVL(MAX(line_no), 0) + 1 INTO :NEW.line_no
+        FROM service_details WHERE service_id = :NEW.service_id;
+    END IF;
+    
+    -- Audit columns
+    IF :NEW.status IS NULL THEN :NEW.status := 1; END IF;
+    :NEW.cre_by := USER; :NEW.cre_dt := SYSDATE;
+END;
+/
+
+-- ❌ WRONG: Multiple BEFORE INSERT triggers
+-- This will cause ORA-40508 when insert occurs
+CREATE OR REPLACE TRIGGER trg_service_det_bi ...  -- First trigger
+CREATE OR REPLACE TRIGGER trg_service_det_line_no_bi ...  -- Second trigger - CONFLICT!
+```
 
 ### Auto-ID Generation Pattern
 **Every table uses triggers for auto-ID generation**. Primary key format: `PREFIX + SEQUENCE_NUMBER`
@@ -142,6 +189,7 @@ Service requests check warranty automatically via trigger in [Schema.sql](Schema
 - Compares `invoice_date + (warranty_months * 30)` against current date
 - Sets `warranty_applicable` to `'Y'` or `'N'`
 - Example: 12-month warranty = invoice_date + 360 days
+- **Important**: When linking service to sales, ensure `invoice_id` exists and has valid `warranty_months` column, or trigger will fail with **ORA-00904**
 
 ### Stock Management
 - Use `CHECK (quantity >= 0)` constraint prevents negative stock
@@ -161,6 +209,8 @@ Service requests check warranty automatically via trigger in [Schema.sql](Schema
 - [apex_views.sql](apex_views.sql): Oracle APEX 5.x+ ready views (`lov_*`, `dashboard_*`, `*_report_v`)
 - [service_form_setup.sql](service_form_setup.sql): Service management form-specific setup
 - [validation_checks.sql](validation_checks.sql): Data integrity validation queries
+- [FORMS_NEW_SALES_TRIGGER.sql](FORMS_NEW_SALES_TRIGGER.sql): Oracle Forms 11g triggers for new transaction records (3 options: sequence-based, control table, hybrid)
+- [forms_invoice_control_setup.sql](forms_invoice_control_setup.sql): Optional control table for invoice number audit trail
 
 ### Utility Files
 - [check_data_integrity.sql](check_data_integrity.sql): Run after data insertion to verify referential integrity
@@ -280,6 +330,8 @@ sqlplus msp/msp
 The system models a **Bangladesh electronics retail chain** dealing with brands like Walton, Samsung, LG, Singer, Vision, Minister, Sharp, Hitachi. Phone numbers follow Bangladesh format (`017xx`, `018xx`). Addresses reference Dhaka divisions (Mirpur, Dhanmondi, Uttara, etc.).
 
 ## Oracle Forms Integration
+
+### Dynamic List of Values (LOV) Setup
 [DYNAMIC LIST CRATION](DYNAMIC%20LIST%20CRATION) shows Oracle Forms `WHEN-NEW-FORM-INSTANCE` trigger pattern:
 - Creates record groups dynamically from queries
 - Populates list items (dropdowns) for products, suppliers, employees
@@ -297,6 +349,48 @@ rg_products := Create_Group_From_Query(
 nDummy := Populate_Group(rg_products);
 Populate_List('PRODUCT_receive_DETAILS.PRODUCT_ID', rg_products);
 ```
+
+### New Record Transaction Trigger (Master Tables)
+Use [FORMS_NEW_SALES_TRIGGER.sql](FORMS_NEW_SALES_TRIGGER.sql) pattern for creating new transaction records:
+- **Option A (Recommended)**: Database sequence approach - aligns with `sales_seq`, `product_order_seq` patterns
+- **Option B**: Control table approach - if manual number management required
+- **Option C (Production)**: Hybrid - sequences + optional audit trail
+
+**Example for SALES_MASTER WHEN-BUTTON-PRESSED**:
+```sql
+DECLARE
+    v_next_invoice_id VARCHAR2(50);
+BEGIN
+    -- Clear form and initialize new record
+    IF :SYSTEM.FORM_STATUS IN ('CHANGED', 'NEW') THEN
+        CLEAR_FORM(NO_VALIDATE);
+    ELSE
+        CLEAR_FORM;
+    END IF;
+    
+    GO_BLOCK('SALES_MASTER');
+    CREATE_RECORD;
+    
+    -- Get next sequence and set defaults (matches DB trigger)
+    SELECT 'INV' || TO_CHAR(sales_seq.NEXTVAL) INTO v_next_invoice_id FROM DUAL;
+    :SALES_MASTER.invoice_id := v_next_invoice_id;
+    :SALES_MASTER.status := 1;
+    :SALES_MASTER.cre_by := USER;
+    :SALES_MASTER.cre_dt := SYSDATE;
+    :SALES_MASTER.discount := 0;
+    :SALES_MASTER.vat := 0;
+    :SALES_MASTER.grand_total := 0;
+    
+EXCEPTION
+    WHEN OTHERS THEN
+        MESSAGE('Error: ' || SQLERRM);
+        RAISE FORM_TRIGGER_FAILURE;
+END;
+```
+
+**Apply same pattern to other transaction masters**: `product_order_master`, `product_receive_master`, `service_master`, `expense_master` - each uses its own `*_seq` sequence.
+
+For detailed implementation steps, customizations, and multi-block form examples, see [FORMS_NEW_RECORD_GUIDE.md](FORMS_NEW_RECORD_GUIDE.md).
 
 ## Development Workflows
 
