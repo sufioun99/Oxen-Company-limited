@@ -1,3 +1,19 @@
+--------------------------------------------------------------------------------
+-- TRIGGER: Update service_charge_total in service_master after service_details change
+--------------------------------------------------------------------------------
+
+-- COMMENTED OUT: Automatic update of service_charge_total in service_master after service_details change
+-- Reason: For Oracle Forms, it is safer and more flexible to calculate service_charge_total in a POST-QUERY trigger or when saving the transaction.
+-- Sample Oracle Forms POST-QUERY trigger for SERVICE_MASTER block:
+--
+-- BEGIN
+--   :service_master.service_charge_total := NVL(
+--     (SELECT SUM(service_charge)
+--        FROM service_details
+--        WHERE service_id = :service_master.service_id), 0);
+-- END;
+--
+-- Place this code in the POST-QUERY trigger of the SERVICE_MASTER block to always show the correct total after querying or navigating records.
 ----------------------------------------------------------------------------------
 -- DATABASE SETUP SCRIPT (33 TABLES)
 -- IMPORTANT: Run this script as the MSP user (already created and connected)
@@ -662,7 +678,8 @@ CREATE TABLE sales_master (
     invoice_date   DATE DEFAULT SYSDATE,
     discount       NUMBER DEFAULT 0,
     vat            NUMBER DEFAULT 0,
-    adjust_ref     VARCHAR2(50), 
+    adjust_ref     VARCHAR2(50),
+    total_amount  NUMBER(20,4)DEFAULT 0,
     adjust_amount  NUMBER(20,4)DEFAULT 0,
     grand_total    NUMBER(20,4)DEFAULT 0,
     customer_id    VARCHAR2(50) NULL,
@@ -748,10 +765,10 @@ CREATE TABLE service_master (
     service_date        DATE DEFAULT SYSDATE,
     customer_id         VARCHAR2(50) NULL,
     invoice_id          VARCHAR2(50) NULL, 
+    invoice_date        DATE,
     warranty_applicable CHAR(1),
     service_by          VARCHAR2(50) NULL,
-    parts_price         NUMBER DEFAULT 0,
-    service_charge      NUMBER DEFAULT 0,
+    service_charge_total      NUMBER DEFAULT 0,
     total_price         NUMBER(20,4)DEFAULT 0,
     vat                 NUMBER(20,4)DEFAULT 0,
     grand_total         NUMBER(20,4)DEFAULT 0,
@@ -1021,28 +1038,11 @@ CREATE TABLE service_details (
 
 CREATE SEQUENCE service_det_seq START WITH 1 INCREMENT BY 1 NOCACHE NOCYCLE;
 
--- Trigger for service_details - handles ID generation and line total calculation
-CREATE OR REPLACE TRIGGER trg_service_det_bi 
-BEFORE INSERT OR UPDATE ON service_details 
-FOR EACH ROW 
+CREATE OR REPLACE TRIGGER trg_service_det_bi BEFORE INSERT ON service_details FOR EACH ROW 
 BEGIN 
-    -- Generate service_det_id
-    IF :NEW.service_det_id IS NULL THEN
-        :NEW.service_det_id := 'SDT' || TO_CHAR(service_det_seq.NEXTVAL);  
-    END IF;
-    
-    -- Calculate line_total = service_charge + (parts_price * quantity)
-    :NEW.line_total := NVL(:NEW.service_charge, 0) + (NVL(:NEW.parts_price, 0) * NVL(:NEW.quantity, 1));
-    
-    -- Auto-populate audit columns
-    IF INSERTING THEN
-        IF :NEW.status IS NULL THEN :NEW.status := 1; END IF;
-        IF :NEW.cre_by IS NULL THEN :NEW.cre_by := USER; END IF;
-        IF :NEW.cre_dt IS NULL THEN :NEW.cre_dt := SYSDATE; END IF;
-    ELSIF UPDATING THEN
-        :NEW.upd_by := USER;
-        :NEW.upd_dt := SYSDATE;
-    END IF;
+IF INSERTING AND :NEW.service_det_id IS NULL THEN
+	:NEW.service_det_id := 'SDT' || TO_CHAR(service_det_seq.NEXTVAL);  
+END IF;
 END;
 /
 
@@ -1075,6 +1075,7 @@ CREATE TABLE sales_detail (
     product_id     VARCHAR2(50) NULL,
     mrp            NUMBER,
     purchase_price NUMBER,
+    discount_amount NUMBER,
     quantity       NUMBER,
     description    VARCHAR2(1000), 
     CONSTRAINT fk_sdt_inv  FOREIGN KEY (invoice_id) REFERENCES sales_master(invoice_id) ON DELETE CASCADE,
@@ -1092,6 +1093,8 @@ END;
 /
 
 -- Auto-update stock when sales details change
+-- Stock automation trigger disabled - using manual stock inserts
+/*
 CREATE OR REPLACE TRIGGER trg_stock_on_sales_det
 AFTER INSERT OR UPDATE OR DELETE ON sales_detail
 FOR EACH ROW
@@ -1136,6 +1139,7 @@ BEGIN
         WHERE stock_id = v_stock_id;
     END IF;
 END;
+*/
 /
 
 -- Keep sales_master audit columns current when any sales detail changes
@@ -1157,7 +1161,63 @@ BEGIN
     WHERE invoice_id = v_invoice_id;
 END;
 /
+ CREATE OR REPLACE TRIGGER trg_sales_final_calc
+FOR INSERT OR UPDATE OR DELETE ON sales_detail
+COMPOUND TRIGGER
 
+  -- এফেক্টেড ইনভয়েস আইডি রাখার লিস্ট
+  TYPE t_inv_list IS TABLE OF sales_detail.invoice_id%TYPE INDEX BY PLS_INTEGER;
+  v_inv_ids t_inv_list;
+
+  -- ১. কোন ইনভয়েসে চেঞ্জ হচ্ছে তা নোট করা
+  AFTER EACH ROW IS
+  BEGIN
+    IF INSERTING OR UPDATING THEN
+       v_inv_ids(v_inv_ids.COUNT + 1) := :NEW.invoice_id;
+    ELSIF DELETING THEN
+       v_inv_ids(v_inv_ids.COUNT + 1) := :OLD.invoice_id;
+    END IF;
+  END AFTER EACH ROW;
+
+  -- ২. সবশেষে ক্যালকুলেশন করা (শুধুমাত্র নির্দিষ্ট আইডির জন্য)
+  AFTER STATEMENT IS
+    v_total NUMBER;
+    v_grand_total NUMBER;
+    v_vat NUMBER;
+    v_discount NUMBER;
+    v_adj_amount NUMBER;
+  BEGIN
+    FOR i IN 1 .. v_inv_ids.COUNT LOOP
+      
+      -- টোটাল বের করা
+      SELECT NVL(SUM(mrp * quantity), 0)
+      INTO v_total
+      FROM sales_detail
+      WHERE invoice_id = v_inv_ids(i);
+      
+      -- মাস্টার টেবিল থেকে ডিসকাউন্ট, ভ্যাট, অ্যাডজাস্টমেন্ট আনা
+      SELECT NVL(discount,0), NVL(vat,0), NVL(adjust_amount,0)
+      INTO v_discount, v_vat, v_adj_amount
+      FROM sales_master
+      WHERE invoice_id = v_inv_ids(i);
+
+      -- আপনার দেওয়া ফর্মুলা অনুযায়ী গ্র্যান্ড টোটাল
+      -- Formula: (Total - Discount - Adjust) + VAT%
+      
+      v_grand_total := (v_total - v_discount - v_adj_amount) * (1 + v_vat/100);
+
+      -- আপডেট
+      UPDATE sales_master
+      SET total_amount = v_total,
+          grand_total = ROUND(v_grand_total, 2) -- দশমিকের পর ২ ঘর রাখা ভালো
+      WHERE invoice_id = v_inv_ids(i);
+      
+    END LOOP;
+  END AFTER STATEMENT;
+
+END trg_sales_final_calc;
+/
+ 
 --------------------------------------------------------------------------------
 -- 25. SALES_RETURN_DETAILS
 --------------------------------------------------------------------------------
@@ -1167,6 +1227,10 @@ CREATE TABLE sales_return_details (
     product_id          VARCHAR2(50) NULL,
     mrp                 NUMBER,
     purchase_price      NUMBER,
+    quantity            NUMBER,
+    discount_amount     NUMBER,
+    ITEM_TOTAL          NUMBER,
+--  RETURN_TOTAL        NUMBER,
     qty_return          NUMBER,
     reason              VARCHAR2(4000),
     CONSTRAINT fk_srd_mst FOREIGN KEY (sales_return_id) REFERENCES sales_return_master(sales_return_id),
@@ -1245,7 +1309,53 @@ BEGIN
     WHERE order_id = v_order_id;
 END;
 /
+CREATE OR REPLACE TRIGGER tri_total_price_compound
+FOR INSERT OR UPDATE OR DELETE ON PRODUCT_ORDER_DETAIL
+COMPOUND TRIGGER
 
+  -- একটি কালেকশন তৈরি করা হলো যেখানে আমরা এফেক্টেড অর্ডার আইডিগুলো রাখব
+  TYPE t_order_id_list IS TABLE OF PRODUCT_ORDER_DETAIL.ORDER_ID%TYPE INDEX BY PLS_INTEGER;
+  v_order_ids t_order_id_list;
+
+  -- ধাপ ১: ইনসার্ট বা আপডেটের সময় অর্ডার আইডিগুলো সংগ্রহ করা
+  AFTER EACH ROW IS
+  BEGIN
+    IF INSERTING OR UPDATING THEN
+       v_order_ids(v_order_ids.COUNT + 1) := :NEW.ORDER_ID;
+    ELSIF DELETING THEN
+       v_order_ids(v_order_ids.COUNT + 1) := :OLD.ORDER_ID;
+    END IF;
+  END AFTER EACH ROW;
+
+  -- ধাপ ২: সব কাজ শেষে মূল টেবিলে আপডেট চালানো (এখানে আর Mutating Error হবে না)
+  AFTER STATEMENT IS
+    v_total NUMBER;
+    v_grand_total NUMBER;
+  BEGIN
+    -- ডুপ্লিকেট আইডি রিমুভ করার জন্য লজিক (সাধারণত দরকার হয় না যদি আমরা লুপ চালাই)
+    -- আমরা সরাসরি লুপ চালিয়ে আপডেট করব
+    FOR i IN 1 .. v_order_ids.COUNT LOOP
+      
+      -- ক্যালকুলেশন
+      SELECT NVL(SUM(purchase_price * quantity), 0)
+      INTO v_total
+      FROM PRODUCT_ORDER_DETAIL
+      WHERE ORDER_ID = v_order_ids(i);
+      
+      -- গ্র্যান্ড টোটাল (VAT ১০% ধরে)
+      v_grand_total := v_total + (v_total * 0.10); -- 10/100 = 0.10
+
+      -- মাস্টার টেবিল আপডেট (শুধুমাত্র নির্দিষ্ট অর্ডারের জন্য)
+      UPDATE PRODUCT_ORDER_MASTER
+      SET total_amount = v_total,
+          grand_total = v_grand_total
+      WHERE ORDER_ID = v_order_ids(i);
+      
+    END LOOP;
+  END AFTER STATEMENT;
+
+END tri_total_price_compound;
+/
 --------------------------------------------------------------------------------
 -- 27. PRODUCT_RECEIVE_DETAILS
 --------------------------------------------------------------------------------
@@ -1269,7 +1379,30 @@ END IF;
 END;
 /
 
+-- CONTROL block er calculation database a save rakhar jonno DB trigger----
+
+---------------------------------------------------------
+CREATE OR REPLACE TRIGGER tri_total_amount
+AFTER INSERT OR UPDATE OR DELETE ON product_receive_details
+DECLARE
+BEGIN
+    FOR r IN (SELECT DISTINCT receive_id 
+              FROM product_receive_details) LOOP
+        UPDATE product_receive_master m
+        SET m.total_amount = (
+            SELECT NVL(SUM(d.purchase_price * d.receive_quantity),0)
+            FROM product_receive_details d
+            WHERE d.receive_id = r.receive_id
+        )
+        WHERE m.receive_id = r.receive_id;
+    END LOOP;
+END;
+/
+
+
 -- Auto-update stock when receive details change
+-- Stock automation trigger disabled - using manual stock inserts
+/*
 CREATE OR REPLACE TRIGGER trg_stock_on_receive_det
 AFTER INSERT OR UPDATE OR DELETE ON product_receive_details
 FOR EACH ROW
@@ -1334,6 +1467,7 @@ BEGIN
         END;
     END IF;
 END;
+*/
 /
 
 -- Keep product_receive_master audit columns current when any receive detail changes
@@ -1356,7 +1490,9 @@ BEGIN
 END;
 /
 
--- Validation trigger - ensures products are ordered before receiving
+-- Validation trigger disabled temporarily for testing
+-- To re-enable, uncomment and run this trigger
+/*
 CREATE OR REPLACE TRIGGER trg_validate_receive_direct
 BEFORE INSERT OR UPDATE ON product_receive_details
 FOR EACH ROW
@@ -1381,6 +1517,7 @@ BEGIN
             'Warning: Product not ordered from this supplier');
     END IF;
 END;
+*/
 /
 
 --------------------------------------------------------------------------------
@@ -1408,7 +1545,33 @@ END IF;
 END;
 /
 
+--RETURN_MASTER.total_amount---------
+------------------------------------------
+CREATE OR REPLACE TRIGGER tri_total_price
+AFTER INSERT OR UPDATE OR DELETE ON product_return_details
+DECLARE
+BEGIN
+
+    FOR r IN (
+        SELECT DISTINCT return_id
+        FROM product_return_details
+    ) LOOP
+        UPDATE product_return_master m
+        SET m.total_amount = (
+            SELECT NVL(SUM(d.purchase_price * d.return_quantity), 0)
+            FROM product_return_details d
+            WHERE d.return_id = r.return_id
+        )
+        WHERE m.return_id = r.return_id;
+    END LOOP;
+END;
+/
+
+
+
 -- Auto-update stock when product return details change (returns to supplier)
+-- Stock automation trigger disabled - using manual stock inserts
+/*
 CREATE OR REPLACE TRIGGER trg_stock_on_prod_return_det
 AFTER INSERT OR UPDATE OR DELETE ON product_return_details
 FOR EACH ROW
@@ -1462,6 +1625,7 @@ BEGIN
         WHERE stock_id = v_stock_id;
     END IF;
 END;
+*/
 /
 
 -- Keep product_return_master audit columns current when any return detail changes
@@ -1490,15 +1654,17 @@ END;
 CREATE TABLE expense_master (
     expense_id      VARCHAR2(50) PRIMARY KEY,
     expense_date    DATE,
-    expense_by      VARCHAR2(100) NULL,
-    expense_type_id VARCHAR2(50) NULL,
-    remarks         VARCHAR2(1000),
+    department_id   VARCHAR2(100),
+    expense_type_id VARCHAR2(50),
+    expense_by      VARCHAR2(100),
+    expense_total   NUMBER,
     status          NUMBER,
     cre_by          VARCHAR2(100),
     cre_dt          DATE,
     upd_by          VARCHAR2(100),
     upd_dt          DATE,
-    CONSTRAINT fk_ex_mst FOREIGN KEY (expense_type_id) REFERENCES expense_list(expense_type_id)
+    CONSTRAINT fk_ex_mst FOREIGN KEY (expense_type_id) REFERENCES expense_list(expense_type_id),
+    CONSTRAINT fk_ex_dept FOREIGN KEY (department_id) REFERENCES departments(department_id)
 );
 
 CREATE SEQUENCE exp_mst_seq START WITH 1 INCREMENT BY 1 NOCACHE NOCYCLE;
@@ -1527,14 +1693,11 @@ END;
 CREATE TABLE expense_details (
     expense_det_id    VARCHAR2(50) PRIMARY KEY,
     expense_id        VARCHAR2(50) NOT NULL,
-    expense_type_id   VARCHAR2(50) NOT NULL,
     description       VARCHAR2(1000),
     amount            NUMBER(15,2) DEFAULT 0,
-    quantity          NUMBER DEFAULT 1,
-    line_total        NUMBER(15,2),
-    CONSTRAINT fk_ex_det_mst FOREIGN KEY (expense_id) REFERENCES expense_master(expense_id),
-    CONSTRAINT fk_ex_det_typ FOREIGN KEY (expense_type_id) REFERENCES expense_list(expense_type_id)
+    CONSTRAINT fk_ex_det_mst FOREIGN KEY (expense_id) REFERENCES expense_master(expense_id)
 );
+
 
 CREATE SEQUENCE exp_det_seq START WITH 1 INCREMENT BY 1 NOCACHE NOCYCLE;
 CREATE OR REPLACE TRIGGER trg_exp_det_bi BEFORE INSERT OR UPDATE ON expense_details FOR EACH ROW
@@ -1543,10 +1706,31 @@ BEGIN
     IF INSERTING AND :NEW.expense_det_id IS NULL THEN
         v_seq := exp_det_seq.NEXTVAL;
         :NEW.expense_det_id := 'EXD' || TO_CHAR(v_seq);
-    END IF;
-    :NEW.line_total := NVL(:NEW.amount,0) * NVL(:NEW.quantity,1); 
+    END IF; 
 END;
 /
+----------------------------------------------------
+----EXPENSE_MASTER ER total_Amoun er trigger--------
+
+        -- Correct trigger for updating expense_total in expense_master after changes in expense_details
+        CREATE OR REPLACE TRIGGER trg_expense_details_total
+        AFTER INSERT OR UPDATE OR DELETE ON expense_details
+        DECLARE
+        BEGIN
+            FOR r IN (
+                SELECT DISTINCT expense_id
+                FROM expense_details
+            ) LOOP
+                UPDATE expense_master m
+                SET m.expense_total = (
+                    SELECT NVL(SUM(d.amount), 0)
+                    FROM expense_details d
+                    WHERE d.expense_id = r.expense_id
+                )
+                WHERE m.expense_id = r.expense_id;
+            END LOOP;
+        END;
+        / 
 
 -- Keep expense_master audit columns current when any detail row changes
 CREATE OR REPLACE TRIGGER trg_exp_det_master_audit
@@ -1593,6 +1777,8 @@ END;
 /
 
 -- Auto-update stock when damage details change (write-offs)
+-- Stock automation trigger disabled - using manual stock inserts
+/*
 CREATE OR REPLACE TRIGGER trg_stock_on_damage_det
 AFTER INSERT OR UPDATE OR DELETE ON damage_detail
 FOR EACH ROW
@@ -1637,6 +1823,7 @@ BEGIN
         WHERE stock_id = v_stock_id;
     END IF;
 END;
+*/
 /
 
 -- Keep damage master audit columns current when any damage detail changes
@@ -1724,6 +1911,27 @@ BEGIN
 END;
 /
 
+
+CREATE OR REPLACE TRIGGER trg_payments_pay_total
+AFTER INSERT OR UPDATE OR DELETE ON payments
+FOR EACH ROW
+BEGIN
+   FOR r IN (
+      SELECT NVL(:NEW.supplier_id, :OLD.supplier_id) AS supplier_id
+      FROM dual
+   ) LOOP
+      UPDATE suppliers s
+      SET s.pay_total = (
+         SELECT NVL(SUM(p.amount), 0)
+         FROM payments p
+         WHERE p.supplier_id = r.supplier_id
+      )
+      WHERE s.supplier_id = r.supplier_id;
+   END LOOP;
+END;
+/
+
+
 -- Keep suppliers audit columns current when any payment row changes
 CREATE OR REPLACE TRIGGER trg_payments_supplier_audit
 AFTER INSERT OR UPDATE OR DELETE ON payments
@@ -1772,37 +1980,172 @@ BEGIN
         :NEW.upd_dt := SYSDATE;
     END IF;
 
-    -- Warranty logic (SAFE)
+    -- Warranty logic (FORCE 12 months for all products)
     IF INSERTING AND :NEW.invoice_id IS NOT NULL THEN
         BEGIN
-            SELECT m.invoice_date, NVL(p.warranty, 0)
-            INTO v_inv_date, v_warranty
+            SELECT m.invoice_date
+            INTO v_inv_date
             FROM sales_master m
-            JOIN sales_detail d ON m.invoice_id = d.invoice_id
-            JOIN products p ON d.product_id = p.product_id
-            WHERE m.invoice_id = :NEW.invoice_id
-            AND ROWNUM = 1;
+            WHERE m.invoice_id = :NEW.invoice_id;
 
-            IF v_warranty > 0 AND v_inv_date + (v_warranty * 30) >= SYSDATE THEN
+            IF v_inv_date + 360 >= SYSDATE THEN
                 :NEW.warranty_applicable := 'Y';
             ELSE
                 :NEW.warranty_applicable := 'N';
             END IF;
         EXCEPTION
-            WHEN NO_DATA_FOUND THEN
-                :NEW.warranty_applicable := 'N';
             WHEN OTHERS THEN
                 :NEW.warranty_applicable := 'N';
         END;
-    ELSIF INSERTING THEN
-        -- If no invoice_id provided, set warranty to 'N' by default
-        IF :NEW.warranty_applicable IS NULL THEN
-            :NEW.warranty_applicable := 'N';
-        END IF;
     END IF;
 END;
 /
 -------------------------------------------------------------
+--SUPPLIERS.purchase_total, pay_total, DUE---------------
+---------------------------------------------------------
+CREATE OR REPLACE TRIGGER trg_suppliers_pay_total
+FOR INSERT OR UPDATE OR DELETE ON payments
+COMPOUND TRIGGER
+
+   TYPE t_supplier_ids IS TABLE OF suppliers.supplier_id%TYPE;
+   g_supplier_ids t_supplier_ids := t_supplier_ids();
+
+   -- Row level: supplier_id collect
+   AFTER EACH ROW IS
+   BEGIN
+      g_supplier_ids.EXTEND;
+      g_supplier_ids(g_supplier_ids.COUNT) :=
+         NVL(:NEW.supplier_id, :OLD.supplier_id);
+   END AFTER EACH ROW;
+
+   -- Statement level: calculation once
+   AFTER STATEMENT IS
+   BEGIN
+      FOR i IN 1 .. g_supplier_ids.COUNT LOOP
+         UPDATE suppliers s
+         SET s.pay_total =
+             NVL((
+                 SELECT SUM(p.amount)
+                 FROM payments p
+                 WHERE p.supplier_id = g_supplier_ids(i)
+             ), 0),
+             s.due =
+             NVL(s.purchase_total, 0) -
+             NVL((
+                 SELECT SUM(p.amount)
+                 FROM payments p
+                 WHERE p.supplier_id = g_supplier_ids(i)
+             ), 0)
+         WHERE s.supplier_id = g_supplier_ids(i);
+      END LOOP;
+   END AFTER STATEMENT;
+
+END trg_suppliers_pay_total;
+/
+
+----------------------------------------------------------
+CREATE OR REPLACE TRIGGER trg_payments_pay_total
+AFTER INSERT OR UPDATE OR DELETE ON payments
+FOR EACH ROW
+BEGIN
+   FOR r IN (
+      SELECT NVL(:NEW.supplier_id, :OLD.supplier_id) AS supplier_id
+      FROM dual
+   ) LOOP
+      UPDATE suppliers s
+      SET s.pay_total = (
+         SELECT NVL(SUM(p.amount), 0)
+         FROM payments p
+         WHERE p.supplier_id = r.supplier_id
+      )
+      WHERE s.supplier_id = r.supplier_id;
+   END LOOP;
+END;
+/
+
+
+--PURCHASE_TOTAL+DUE------------------------------------------------
+--------------------------------------------------------------------
+CREATE OR REPLACE TRIGGER trg_prm_supplier
+AFTER INSERT OR UPDATE OR DELETE ON product_receive_master
+DECLARE
+BEGIN
+    UPDATE suppliers s
+       SET s.purchase_total = (
+           SELECT NVL(SUM(grand_total),0)
+           FROM product_receive_master
+           WHERE supplier_id = s.supplier_id
+       ),
+       s.due = NVL((
+           SELECT NVL(SUM(grand_total),0)
+           FROM product_receive_master
+           WHERE supplier_id = s.supplier_id
+       ),0) - NVL(s.pay_total,0);
+END;
+/
+
+--PAY_TOTAL+DUE from PRODUCT_RECEIVE_MASTER
+---------------------------------------------------------------------
+
+CREATE OR REPLACE PROCEDURE update_suppliers_pay_total AS
+BEGIN
+   UPDATE suppliers s
+      SET s.pay_total = (
+             SELECT NVL(SUM(amount),0)
+             FROM payments p
+             WHERE p.supplier_id = s.supplier_id
+         ),
+          s.due = NVL(s.purchase_total,0) - NVL((
+             SELECT NVL(SUM(amount),0)
+             FROM payments p
+             WHERE p.supplier_id = s.supplier_id
+          ),0);
+END;
+/
+
+
+CREATE OR REPLACE TRIGGER trg_payments_pay_total
+AFTER INSERT OR UPDATE OR DELETE ON payments
+BEGIN
+   update_suppliers_pay_total;
+END;
+/
+
+--PAY_TOTAL+DUE from PRODUCT_RETURN_MASTER
+----------------------------------------------------------------------------
+
+CREATE OR REPLACE TRIGGER trg_prm_supplier_return
+AFTER INSERT OR UPDATE OR DELETE ON product_return_master
+DECLARE
+BEGIN
+   UPDATE suppliers s
+   SET s.purchase_total =
+       NVL((
+           SELECT NVL(SUM(grand_total),0)
+           FROM product_receive_master prm
+           WHERE prm.supplier_id = s.supplier_id
+       ),0)
+       - NVL((
+           SELECT NVL(SUM(grand_total),0)
+           FROM product_return_master prm_ret
+           WHERE prm_ret.supplier_id = s.supplier_id
+       ),0),
+
+       s.due =
+       NVL((
+           SELECT NVL(SUM(grand_total),0)
+           FROM product_receive_master prm
+           WHERE prm.supplier_id = s.supplier_id
+       ),0)
+       - NVL((
+           SELECT NVL(SUM(grand_total),0)
+           FROM product_return_master prm_ret
+           WHERE prm_ret.supplier_id = s.supplier_id
+       ),0)
+       - NVL(s.pay_total,0);
+END;
+/
+
 
 -- Infrastructure (01, 02, 13, 14)
 INSERT INTO company
@@ -3091,15 +3434,14 @@ DECLARE
     v_service_id VARCHAR2(50);
 BEGIN
     -- Insert master record
-    INSERT INTO service_master (customer_id, invoice_id, service_date, servicelist_id, service_by, service_charge, parts_price, vat, grand_total, warranty_applicable)
+    INSERT INTO service_master (customer_id, invoice_id, invoice_date, service_date, service_by, service_charge_total, vat, grand_total, warranty_applicable)
     VALUES (
         (SELECT customer_id FROM customers WHERE phone_no = '01810000001' AND ROWNUM = 1),
         (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000001' AND ROWNUM = 1) AND ROWNUM = 1),
+        (SELECT invoice_date FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000001' AND ROWNUM = 1) AND ROWNUM = 1),
         SYSDATE - 5,
-        (SELECT servicelist_id FROM service_list WHERE service_name = 'TV Repair Service' AND ROWNUM = 1),
         (SELECT employee_id FROM employees WHERE first_name = 'Mominul' AND last_name = 'Haque' AND ROWNUM = 1),
-        2500,
-        3500,
+        (SELECT SUM(service_charge) FROM service_details WHERE service_id = v_service_id),
         900,
         6900,
         'Y'
@@ -3107,15 +3449,17 @@ BEGIN
     RETURNING service_id INTO v_service_id;
     
     -- Insert detail records
-    INSERT INTO service_details (service_id, product_id, parts_id, quantity, parts_price, line_total, warranty_status, description)
+    INSERT INTO service_details (service_id, product_id, servicelist_id, parts_id, quantity, service_charge, parts_price, line_total, warranty_status, description)
     VALUES (v_service_id, 
         (SELECT product_id FROM products WHERE product_code = 'WAL-TV-0512' AND ROWNUM = 1),
-        (SELECT parts_id FROM parts WHERE parts_name = 'LED TV Motherboard' AND ROWNUM = 1), 1, 2000, 2000, 'Y', 'Replaced defective LED TV motherboard due to power surge damage');
+        (SELECT servicelist_id FROM service_list WHERE service_name = 'TV Repair Service' AND ROWNUM = 1),
+        (SELECT parts_id FROM parts WHERE parts_name = 'LED TV Motherboard' AND ROWNUM = 1), 1, 1250, 2000, 3250, 'Y', 'Replaced defective LED TV motherboard due to power surge damage');
     
-    INSERT INTO service_details (service_id, product_id, parts_id, quantity, parts_price, line_total, warranty_status, description)
+    INSERT INTO service_details (service_id, product_id, servicelist_id, parts_id, quantity, service_charge, parts_price, line_total, warranty_status, description)
     VALUES (v_service_id, 
         (SELECT product_id FROM products WHERE product_code = 'WAL-TV-0512' AND ROWNUM = 1),
-        (SELECT parts_id FROM parts WHERE parts_name = 'LED TV Display Panel' AND ROWNUM = 1), 1, 1500, 1500, 'Y', 'Replaced cracked display panel after physical impact');
+        (SELECT servicelist_id FROM service_list WHERE service_name = 'TV Repair Service' AND ROWNUM = 1),
+        (SELECT parts_id FROM parts WHERE parts_name = 'LED TV Display Panel' AND ROWNUM = 1), 1, 1250, 1500, 2750, 'Y', 'Replaced cracked display panel after physical impact');
     
     COMMIT;
 END;
@@ -3126,15 +3470,14 @@ DECLARE
     v_service_id VARCHAR2(50);
 BEGIN
     -- Insert master record
-    INSERT INTO service_master (customer_id, invoice_id, service_date, servicelist_id, service_by, service_charge, parts_price, vat, grand_total, warranty_applicable)
+    INSERT INTO service_master (customer_id, invoice_id, invoice_date, service_date, service_by, service_charge_total, vat, grand_total, warranty_applicable)
     VALUES (
         (SELECT customer_id FROM customers WHERE phone_no = '01810000002' AND ROWNUM = 1),
         (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000002' AND ROWNUM = 1) AND ROWNUM = 1),
+        (SELECT invoice_date FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000002' AND ROWNUM = 1) AND ROWNUM = 1),
         SYSDATE - 3,
-        (SELECT servicelist_id FROM service_list WHERE service_name = 'AC Servicing' AND ROWNUM = 1),
         (SELECT employee_id FROM employees WHERE first_name = 'Ariful' AND last_name = 'Islam' AND ROWNUM = 1),
-        1800,
-        2200,
+        (SELECT SUM(service_charge) FROM service_details WHERE service_id = v_service_id),
         600,
         4600,
         'N'
@@ -3142,7 +3485,7 @@ BEGIN
     RETURNING service_id INTO v_service_id;
     
     -- Insert detail records
-    INSERT INTO service_details (service_id, product_id, parts_id, quantity, parts_price, line_total, warranty_status, description)
+    INSERT INTO service_details (service_id, product_id, servicelist_id, parts_id, quantity, service_charge, parts_price, line_total, warranty_status, description)
     VALUES (v_service_id, 
         (SELECT d.product_id FROM sales_detail d 
          JOIN sales_master m ON d.invoice_id = m.invoice_id 
@@ -3150,9 +3493,10 @@ BEGIN
          JOIN product_categories pc ON p.category_id = pc.product_cat_id
          WHERE m.customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000002' AND ROWNUM = 1)
          AND pc.product_cat_name LIKE '%Air Conditioner%' AND ROWNUM = 1),
-        (SELECT parts_id FROM parts WHERE parts_name = 'AC Outdoor Fan Motor' AND ROWNUM = 1), 1, 1200, 1200, 'N', 'Replaced outdoor fan motor - warranty void due to improper installation by unauthorized technician');
+        (SELECT servicelist_id FROM service_list WHERE service_name = 'AC Servicing' AND ROWNUM = 1),
+        (SELECT parts_id FROM parts WHERE parts_name = 'AC Outdoor Fan Motor' AND ROWNUM = 1), 1, 900, 1200, 2100, 'N', 'Replaced outdoor fan motor - warranty void due to improper installation by unauthorized technician');
     
-    INSERT INTO service_details (service_id, product_id, parts_id, quantity, parts_price, line_total, warranty_status, description)
+    INSERT INTO service_details (service_id, product_id, servicelist_id, parts_id, quantity, service_charge, parts_price, line_total, warranty_status, description)
     VALUES (v_service_id, 
         (SELECT d.product_id FROM sales_detail d 
          JOIN sales_master m ON d.invoice_id = m.invoice_id 
@@ -3160,7 +3504,8 @@ BEGIN
          JOIN product_categories pc ON p.category_id = pc.product_cat_id
          WHERE m.customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000002' AND ROWNUM = 1)
          AND pc.product_cat_name LIKE '%Air Conditioner%' AND ROWNUM = 1),
-        (SELECT parts_id FROM parts WHERE parts_name = 'AC Remote Controller' AND ROWNUM = 1), 1, 1000, 1000, 'N', 'Remote replacement not covered - physical damage due to customer mishandling');
+        (SELECT servicelist_id FROM service_list WHERE service_name = 'AC Servicing' AND ROWNUM = 1),
+        (SELECT parts_id FROM parts WHERE parts_name = 'AC Remote Controller' AND ROWNUM = 1), 1, 900, 1000, 1900, 'N', 'Remote replacement not covered - physical damage due to customer mishandling');
     
     COMMIT;
 END;
@@ -3170,15 +3515,14 @@ END;
 DECLARE
     v_service_id VARCHAR2(50);
 BEGIN
-    INSERT INTO service_master (customer_id, invoice_id, service_date, servicelist_id, service_by, service_charge, parts_price, vat, grand_total, warranty_applicable)
+    INSERT INTO service_master (customer_id, invoice_id, invoice_date, service_date, service_by, service_charge_total, vat, grand_total, warranty_applicable)
     VALUES (
         (SELECT customer_id FROM customers WHERE phone_no = '01810000003' AND ROWNUM = 1),
         (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000003' AND ROWNUM = 1) AND ROWNUM = 1),
+        (SELECT invoice_date FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000003' AND ROWNUM = 1) AND ROWNUM = 1),
         SYSDATE - 2,
-        (SELECT servicelist_id FROM service_list WHERE service_name = 'Refrigerator Repair' AND ROWNUM = 1),
         (SELECT employee_id FROM employees WHERE first_name = 'Keya' AND last_name = 'Payel' AND ROWNUM = 1),
-        2200,
-        4500,
+        (SELECT SUM(service_charge) FROM service_details WHERE service_id = v_service_id),
         1005,
         7705,
         'N'
@@ -3213,15 +3557,14 @@ END;
 DECLARE
     v_service_id VARCHAR2(50);
 BEGIN
-    INSERT INTO service_master (customer_id, invoice_id, service_date, servicelist_id, service_by, service_charge, parts_price, vat, grand_total, warranty_applicable)
+    INSERT INTO service_master (customer_id, invoice_id, invoice_date, service_date, service_by, service_charge_total, vat, grand_total, warranty_applicable)
     VALUES (
         (SELECT customer_id FROM customers WHERE phone_no = '01810000004' AND ROWNUM = 1),
         (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000004' AND ROWNUM = 1) AND ROWNUM = 1),
+        (SELECT invoice_date FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000004' AND ROWNUM = 1) AND ROWNUM = 1),
         SYSDATE - 1,
-        (SELECT servicelist_id FROM service_list WHERE service_name = 'Washing Machine Repair' AND ROWNUM = 1),
         (SELECT employee_id FROM employees WHERE first_name = 'Imtiaz' AND last_name = 'Bulbul' AND ROWNUM = 1),
-        1500,
-        1800,
+        (SELECT SUM(service_charge) FROM service_details WHERE service_id = v_service_id),
         495,
         3795,
         'N'
@@ -3246,15 +3589,14 @@ END;
 DECLARE
     v_service_id VARCHAR2(50);
 BEGIN
-    INSERT INTO service_master (customer_id, invoice_id, service_date, servicelist_id, service_by, service_charge, parts_price, vat, grand_total, warranty_applicable)
+    INSERT INTO service_master (customer_id, invoice_id, invoice_date, service_date, service_by, service_charge_total, vat, grand_total, warranty_applicable)
     VALUES (
         (SELECT customer_id FROM customers WHERE phone_no = '01810000005' AND ROWNUM = 1),
         (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000005' AND ROWNUM = 1) AND ROWNUM = 1),
+        (SELECT invoice_date FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000005' AND ROWNUM = 1) AND ROWNUM = 1),
         SYSDATE - 4,
-        (SELECT servicelist_id FROM service_list WHERE service_name = 'Laptop / Computer Repair' AND ROWNUM = 1),
         (SELECT employee_id FROM employees WHERE first_name = 'Ariful' AND last_name = 'Islam' AND ROWNUM = 1),
-        3000,
-        2500,
+        (SELECT SUM(service_charge) FROM service_details WHERE service_id = v_service_id),
         825,
         6325,
         'N'
@@ -3289,15 +3631,14 @@ END;
 DECLARE
     v_service_id VARCHAR2(50);
 BEGIN
-    INSERT INTO service_master (customer_id, invoice_id, service_date, servicelist_id, service_by, service_charge, parts_price, vat, grand_total, warranty_applicable)
+    INSERT INTO service_master (customer_id, invoice_id, invoice_date, service_date, service_by, service_charge_total, vat, grand_total, warranty_applicable)
     VALUES (
         (SELECT customer_id FROM customers WHERE phone_no = '01810000006' AND ROWNUM = 1),
         (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000006' AND ROWNUM = 1) AND ROWNUM = 1),
+        (SELECT invoice_date FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000006' AND ROWNUM = 1) AND ROWNUM = 1),
         SYSDATE - 10,
-        (SELECT servicelist_id FROM service_list WHERE service_name = 'TV Installation' AND ROWNUM = 1),
         (SELECT employee_id FROM employees WHERE first_name = 'Mominul' AND last_name = 'Haque' AND ROWNUM = 1),
-        1200,
-        1500,
+        (SELECT SUM(service_charge) FROM service_details WHERE service_id = v_service_id),
         405,
         3105,
         'Y'
@@ -3317,15 +3658,14 @@ END;
 DECLARE
     v_service_id VARCHAR2(50);
 BEGIN
-    INSERT INTO service_master (customer_id, invoice_id, service_date, servicelist_id, service_by, service_charge, parts_price, vat, grand_total, warranty_applicable)
+    INSERT INTO service_master (customer_id, invoice_id, invoice_date, service_date, service_by, service_charge_total, vat, grand_total, warranty_applicable)
     VALUES (
         (SELECT customer_id FROM customers WHERE phone_no = '01810000007' AND ROWNUM = 1),
         (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000007' AND ROWNUM = 1) AND ROWNUM = 1),
+        (SELECT invoice_date FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000007' AND ROWNUM = 1) AND ROWNUM = 1),
         SYSDATE - 8,
-        (SELECT servicelist_id FROM service_list WHERE service_name = 'AC Installation' AND ROWNUM = 1),
         (SELECT employee_id FROM employees WHERE first_name = 'Keya' AND last_name = 'Payel' AND ROWNUM = 1),
-        2500,
-        2000,
+        (SELECT SUM(service_charge) FROM service_details WHERE service_id = v_service_id),
         675,
         5175,
         'Y'
@@ -3350,15 +3690,14 @@ END;
 DECLARE
     v_service_id VARCHAR2(50);
 BEGIN
-    INSERT INTO service_master (customer_id, invoice_id, service_date, servicelist_id, service_by, service_charge, parts_price, vat, grand_total, warranty_applicable)
+    INSERT INTO service_master (customer_id, invoice_id, invoice_date, service_date, service_by, service_charge_total, vat, grand_total, warranty_applicable)
     VALUES (
         (SELECT customer_id FROM customers WHERE phone_no = '01810000008' AND ROWNUM = 1),
         (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000008' AND ROWNUM = 1) AND ROWNUM = 1),
+        (SELECT invoice_date FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000008' AND ROWNUM = 1) AND ROWNUM = 1),
         SYSDATE - 6,
-        (SELECT servicelist_id FROM service_list WHERE service_name = 'Microwave Oven Repair' AND ROWNUM = 1),
         (SELECT employee_id FROM employees WHERE first_name = 'Imtiaz' AND last_name = 'Bulbul' AND ROWNUM = 1),
-        1200,
-        2800,
+        (SELECT SUM(service_charge) FROM service_details WHERE service_id = v_service_id),
         600,
         4600,
         'N'
@@ -3383,15 +3722,14 @@ END;
 DECLARE
     v_service_id VARCHAR2(50);
 BEGIN
-    INSERT INTO service_master (customer_id, invoice_id, service_date, servicelist_id, service_by, service_charge, parts_price, vat, grand_total, warranty_applicable)
+    INSERT INTO service_master (customer_id, invoice_id, invoice_date, service_date, service_by, service_charge_total, vat, grand_total, warranty_applicable)
     VALUES (
         (SELECT customer_id FROM customers WHERE phone_no = '01810000009' AND ROWNUM = 1),
         (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000009' AND ROWNUM = 1) AND ROWNUM = 1),
+        (SELECT invoice_date FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000009' AND ROWNUM = 1) AND ROWNUM = 1),
         SYSDATE - 7,
-        (SELECT servicelist_id FROM service_list WHERE service_name = 'Mobile Service and Repair' AND ROWNUM = 1),
         (SELECT employee_id FROM employees WHERE first_name = 'Ariful' AND last_name = 'Islam' AND ROWNUM = 1),
-        2200,
-        1500,
+        (SELECT SUM(service_charge) FROM service_details WHERE service_id = v_service_id),
         555,
         4255,
         'Y'
@@ -3416,15 +3754,14 @@ END;
 DECLARE
     v_service_id VARCHAR2(50);
 BEGIN
-    INSERT INTO service_master (customer_id, invoice_id, service_date, servicelist_id, service_by, service_charge, parts_price, vat, grand_total, warranty_applicable)
+    INSERT INTO service_master (customer_id, invoice_id, invoice_date, service_date, service_by, service_charge_total, vat, grand_total, warranty_applicable)
     VALUES (
         (SELECT customer_id FROM customers WHERE phone_no = '01810000010' AND ROWNUM = 1),
         (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000010' AND ROWNUM = 1) AND ROWNUM = 1),
+        (SELECT invoice_date FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000010' AND ROWNUM = 1) AND ROWNUM = 1),
         SYSDATE - 9,
-        (SELECT servicelist_id FROM service_list WHERE service_name = 'Home Appliance Diagnosis' AND ROWNUM = 1),
         (SELECT employee_id FROM employees WHERE first_name = 'Mominul' AND last_name = 'Haque' AND ROWNUM = 1),
-        800,
-        1200,
+        (SELECT SUM(service_charge) FROM service_details WHERE service_id = v_service_id),
         300,
         2300,
         'N'
@@ -3454,82 +3791,12 @@ END;
 -- 36. EXPENSE_MASTER (Business Expenses)
 --------------------------------------------------------------------------------
 
-INSERT INTO expense_master (expense_date, expense_by, remarks)
-VALUES (
-    SYSDATE - 15,
-    (SELECT employee_id FROM employees WHERE first_name = 'Fatima' AND last_name = 'Zohra' AND ROWNUM = 1),
-    'Monthly rent payment'
-);
-
-INSERT INTO expense_master (expense_date, expense_by, remarks)
-VALUES (
-    SYSDATE - 10,
-    (SELECT employee_id FROM employees WHERE first_name = 'Fatima' AND last_name = 'Zohra' AND ROWNUM = 1),
-    'Utility bills - electricity and water'
-);
-
-INSERT INTO expense_master (expense_date, expense_by, remarks)
-VALUES (
-    SYSDATE - 5,
-    (SELECT employee_id FROM employees WHERE first_name = 'Zahid' AND last_name = 'Hasib' AND ROWNUM = 1),
-    'Marketing campaign - digital media'
-);
-
-INSERT INTO expense_master (expense_date, expense_by, remarks)
-VALUES (
-    SYSDATE - 1,
-    (SELECT employee_id FROM employees WHERE first_name = 'Fatima' AND last_name = 'Zohra' AND ROWNUM = 1),
-    'Monthly payroll - all staff salaries'
-);
-
-COMMIT;
 
 
 --------------------------------------------------------------------------------
 -- 37. PAYMENTS (Supplier Payments)
 --------------------------------------------------------------------------------
 
-INSERT INTO payments (supplier_id, payment_date, amount, payment_type)
-VALUES (
-    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Samsung Authorized Distributor' AND ROWNUM = 1),
-    SYSDATE - 10,
-    500000,
-    'BANK'
-);
-
-INSERT INTO payments (supplier_id, payment_date, amount, payment_type)
-VALUES (
-    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'LG Electronics Supplier' AND ROWNUM = 1),
-    SYSDATE - 8,
-    400000,
-    'ONLINE'
-);
-
-INSERT INTO payments (supplier_id, payment_date, amount, payment_type)
-VALUES (
-    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Walton Spare Parts Division' AND ROWNUM = 1),
-    SYSDATE - 6,
-    300000,
-    'CASH'
-);
-
-INSERT INTO payments (supplier_id, payment_date, amount, payment_type)
-VALUES (
-    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Minister Hi-Tech Supplier' AND ROWNUM = 1),
-    SYSDATE - 4,
-    250000,
-    'ONLINE'
-);
-
-INSERT INTO payments (supplier_id, payment_date, amount, payment_type)
-VALUES (
-    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Asian Spare Parts House' AND ROWNUM = 1),
-    SYSDATE - 2,
-    600000,
-    'BANK'
-);
-
-COMMIT;
 
 
 --------------------------------------------------------------------------------
@@ -3610,49 +3877,6 @@ COMMIT;
 --------------------------------------------------------------------------------
 -- 41. EXPENSE_DETAILS (Expense Line Items)
 --------------------------------------------------------------------------------
-
-INSERT INTO expense_details (expense_id, expense_type_id, description, amount, quantity, line_total)
-VALUES (
-    'EXM1',
-    (SELECT expense_type_id FROM expense_list WHERE type_name = 'Staff Salary' AND ROWNUM = 1),
-    'Monthly salary for 10 sales staff',
-    45000,
-    10,
-    450000
-);
-
-INSERT INTO expense_details (expense_id, expense_type_id, description, amount, quantity, line_total)
-VALUES (
-    'EXM2',
-    (SELECT expense_type_id FROM expense_list WHERE type_name = 'Utility Bills' AND ROWNUM = 1),
-    'Electricity, water, internet for December',
-    8000,
-    1,
-    8000
-);
-
-INSERT INTO expense_details (expense_id, expense_type_id, description, amount, quantity, line_total)
-VALUES (
-    'EXM3',
-    (SELECT expense_type_id FROM expense_list WHERE type_name = 'Office Rent' AND ROWNUM = 1),
-    'Monthly shop rent - Mirpur location',
-    50000,
-    1,
-    50000
-);
-
-INSERT INTO expense_details (expense_id, expense_type_id, description, amount, quantity, line_total)
-VALUES (
-    'EXM4',
-    (SELECT expense_type_id FROM expense_list WHERE type_name = 'Transport and Delivery Cost' AND ROWNUM = 1),
-    'Courier charges for product delivery',
-    500,
-    8,
-    4000
-);
-
-COMMIT;
-
 
 --------------------------------------------------------------------------------
 -- 42. DAMAGE_DETAIL - No seed data; use triggers for actual damage transactions
