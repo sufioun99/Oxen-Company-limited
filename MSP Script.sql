@@ -935,17 +935,18 @@ END;
 -- 21. DAMAGE
 --------------------------------------------------------------------------------
 CREATE TABLE damage (
-    damage_id    VARCHAR2(50) PRIMARY KEY,
-    damage_date  DATE DEFAULT SYSDATE,
-	reference_no   VARCHAR2(100),
-    total_loss   NUMBER DEFAULT 0,
-    status       NUMBER,
-	approved_by    VARCHAR2(100),
-    approval_date  DATE,
-    cre_by       VARCHAR2(100),
-    cre_dt       DATE,
-    upd_by       VARCHAR2(100),
-    upd_dt       DATE
+ damage_id VARCHAR2(50) PRIMARY KEY,
+ damage_date DATE DEFAULT SYSDATE,
+ reference_no VARCHAR2(100), -- New: Link to Sales/Purchase doc
+ total_loss NUMBER DEFAULT 0,
+ status NUMBER DEFAULT 1, -- 1: Draft, 2: Approved, 3: Cancelled
+ approved_by VARCHAR2(100),
+ approval_date DATE,
+ cre_by VARCHAR2(100),
+ cre_dt DATE,
+ upd_by VARCHAR2(100),
+ upd_dt DATE, 
+    CONSTRAINT fk_dmg_emp FOREIGN KEY (approved_by) REFERENCES employees(employee_id)
 );
 
 CREATE SEQUENCE damage_seq START WITH 1 INCREMENT BY 1 NOCACHE NOCYCLE;
@@ -1101,11 +1102,11 @@ END;
 FOR INSERT OR UPDATE OR DELETE ON sales_detail
 COMPOUND TRIGGER
 
-  -- এফেক্টেড ইনভয়েস আইডি রাখার লিস্ট
+  -- Collection to track affected invoice IDs
   TYPE t_inv_list IS TABLE OF sales_detail.invoice_id%TYPE INDEX BY PLS_INTEGER;
   v_inv_ids t_inv_list;
 
-  -- ১. কোন ইনভয়েসে চেঞ্জ হচ্ছে তা নোট করা
+  -- Track which invoices are modified
   AFTER EACH ROW IS
   BEGIN
     IF INSERTING OR UPDATING THEN
@@ -1125,13 +1126,13 @@ COMPOUND TRIGGER
   BEGIN
     FOR i IN 1 .. v_inv_ids.COUNT LOOP
       
-      -- টোটাল বের করা
+      -- Calculate total from detail rows
       SELECT NVL(SUM(mrp * quantity), 0)
       INTO v_total
       FROM sales_detail
       WHERE invoice_id = v_inv_ids(i);
       
-      -- মাস্টার টেবিল থেকে ডিসকাউন্ট, ভ্যাট, অ্যাডজাস্টমেন্ট আনা
+      -- Get discount, VAT, adjustment from master
       SELECT NVL(discount,0), NVL(vat,0), NVL(adjust_amount,0)
       INTO v_discount, v_vat, v_adj_amount
       FROM sales_master
@@ -1142,10 +1143,10 @@ COMPOUND TRIGGER
       
       v_grand_total := (v_total - v_discount - v_adj_amount) * (1 + v_vat/100);
 
-      -- আপডেট
+      -- Update master with calculated totals
       UPDATE sales_master
       SET total_amount = v_total,
-          grand_total = ROUND(v_grand_total, 2) -- দশমিকের পর ২ ঘর রাখা ভালো
+          grand_total = ROUND(v_grand_total, 2)
       WHERE invoice_id = v_inv_ids(i);
       
     END LOOP;
@@ -1586,54 +1587,7 @@ END IF;
 END;
 /
 
--- Auto-update stock when damage details change (write-offs)
--- Stock automation trigger disabled - using manual stock inserts
-/*
-CREATE OR REPLACE TRIGGER trg_stock_on_damage_det
-AFTER INSERT OR UPDATE OR DELETE ON damage_detail
-FOR EACH ROW
-DECLARE
-    v_target_product damage_detail.product_id%TYPE;
-    v_stock_id       stock.stock_id%TYPE;
-    v_curr_qty       stock.quantity%TYPE;
-    v_delta          NUMBER := 0;
-BEGIN
-    IF INSERTING OR UPDATING THEN
-        v_target_product := :NEW.product_id;
-    ELSE
-        v_target_product := :OLD.product_id;
-    END IF;
 
-    IF INSERTING THEN
-        v_delta := -NVL(:NEW.damage_quantity,0);
-    ELSIF DELETING THEN
-        v_delta := NVL(:OLD.damage_quantity,0);
-    ELSE
-        IF :NEW.product_id = :OLD.product_id THEN
-            v_delta := -(NVL(:NEW.damage_quantity,0) - NVL(:OLD.damage_quantity,0));
-        ELSE
-            -- Product changed: add back old quantity then deduct new
-            SELECT stock_id, quantity INTO v_stock_id, v_curr_qty
-            FROM stock WHERE product_id = :OLD.product_id
-            FOR UPDATE;
-            UPDATE stock SET quantity = v_curr_qty + NVL(:OLD.damage_quantity,0) WHERE stock_id = v_stock_id;
-            v_delta := -NVL(:NEW.damage_quantity,0);
-        END IF;
-    END IF;
-
-    IF v_delta <> 0 THEN
-        SELECT stock_id, quantity INTO v_stock_id, v_curr_qty
-        FROM stock WHERE product_id = v_target_product
-        FOR UPDATE;
-        IF v_curr_qty + v_delta < 0 THEN
-            RAISE_APPLICATION_ERROR(-20015, 'Stock cannot go negative on damage write-off');
-        END IF;
-        UPDATE stock
-        SET quantity = v_curr_qty + v_delta
-        WHERE stock_id = v_stock_id;
-    END IF;
-END;
-*/
 /
 
 -- Keep damage master audit columns current when any damage detail changes
@@ -3781,20 +3735,26 @@ BEGIN
 END;
 /
 
+-- Trigger on sales_return_details to automatically adjust stock
+-- Sales returns INCREASE stock (products coming back to inventory)
 CREATE OR REPLACE TRIGGER trg_auto_stock_sales_return
 AFTER INSERT OR UPDATE OR DELETE ON sales_return_details
 FOR EACH ROW
 BEGIN
     IF INSERTING THEN
-        UPDATE_STOCK_QTY(:NEW.product_id, :NEW.quantity);
+        -- Customer returns product, add back to stock (POSITIVE)
+        UPDATE_STOCK_QTY(:NEW.product_id, NVL(:NEW.qty_return, 0));
     ELSIF DELETING THEN
-        UPDATE_STOCK_QTY(:OLD.product_id, -:OLD.quantity);
+        -- Cancel return record, remove from stock (NEGATIVE)
+        UPDATE_STOCK_QTY(:OLD.product_id, -NVL(:OLD.qty_return, 0));
     ELSIF UPDATING THEN
         IF :OLD.product_id != :NEW.product_id THEN
-            UPDATE_STOCK_QTY(:OLD.product_id, -:OLD.quantity);
-            UPDATE_STOCK_QTY(:NEW.product_id, :NEW.quantity);
+            -- Product changed: reverse old product and add to new product
+            UPDATE_STOCK_QTY(:OLD.product_id, -NVL(:OLD.qty_return, 0));
+            UPDATE_STOCK_QTY(:NEW.product_id, NVL(:NEW.qty_return, 0));
         ELSE
-            UPDATE_STOCK_QTY(:NEW.product_id, :NEW.quantity - :OLD.quantity);
+            -- Same product, different quantity: adjust by difference
+            UPDATE_STOCK_QTY(:NEW.product_id, NVL(:NEW.qty_return, 0) - NVL(:OLD.qty_return, 0));
         END IF;
     END IF;
 END;
@@ -3836,72 +3796,3 @@ BEGIN
     END IF;
 END;
 /
-/* 
-IF NEEDED THEN......
-BEGIN
-    -- ১. স্টক টেবিল ক্লিয়ার করা
-    DELETE FROM stock;
-    
-    -- ২. ম্যানুয়াল ইনিশিয়াল স্টক ইনসার্ট করা (যদি রিসিভ ডিটেইলস না থাকে)
-    -- তোমার স্ক্রিপ্টের ম্যানুয়াল স্টক ইনসার্টগুলো এখানে রাখতে পারো, 
-    -- অথবা প্রোডাক্ট রিসিভ টেবিল থেকে অটোমেটিক আনতে পারো।
-    
-    -- উদাহরণ: রিসিভ থেকে স্টক জেনারেট করা
-    FOR r IN (SELECT product_id, SUM(receive_quantity) as qty FROM product_receive_details GROUP BY product_id) LOOP
-        UPDATE_STOCK_QTY(r.product_id, r.qty);
-    END LOOP;
-
-    -- ৩. সেলস থেকে স্টক মাইনাস করা
-    FOR s IN (SELECT product_id, SUM(quantity) as qty FROM sales_detail GROUP BY product_id) LOOP
-        UPDATE_STOCK_QTY(s.product_id, -s.qty);
-    END LOOP;
-*/
-
---change sales_return
-CREATE OR REPLACE TRIGGER trg_auto_stock_sales_return
-AFTER INSERT OR UPDATE OR DELETE ON sales_return_details
-FOR EACH ROW
-BEGIN
-    IF INSERTING THEN
-        -- ভুল ছিল: :NEW.quantity (এটা ইনভয়েস কোয়ান্টিটি ৪)
-        -- সঠিক হবে: :NEW.qty_return (এটা রিটার্ন কোয়ান্টিটি ২)
-        UPDATE_STOCK_QTY(:NEW.product_id, NVL(:NEW.qty_return, 0));
-        
-    ELSIF DELETING THEN
-        UPDATE_STOCK_QTY(:OLD.product_id, -NVL(:OLD.qty_return, 0));
-        
-    ELSIF UPDATING THEN
-        IF :OLD.product_id != :NEW.product_id THEN
-            UPDATE_STOCK_QTY(:OLD.product_id, -NVL(:OLD.qty_return, 0));
-            UPDATE_STOCK_QTY(:NEW.product_id, NVL(:NEW.qty_return, 0));
-        ELSE
-            UPDATE_STOCK_QTY(:NEW.product_id, NVL(:NEW.qty_return, 0) - NVL(:OLD.qty_return, 0));
-        END IF;
-    END IF;
-END;
-/
--- change purchase_return trigger 
-CREATE OR REPLACE TRIGGER trg_auto_stock_purchase_return
-AFTER INSERT OR UPDATE OR DELETE ON product_return_details
-FOR EACH ROW
-BEGIN
-    IF INSERTING THEN
-        -- NVL(:NEW.return_quantity, 0) ব্যবহার করা হয়েছে যাতে খালি থাকলে ০ ধরে নেয়
-        UPDATE_STOCK_QTY(:NEW.product_id, -NVL(:NEW.return_quantity, 0));
-    ELSIF DELETING THEN
-        UPDATE_STOCK_QTY(:OLD.product_id, NVL(:OLD.return_quantity, 0));
-    ELSIF UPDATING THEN
-        IF :OLD.product_id != :NEW.product_id THEN
-            UPDATE_STOCK_QTY(:OLD.product_id, NVL(:OLD.return_quantity, 0));
-            UPDATE_STOCK_QTY(:NEW.product_id, -NVL(:NEW.return_quantity, 0));
-        ELSE
-            UPDATE_STOCK_QTY(:NEW.product_id, -(NVL(:NEW.return_quantity, 0) - NVL(:OLD.return_quantity, 0)));
-        END IF;
-    END IF;
-END;
-/
-
-
-    
-    -- ৪. রিটার্ন এবং ড্যামেজ একইভাবে হ্যান্ডেল করতে হবে...
-    COMMIT;
