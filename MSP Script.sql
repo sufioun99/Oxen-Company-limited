@@ -937,8 +937,11 @@ END;
 CREATE TABLE damage (
     damage_id    VARCHAR2(50) PRIMARY KEY,
     damage_date  DATE DEFAULT SYSDATE,
+	reference_no   VARCHAR2(100),
     total_loss   NUMBER DEFAULT 0,
     status       NUMBER,
+	approved_by    VARCHAR2(100),
+    approval_date  DATE,
     cre_by       VARCHAR2(100),
     cre_dt       DATE,
     upd_by       VARCHAR2(100),
