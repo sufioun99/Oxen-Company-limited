@@ -1102,11 +1102,11 @@ END;
 FOR INSERT OR UPDATE OR DELETE ON sales_detail
 COMPOUND TRIGGER
 
-  -- Collection to track affected invoice IDs
+  -- এফেক্টেড ইনভয়েস আইডি রাখার লিস্ট
   TYPE t_inv_list IS TABLE OF sales_detail.invoice_id%TYPE INDEX BY PLS_INTEGER;
   v_inv_ids t_inv_list;
 
-  -- Track which invoices are modified
+  -- ১. কোন ইনভয়েসে চেঞ্জ হচ্ছে তা নোট করা
   AFTER EACH ROW IS
   BEGIN
     IF INSERTING OR UPDATING THEN
@@ -1126,13 +1126,13 @@ COMPOUND TRIGGER
   BEGIN
     FOR i IN 1 .. v_inv_ids.COUNT LOOP
       
-      -- Calculate total from detail rows
+      -- টোটাল বের করা
       SELECT NVL(SUM(mrp * quantity), 0)
       INTO v_total
       FROM sales_detail
       WHERE invoice_id = v_inv_ids(i);
       
-      -- Get discount, VAT, adjustment from master
+      -- মাস্টার টেবিল থেকে ডিসকাউন্ট, ভ্যাট, অ্যাডজাস্টমেন্ট আনা
       SELECT NVL(discount,0), NVL(vat,0), NVL(adjust_amount,0)
       INTO v_discount, v_vat, v_adj_amount
       FROM sales_master
@@ -1143,10 +1143,10 @@ COMPOUND TRIGGER
       
       v_grand_total := (v_total - v_discount - v_adj_amount) * (1 + v_vat/100);
 
-      -- Update master with calculated totals
+      -- আপডেট
       UPDATE sales_master
       SET total_amount = v_total,
-          grand_total = ROUND(v_grand_total, 2)
+          grand_total = ROUND(v_grand_total, 2) -- দশমিকের পর ২ ঘর রাখা ভালো
       WHERE invoice_id = v_inv_ids(i);
       
     END LOOP;
@@ -1587,7 +1587,54 @@ END IF;
 END;
 /
 
+-- Auto-update stock when damage details change (write-offs)
+-- Stock automation trigger disabled - using manual stock inserts
+/*
+CREATE OR REPLACE TRIGGER trg_stock_on_damage_det
+AFTER INSERT OR UPDATE OR DELETE ON damage_detail
+FOR EACH ROW
+DECLARE
+    v_target_product damage_detail.product_id%TYPE;
+    v_stock_id       stock.stock_id%TYPE;
+    v_curr_qty       stock.quantity%TYPE;
+    v_delta          NUMBER := 0;
+BEGIN
+    IF INSERTING OR UPDATING THEN
+        v_target_product := :NEW.product_id;
+    ELSE
+        v_target_product := :OLD.product_id;
+    END IF;
 
+    IF INSERTING THEN
+        v_delta := -NVL(:NEW.damage_quantity,0);
+    ELSIF DELETING THEN
+        v_delta := NVL(:OLD.damage_quantity,0);
+    ELSE
+        IF :NEW.product_id = :OLD.product_id THEN
+            v_delta := -(NVL(:NEW.damage_quantity,0) - NVL(:OLD.damage_quantity,0));
+        ELSE
+            -- Product changed: add back old quantity then deduct new
+            SELECT stock_id, quantity INTO v_stock_id, v_curr_qty
+            FROM stock WHERE product_id = :OLD.product_id
+            FOR UPDATE;
+            UPDATE stock SET quantity = v_curr_qty + NVL(:OLD.damage_quantity,0) WHERE stock_id = v_stock_id;
+            v_delta := -NVL(:NEW.damage_quantity,0);
+        END IF;
+    END IF;
+
+    IF v_delta <> 0 THEN
+        SELECT stock_id, quantity INTO v_stock_id, v_curr_qty
+        FROM stock WHERE product_id = v_target_product
+        FOR UPDATE;
+        IF v_curr_qty + v_delta < 0 THEN
+            RAISE_APPLICATION_ERROR(-20015, 'Stock cannot go negative on damage write-off');
+        END IF;
+        UPDATE stock
+        SET quantity = v_curr_qty + v_delta
+        WHERE stock_id = v_stock_id;
+    END IF;
+END;
+*/
 /
 
 -- Keep damage master audit columns current when any damage detail changes
@@ -1883,7 +1930,7 @@ BEGIN
             INTO v_inv_date, v_warranty
             FROM sales_master m
             JOIN sales_detail d ON m.invoice_id = d.invoice_id
-            JOIN products p ON d.product_id = p.product_id
+            JOIN products p ON d.product_id = p.product_id AND p.status = 1
             WHERE m.invoice_id = :NEW.invoice_id
             AND ROWNUM = 1;
 
@@ -2505,50 +2552,81 @@ VALUES ('PWR-BOARD', 'LED TV Power Supply Board', 1500, 2500,
  (SELECT parts_cat_id FROM parts_category 
   WHERE parts_cat_name='Power Supply and Boards' AND ROWNUM=1));
 
+-- Mobile and Smartphone Spare Parts
+INSERT INTO parts (parts_code, parts_name, purchase_price, mrp, parts_cat_id)
+VALUES ('MOB-BAT-S24', 'Samsung Galaxy S24 Battery', 1200, 1800,
+ (SELECT parts_cat_id FROM parts_category 
+  WHERE parts_cat_name='Mobile Accessories and Parts' AND ROWNUM=1));
+
+INSERT INTO parts (parts_code, parts_name, purchase_price, mrp, parts_cat_id)
+VALUES ('MOB-DSP-S24', 'Samsung Galaxy S24 Display Panel', 2500, 3500,
+ (SELECT parts_cat_id FROM parts_category 
+  WHERE parts_cat_name='Mobile Accessories and Parts' AND ROWNUM=1));
+
+INSERT INTO parts (parts_code, parts_name, purchase_price, mrp, parts_cat_id)
+VALUES ('MOB-BAT-GEN', 'Generic Smartphone Battery', 800, 1200,
+ (SELECT parts_cat_id FROM parts_category 
+  WHERE parts_cat_name='Mobile Accessories and Parts' AND ROWNUM=1));
+
+INSERT INTO parts (parts_code, parts_name, purchase_price, mrp, parts_cat_id)
+VALUES ('MOB-SCR-GEN', 'Generic Mobile Screen Protector', 150, 300,
+ (SELECT parts_cat_id FROM parts_category 
+  WHERE parts_cat_name='Mobile Accessories and Parts' AND ROWNUM=1));
+
+INSERT INTO parts (parts_code, parts_name, purchase_price, mrp, parts_cat_id)
+VALUES ('MOB-CHG-USB', 'USB Type-C Mobile Charger', 400, 700,
+ (SELECT parts_cat_id FROM parts_category 
+  WHERE parts_cat_name='Mobile Accessories and Parts' AND ROWNUM=1));
+
+INSERT INTO parts (parts_code, parts_name, purchase_price, mrp, parts_cat_id)
+VALUES ('MOB-CASE', 'Universal Mobile Phone Case', 250, 500,
+ (SELECT parts_cat_id FROM parts_category 
+  WHERE parts_cat_name='Mobile Accessories and Parts' AND ROWNUM=1));
+
 
 --------------------------------------------------------------------------------
 -- 13. DEPARTMENTS (Matching Employee FKs)
 --------------------------------------------------------------------------------
 -- Data referenced by first set of employees
 INSERT INTO departments (department_id, department_name, company_id) 
-VALUES ('PRO101', 'Procurement and Sourcing', (SELECT company_id FROM company WHERE ROWNUM = 1));
+VALUES ('PRO101', 'Procurement and Sourcing', (SELECT company_id FROM company WHERE status = 1 AND ROWNUM = 1));
 
 INSERT INTO departments (department_id, department_name, company_id) 
-VALUES ('LOG116', 'Logistics and Supply Chain', (SELECT company_id FROM company WHERE ROWNUM = 1));
+VALUES ('LOG116', 'Logistics and Supply Chain', (SELECT company_id FROM company WHERE status = 1 AND ROWNUM = 1));
 
 INSERT INTO departments (department_id, department_name, company_id) 
-VALUES ('IT 106', 'IT Operations', (SELECT company_id FROM company WHERE ROWNUM = 1));
+VALUES ('IT 106', 'IT Operations', (SELECT company_id FROM company WHERE status = 1 AND ROWNUM = 1));
 
 INSERT INTO departments (department_id, department_name, company_id) 
-VALUES ('HUM111', 'Human Resources', (SELECT company_id FROM company WHERE ROWNUM = 1));
+VALUES ('HUM111', 'Human Resources', (SELECT company_id FROM company WHERE status = 1 AND ROWNUM = 1));
 
 INSERT INTO departments (department_id, department_name, company_id) 
-VALUES ('ACC96', 'Finance and Accounting', (SELECT company_id FROM company WHERE ROWNUM = 1));
+VALUES ('ACC96', 'Finance and Accounting', (SELECT company_id FROM company WHERE status = 1 AND ROWNUM = 1));
 
 -- Data referenced by second set of employees
 INSERT INTO departments (department_id, department_name, company_id) 
-VALUES ('SAL41', 'Sales Department', (SELECT company_id FROM company WHERE ROWNUM = 1));
+VALUES ('SAL41', 'Sales Department', (SELECT company_id FROM company WHERE status = 1 AND ROWNUM = 1));
 
 INSERT INTO departments (department_id, department_name, company_id) 
-VALUES ('CUS46', 'Customer Support', (SELECT company_id FROM company WHERE ROWNUM = 1));
+VALUES ('CUS46', 'Customer Support', (SELECT company_id FROM company WHERE status = 1 AND ROWNUM = 1));
 
 INSERT INTO departments (department_id, department_name, company_id) 
-VALUES ('SER51', 'After Sales Service', (SELECT company_id FROM company WHERE ROWNUM = 1));
+VALUES ('SER51', 'After Sales Service', (SELECT company_id FROM company WHERE status = 1 AND ROWNUM = 1));
 
 INSERT INTO departments (department_id, department_name, company_id) 
-VALUES ('ACC56', 'Corporate Accounts', (SELECT company_id FROM company WHERE ROWNUM = 1));
+VALUES ('ACC56', 'Corporate Accounts', (SELECT company_id FROM company WHERE status = 1 AND ROWNUM = 1));
 
 INSERT INTO departments (department_id, department_name, company_id) 
-VALUES ('PRO61', 'General Procurement', (SELECT company_id FROM company WHERE ROWNUM = 1));
+VALUES ('PRO61', 'General Procurement', (SELECT company_id FROM company WHERE status = 1 AND ROWNUM = 1));
 
 INSERT INTO departments (department_id, department_name, company_id) 
-VALUES ('IT 66', 'IT Infrastructure', (SELECT company_id FROM company WHERE ROWNUM = 1));
+VALUES ('IT 66', 'IT Infrastructure', (SELECT company_id FROM company WHERE status = 1 AND ROWNUM = 1));
 
 INSERT INTO departments (department_id, department_name, company_id) 
-VALUES ('HUM71', 'Human Capital Management', (SELECT company_id FROM company WHERE ROWNUM = 1));
+VALUES ('HUM71', 'Human Capital Management', (SELECT company_id FROM company WHERE status = 1 AND ROWNUM = 1));
 
 INSERT INTO departments (department_id, department_name, company_id) 
-VALUES ('LOG76', 'Shipping and Delivery', (SELECT company_id FROM company WHERE ROWNUM = 1));
+VALUES ('LOG76', 'Shipping and Delivery', (SELECT company_id FROM company WHERE status = 1 AND ROWNUM = 1));
 
 
 
@@ -2584,12 +2662,12 @@ VALUES ('Sharmin', 'Begum', 'sharmin.begum@walton.com', '01711110007', 'Khilgaon
 -- 6. Sales Executive (References SALES1 and Manager Rafiqul)
 INSERT INTO employees (first_name, last_name, email, phone_no, address, hire_date, salary, job_id, department_id, manager_id)
 VALUES ('Sadia', 'Akter', 'sadia.akter@walton.com', '01711100002', 'Mirpur, Dhaka', SYSDATE-500, 25000, 
-        'SALES1', 'SAL41', (SELECT employee_id FROM employees WHERE last_name='Hasan' AND ROWNUM=1));
+        'SALES1', 'SAL41', (SELECT employee_id FROM employees WHERE last_name='Hasan' AND status = 1 AND ROWNUM=1));
 
 -- 7. Customer Support (References CSUP2)
 INSERT INTO employees (first_name, last_name, email, phone_no, address, hire_date, salary, job_id, department_id, manager_id)
 VALUES ('Kamal', 'Hossain', 'kamal.hossain@walton.com', '01711100003', 'Banani, Dhaka', SYSDATE-600, 28000, 
-        'CSUP2', 'CUS46', (SELECT employee_id FROM employees WHERE last_name='Hasan' AND ROWNUM=1));
+        'CSUP2', 'CUS46', (SELECT employee_id FROM employees WHERE last_name='Hasan' AND status = 1 AND ROWNUM=1));
 
 -- 8. Service Technician (References TECH3)
 INSERT INTO employees (first_name, last_name, email, phone_no, address, hire_date, salary, job_id, department_id)
@@ -2609,28 +2687,28 @@ VALUES ('Ahsan', 'Kabir', 'ahsan.kabir@walton.com', '01711110008', 'Khilkhet, Dh
 -- 10b. IT Operations Manager (reports to Rafiqul Hasan)
 INSERT INTO employees (first_name, last_name, email, phone_no, address, hire_date, salary, job_id, department_id, manager_id)
 VALUES ('Farid', 'Ahmed', 'farid.ahmed@walton.com', '01733300021', 'Baridhara, Dhaka', SYSDATE-420, 50000,
-    'MGR4', 'IT 106', (SELECT employee_id FROM employees WHERE last_name='Hasan' AND ROWNUM=1));
+    'MGR4', 'IT 106', (SELECT employee_id FROM employees WHERE last_name='Hasan' AND status = 1 AND ROWNUM=1));
 
 -- 10c. Procurement Manager (reports to Rafiqul Hasan)
 INSERT INTO employees (first_name, last_name, email, phone_no, address, hire_date, salary, job_id, department_id, manager_id)
 VALUES ('Salma', 'Chowdhury', 'salma.chowdhury@walton.com', '01733300022', 'Gulshan, Dhaka', SYSDATE-380, 52000,
-    'MGR4', 'PRO101', (SELECT employee_id FROM employees WHERE last_name='Hasan' AND ROWNUM=1));
+    'MGR4', 'PRO101', (SELECT employee_id FROM employees WHERE last_name='Hasan' AND status = 1 AND ROWNUM=1));
 
 
 
 UPDATE employees
-SET manager_id = (SELECT employee_id FROM employees WHERE last_name='Hasan')
+SET manager_id = (SELECT employee_id FROM employees WHERE last_name='Hasan' AND status = 1)
 WHERE last_name <> 'Hasan';
 UPDATE departments
-SET manager_id = (SELECT employee_id FROM employees WHERE last_name='Hasan');
+SET manager_id = (SELECT employee_id FROM employees WHERE last_name='Hasan' AND status = 1);
 
 -- Reassign specific departments to new managers
 UPDATE departments
-SET manager_id = (SELECT employee_id FROM employees WHERE email = 'farid.ahmed@walton.com')
+SET manager_id = (SELECT employee_id FROM employees WHERE email = 'farid.ahmed@walton.com' AND status = 1)
 WHERE department_id = 'IT 106';
 
 UPDATE departments
-SET manager_id = (SELECT employee_id FROM employees WHERE email = 'salma.chowdhury@walton.com')
+SET manager_id = (SELECT employee_id FROM employees WHERE email = 'salma.chowdhury@walton.com' AND status = 1)
 WHERE department_id = 'PRO101';
 
 
@@ -2646,7 +2724,7 @@ VALUES ('Fatima', 'Zohra', 'fatima.z@walton.com', '01722200011', 'Lalmatia, Dhak
 -- 12. Junior Sales Rep (Reporting to Rafiqul Hasan)
 INSERT INTO employees (first_name, last_name, email, phone_no, address, hire_date, salary, job_id, department_id, manager_id)
 VALUES ('Sabbir', 'Ahmed', 'sabbir.a@walton.com', '01722200012', 'Farmgate, Dhaka', SYSDATE-120, 22000, 
-        'SALES1', 'SAL41', (SELECT employee_id FROM employees WHERE last_name='Hasan' AND ROWNUM=1));
+        'SALES1', 'SAL41', (SELECT employee_id FROM employees WHERE last_name='Hasan' AND status = 1 AND ROWNUM=1));
 
 -- 13. Senior Technician
 INSERT INTO employees (first_name, last_name, email, phone_no, address, hire_date, salary, job_id, department_id)
@@ -2697,7 +2775,7 @@ VALUES ('Imtiaz', 'Bulbul', 'imtiaz.b@walton.com', '01722200020', 'Rampura, Dhak
 INSERT INTO product_order_master (supplier_id, order_by, expected_delivery_date, status)
 VALUES (
     (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Samsung Authorized Distributor'),
-    (SELECT employee_id FROM employees WHERE first_name = 'Rafiqul' AND last_name = 'Hasan' AND ROWNUM = 1),
+    (SELECT employee_id FROM employees WHERE first_name = 'Rafiqul' AND last_name = 'Hasan' AND status = 1 AND ROWNUM = 1),
     SYSDATE + 5, 1
 );
 
@@ -2705,7 +2783,7 @@ VALUES (
 INSERT INTO product_order_master (supplier_id, order_by, expected_delivery_date, status)
 VALUES (
     (SELECT supplier_id FROM suppliers WHERE supplier_name = 'LG Electronics Supplier'),
-    (SELECT employee_id FROM employees WHERE first_name = 'Ariful' AND last_name = 'Islam' AND ROWNUM = 1),
+    (SELECT employee_id FROM employees WHERE first_name = 'Ariful' AND last_name = 'Islam' AND status = 1 AND ROWNUM = 1),
     SYSDATE + 7, 1
 );
 
@@ -2713,7 +2791,7 @@ VALUES (
 INSERT INTO product_order_master (supplier_id, order_by, expected_delivery_date, status)
 VALUES (
     (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Walton Spare Parts Division'),
-    (SELECT employee_id FROM employees WHERE first_name = 'Fatima' AND last_name = 'Zohra' AND ROWNUM = 1),
+    (SELECT employee_id FROM employees WHERE first_name = 'Fatima' AND last_name = 'Zohra' AND status = 1 AND ROWNUM = 1),
     SYSDATE + 3, 1
 );
 
@@ -2721,7 +2799,7 @@ VALUES (
 INSERT INTO product_order_master (supplier_id, order_by, expected_delivery_date, status)
 VALUES (
     (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Samsung Authorized Distributor'),
-    (SELECT employee_id FROM employees WHERE first_name = 'Keya' AND last_name = 'Payel' AND ROWNUM = 1),
+    (SELECT employee_id FROM employees WHERE first_name = 'Keya' AND last_name = 'Payel' AND status = 1 AND ROWNUM = 1),
     SYSDATE + 10, 1
 );
 
@@ -2729,7 +2807,7 @@ VALUES (
 INSERT INTO product_order_master (supplier_id, order_by, expected_delivery_date, status)
 VALUES (
     (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Asian Spare Parts House'),
-    (SELECT employee_id FROM employees WHERE first_name = 'Tariq' AND last_name = 'Aziz' AND ROWNUM = 1),
+    (SELECT employee_id FROM employees WHERE first_name = 'Tariq' AND last_name = 'Aziz' AND status = 1 AND ROWNUM = 1),
     SYSDATE + 4, 1
 );
 
@@ -2737,7 +2815,7 @@ VALUES (
 INSERT INTO product_order_master (supplier_id, order_by, expected_delivery_date, status)
 VALUES (
     (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Global Electronics Importer'),
-    (SELECT employee_id FROM employees WHERE first_name = 'Zahid' AND last_name = 'Hasib' AND ROWNUM = 1),
+    (SELECT employee_id FROM employees WHERE first_name = 'Zahid' AND last_name = 'Hasib' AND status = 1 AND ROWNUM = 1),
     SYSDATE + 6, 1
 );
 
@@ -2745,7 +2823,7 @@ VALUES (
 INSERT INTO product_order_master (supplier_id, order_by, expected_delivery_date, status)
 VALUES (
     (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Jamuna Electronics Supplier'),
-    (SELECT employee_id FROM employees WHERE first_name = 'Mominul' AND last_name = 'Haque' AND ROWNUM = 1),
+    (SELECT employee_id FROM employees WHERE first_name = 'Mominul' AND last_name = 'Haque' AND status = 1 AND ROWNUM = 1),
     SYSDATE + 8, 1
 );
 
@@ -2753,7 +2831,7 @@ VALUES (
 INSERT INTO product_order_master (supplier_id, order_by, expected_delivery_date, status)
 VALUES (
     (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Minister Hi-Tech Supplier'),
-    (SELECT employee_id FROM employees WHERE first_name = 'Ariful' AND last_name = 'Islam' AND ROWNUM = 1),
+    (SELECT employee_id FROM employees WHERE first_name = 'Ariful' AND last_name = 'Islam' AND status = 1 AND ROWNUM = 1),
     SYSDATE + 2, 1
 );
 
@@ -2761,7 +2839,7 @@ VALUES (
 INSERT INTO product_order_master (supplier_id, order_by, expected_delivery_date, status)
 VALUES (
     (SELECT supplier_id FROM suppliers WHERE supplier_name = 'City Electronics Parts Supplier'),
-    (SELECT employee_id FROM employees WHERE first_name = 'Fatima' AND last_name = 'Zohra' AND ROWNUM = 1),
+    (SELECT employee_id FROM employees WHERE first_name = 'Fatima' AND last_name = 'Zohra' AND status = 1 AND ROWNUM = 1),
     SYSDATE + 9, 1
 );
 
@@ -2769,7 +2847,7 @@ VALUES (
 INSERT INTO product_order_master (supplier_id, order_by, expected_delivery_date, status)
 VALUES (
     (SELECT supplier_id FROM suppliers WHERE supplier_name = 'LG Electronics Supplier'),
-    (SELECT employee_id FROM employees WHERE first_name = 'Rezaul' AND last_name = 'Karim' AND ROWNUM = 1),
+    (SELECT employee_id FROM employees WHERE first_name = 'Rezaul' AND last_name = 'Karim' AND status = 1 AND ROWNUM = 1),
     SYSDATE + 12, 1
 );
 
@@ -2900,80 +2978,80 @@ DELETE FROM stock;
 -- Samsung S24
 INSERT INTO stock (product_id, supplier_id, quantity)
 VALUES (
-    (SELECT product_id FROM products WHERE product_code = 'SAM-S24-018' AND ROWNUM = 1),
-    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Samsung Authorized Distributor' AND ROWNUM = 1),
+    (SELECT product_id FROM products WHERE product_code = 'SAM-S24-018' AND status = 1 AND ROWNUM = 1),
+    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Samsung Authorized Distributor' AND status = 1 AND ROWNUM = 1),
     50
 );
 
 -- LG Refrigerator
 INSERT INTO stock (product_id, supplier_id, quantity)
 VALUES (
-    (SELECT product_id FROM products WHERE product_code = 'LG-REF-0411' AND ROWNUM = 1),
-    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'LG Electronics Supplier' AND ROWNUM = 1),
+    (SELECT product_id FROM products WHERE product_code = 'LG-REF-0411' AND status = 1 AND ROWNUM = 1),
+    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'LG Electronics Supplier' AND status = 1 AND ROWNUM = 1),
     30
 );
 
 -- Walton TV
 INSERT INTO stock (product_id, supplier_id, quantity)
 VALUES (
-    (SELECT product_id FROM products WHERE product_code = 'WAL-TV-0512' AND ROWNUM = 1),
-    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Walton Spare Parts Division' AND ROWNUM = 1),
+    (SELECT product_id FROM products WHERE product_code = 'WAL-TV-0512' AND status = 1 AND ROWNUM = 1),
+    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Walton Spare Parts Division' AND status = 1 AND ROWNUM = 1),
     25
 );
 
 -- Samsung Washer
 INSERT INTO stock (product_id, supplier_id, quantity)
 VALUES (
-    (SELECT product_id FROM products WHERE product_code = 'SAM-WASH-0815' AND ROWNUM = 1),
-    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Samsung Authorized Distributor' AND ROWNUM = 1),
+    (SELECT product_id FROM products WHERE product_code = 'SAM-WASH-0815' AND status = 1 AND ROWNUM = 1),
+    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Samsung Authorized Distributor' AND status = 1 AND ROWNUM = 1),
     20
 );
 
 -- Dell Laptop
 INSERT INTO stock (product_id, supplier_id, quantity)
 VALUES (
-    (SELECT product_id FROM products WHERE product_code = 'DEL-LAT-0310' AND ROWNUM = 1),
-    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Asian Spare Parts House' AND ROWNUM = 1),
+    (SELECT product_id FROM products WHERE product_code = 'DEL-LAT-0310' AND status = 1 AND ROWNUM = 1),
+    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Asian Spare Parts House' AND status = 1 AND ROWNUM = 1),
     15
 );
 
 -- LG Home Theater
 INSERT INTO stock (product_id, supplier_id, quantity)
 VALUES (
-    (SELECT product_id FROM products WHERE product_code = 'LG-HOM-1017' AND ROWNUM = 1),
-    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'LG Electronics Supplier' AND ROWNUM = 1),
+    (SELECT product_id FROM products WHERE product_code = 'LG-HOM-1017' AND status = 1 AND ROWNUM = 1),
+    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'LG Electronics Supplier' AND status = 1 AND ROWNUM = 1),
     40
 );
 
 -- Hitachi Generator
 INSERT INTO stock (product_id, supplier_id, quantity)
 VALUES (
-    (SELECT product_id FROM products WHERE product_code = 'HIT-GEN-0916' AND ROWNUM = 1),
-    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Jamuna Electronics Supplier' AND ROWNUM = 1),
+    (SELECT product_id FROM products WHERE product_code = 'HIT-GEN-0916' AND status = 1 AND ROWNUM = 1),
+    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Jamuna Electronics Supplier' AND status = 1 AND ROWNUM = 1),
     10
 );
 
 -- Midea AC
 INSERT INTO stock (product_id, supplier_id, quantity)
 VALUES (
-    (SELECT product_id FROM products WHERE product_code = 'MIN-AC-0613' AND ROWNUM = 1),
-    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Minister Hi-Tech Supplier' AND ROWNUM = 1),
+    (SELECT product_id FROM products WHERE product_code = 'MIN-AC-0613' AND status = 1 AND ROWNUM = 1),
+    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Minister Hi-Tech Supplier' AND status = 1 AND ROWNUM = 1),
     35
 );
 
 -- iPhone 15 Pro
 INSERT INTO stock (product_id, supplier_id, quantity)
 VALUES (
-    (SELECT product_id FROM products WHERE product_code = 'IPH-15-029' AND ROWNUM = 1),
-    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'City Electronics Parts Supplier' AND ROWNUM = 1),
+    (SELECT product_id FROM products WHERE product_code = 'IPH-15-029' AND status = 1 AND ROWNUM = 1),
+    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'City Electronics Parts Supplier' AND status = 1 AND ROWNUM = 1),
     22
 );
 
 -- Panasonic Microwave
 INSERT INTO stock (product_id, supplier_id, quantity)
 VALUES (
-    (SELECT product_id FROM products WHERE product_code = 'PAN-MIC-0714' AND ROWNUM = 1),
-    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Global Electronics Importer' AND ROWNUM = 1),
+    (SELECT product_id FROM products WHERE product_code = 'PAN-MIC-0714' AND status = 1 AND ROWNUM = 1),
+    (SELECT supplier_id FROM suppliers WHERE supplier_name = 'Global Electronics Importer' AND status = 1 AND ROWNUM = 1),
     18
 );
 
@@ -3002,80 +3080,80 @@ COMMIT;
 
 INSERT INTO sales_master (customer_id, sales_by, invoice_date, discount)
 VALUES (
-    (SELECT customer_id FROM customers WHERE phone_no = '01810000001' AND ROWNUM = 1),
-    (SELECT employee_id FROM employees WHERE first_name = 'Rafiqul' AND last_name = 'Hasan' AND ROWNUM = 1),
+    (SELECT customer_id FROM customers WHERE phone_no = '01810000001' AND status = 1 AND ROWNUM = 1),
+    (SELECT employee_id FROM employees WHERE first_name = 'Rafiqul' AND last_name = 'Hasan' AND status = 1 AND ROWNUM = 1),
     SYSDATE - 20,
     2000
 );
 
 INSERT INTO sales_master (customer_id, sales_by, invoice_date, discount)
 VALUES (
-    (SELECT customer_id FROM customers WHERE phone_no = '01810000002' AND ROWNUM = 1),
-    (SELECT employee_id FROM employees WHERE first_name = 'Ariful' AND last_name = 'Islam' AND ROWNUM = 1),
+    (SELECT customer_id FROM customers WHERE phone_no = '01810000002' AND status = 1 AND ROWNUM = 1),
+    (SELECT employee_id FROM employees WHERE first_name = 'Ariful' AND last_name = 'Islam' AND status = 1 AND ROWNUM = 1),
     SYSDATE - 30,
     3000
 );
 
 INSERT INTO sales_master (customer_id, sales_by, invoice_date, discount)
 VALUES (
-    (SELECT customer_id FROM customers WHERE phone_no = '01810000003' AND ROWNUM = 1),
-    (SELECT employee_id FROM employees WHERE first_name = 'Fatima' AND last_name = 'Zohra' AND ROWNUM = 1),
+    (SELECT customer_id FROM customers WHERE phone_no = '01810000003' AND status = 1 AND ROWNUM = 1),
+    (SELECT employee_id FROM employees WHERE first_name = 'Fatima' AND last_name = 'Zohra' AND status = 1 AND ROWNUM = 1),
     SYSDATE - 750,
     1500
 );
 
 INSERT INTO sales_master (customer_id, sales_by, invoice_date, discount)
 VALUES (
-    (SELECT customer_id FROM customers WHERE phone_no = '01810000004' AND ROWNUM = 1),
-    (SELECT employee_id FROM employees WHERE first_name = 'Zahid' AND last_name = 'Hasib' AND ROWNUM = 1),
+    (SELECT customer_id FROM customers WHERE phone_no = '01810000004' AND status = 1 AND ROWNUM = 1),
+    (SELECT employee_id FROM employees WHERE first_name = 'Zahid' AND last_name = 'Hasib' AND status = 1 AND ROWNUM = 1),
     SYSDATE - 740,
     5000
 );
 
 INSERT INTO sales_master (customer_id, sales_by, invoice_date, discount)
 VALUES (
-    (SELECT customer_id FROM customers WHERE phone_no = '01810000005' AND ROWNUM = 1),
-    (SELECT employee_id FROM employees WHERE first_name = 'Tariq' AND last_name = 'Aziz' AND ROWNUM = 1),
+    (SELECT customer_id FROM customers WHERE phone_no = '01810000005' AND status = 1 AND ROWNUM = 1),
+    (SELECT employee_id FROM employees WHERE first_name = 'Tariq' AND last_name = 'Aziz' AND status = 1 AND ROWNUM = 1),
     SYSDATE - 60,
     2500
 );
 
 INSERT INTO sales_master (customer_id, sales_by, invoice_date, discount)
 VALUES (
-    (SELECT customer_id FROM customers WHERE phone_no = '01810000006' AND ROWNUM = 1),
-    (SELECT employee_id FROM employees WHERE first_name = 'Rumana' AND last_name = 'Afroz' AND ROWNUM = 1),
+    (SELECT customer_id FROM customers WHERE phone_no = '01810000006' AND status = 1 AND ROWNUM = 1),
+    (SELECT employee_id FROM employees WHERE first_name = 'Rumana' AND last_name = 'Afroz' AND status = 1 AND ROWNUM = 1),
     SYSDATE - 100,
     1000
 );
 
 INSERT INTO sales_master (customer_id, sales_by, invoice_date, discount)
 VALUES (
-    (SELECT customer_id FROM customers WHERE phone_no = '01810000007' AND ROWNUM = 1),
-    (SELECT employee_id FROM employees WHERE first_name = 'Mominul' AND last_name = 'Haque' AND ROWNUM = 1),
+    (SELECT customer_id FROM customers WHERE phone_no = '01810000007' AND status = 1 AND ROWNUM = 1),
+    (SELECT employee_id FROM employees WHERE first_name = 'Mominul' AND last_name = 'Haque' AND status = 1 AND ROWNUM = 1),
     SYSDATE - 50,
     3000
 );
 
 INSERT INTO sales_master (customer_id, sales_by, invoice_date, discount)
 VALUES (
-    (SELECT customer_id FROM customers WHERE phone_no = '01810000008' AND ROWNUM = 1),
-    (SELECT employee_id FROM employees WHERE first_name = 'Rafiqul' AND last_name = 'Hasan' AND ROWNUM = 1),
+    (SELECT customer_id FROM customers WHERE phone_no = '01810000008' AND status = 1 AND ROWNUM = 1),
+    (SELECT employee_id FROM employees WHERE first_name = 'Rafiqul' AND last_name = 'Hasan' AND status = 1 AND ROWNUM = 1),
     SYSDATE - 380,
     2000
 );
 
 INSERT INTO sales_master (customer_id, sales_by, invoice_date, discount)
 VALUES (
-    (SELECT customer_id FROM customers WHERE phone_no = '01810000009' AND ROWNUM = 1),
-    (SELECT employee_id FROM employees WHERE first_name = 'Ariful' AND last_name = 'Islam' AND ROWNUM = 1),
+    (SELECT customer_id FROM customers WHERE phone_no = '01810000009' AND status = 1 AND ROWNUM = 1),
+    (SELECT employee_id FROM employees WHERE first_name = 'Ariful' AND last_name = 'Islam' AND status = 1 AND ROWNUM = 1),
     SYSDATE - 90,
     500
 );
 
 INSERT INTO sales_master (customer_id, sales_by, invoice_date, discount)
 VALUES (
-    (SELECT customer_id FROM customers WHERE phone_no = '01810000010' AND ROWNUM = 1),
-    (SELECT employee_id FROM employees WHERE first_name = 'Fatima' AND last_name = 'Zohra' AND ROWNUM = 1),
+    (SELECT customer_id FROM customers WHERE phone_no = '01810000010' AND status = 1 AND ROWNUM = 1),
+    (SELECT employee_id FROM employees WHERE first_name = 'Fatima' AND last_name = 'Zohra' AND status = 1 AND ROWNUM = 1),
     SYSDATE - 400,
     8000
 );
@@ -3089,71 +3167,71 @@ COMMIT;
 
 INSERT INTO sales_detail (invoice_id, product_id, quantity, mrp)
 VALUES (
-    (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000001' AND ROWNUM = 1) AND ROWNUM = 1),
-    (SELECT product_id FROM products WHERE product_code = 'WAL-TV-0512' AND ROWNUM = 1),
+    (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000001' AND status = 1 AND ROWNUM = 1) AND status = 1 AND ROWNUM = 1),
+    (SELECT product_id FROM products WHERE product_code = 'WAL-TV-0512' AND status = 1 AND ROWNUM = 1),
     1, 35000
 );
 
 INSERT INTO sales_detail (invoice_id, product_id, quantity, mrp)
 VALUES (
-    (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000002' AND ROWNUM = 1) AND ROWNUM = 1),
-    (SELECT product_id FROM products WHERE product_code = 'MIN-AC-0613' AND ROWNUM = 1),
+    (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000002' AND status = 1 AND ROWNUM = 1) AND status = 1 AND ROWNUM = 1),
+    (SELECT product_id FROM products WHERE product_code = 'MIN-AC-0613' AND status = 1 AND ROWNUM = 1),
     1, 48000
 );
 
 INSERT INTO sales_detail (invoice_id, product_id, quantity, mrp)
 VALUES (
-    (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000003' AND ROWNUM = 1) AND ROWNUM = 1),
-    (SELECT product_id FROM products WHERE product_code = 'LG-REF-0411' AND ROWNUM = 1),
+    (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000003' AND status = 1 AND ROWNUM = 1) AND status = 1 AND ROWNUM = 1),
+    (SELECT product_id FROM products WHERE product_code = 'LG-REF-0411' AND status = 1 AND ROWNUM = 1),
     1, 75000
 );
 
 INSERT INTO sales_detail (invoice_id, product_id, quantity, mrp)
 VALUES (
-    (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000004' AND ROWNUM = 1) AND ROWNUM = 1),
-    (SELECT product_id FROM products WHERE product_code = 'SAM-WASH-0815' AND ROWNUM = 1),
+    (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000004' AND status = 1 AND ROWNUM = 1) AND status = 1 AND ROWNUM = 1),
+    (SELECT product_id FROM products WHERE product_code = 'SAM-WASH-0815' AND status = 1 AND ROWNUM = 1),
     1, 55000
 );
 
 INSERT INTO sales_detail (invoice_id, product_id, quantity, mrp)
 VALUES (
-    (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000005' AND ROWNUM = 1) AND ROWNUM = 1),
-    (SELECT product_id FROM products WHERE product_code = 'DEL-LAT-0310' AND ROWNUM = 1),
+    (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000005' AND status = 1 AND ROWNUM = 1) AND status = 1 AND ROWNUM = 1),
+    (SELECT product_id FROM products WHERE product_code = 'DEL-LAT-0310' AND status = 1 AND ROWNUM = 1),
     1, 85000
 );
 
 INSERT INTO sales_detail (invoice_id, product_id, quantity, mrp)
 VALUES (
-    (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000006' AND ROWNUM = 1) AND ROWNUM = 1),
-    (SELECT product_id FROM products WHERE product_code = 'WAL-TV-0512' AND ROWNUM = 1),
+    (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000006' AND status = 1 AND ROWNUM = 1) AND status = 1 AND ROWNUM = 1),
+    (SELECT product_id FROM products WHERE product_code = 'WAL-TV-0512' AND status = 1 AND ROWNUM = 1),
     1, 35000
 );
 
 INSERT INTO sales_detail (invoice_id, product_id, quantity, mrp)
 VALUES (
-    (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000007' AND ROWNUM = 1) AND ROWNUM = 1),
-    (SELECT product_id FROM products WHERE product_code = 'MIN-AC-0613' AND ROWNUM = 1),
+    (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000007' AND status = 1 AND ROWNUM = 1) AND status = 1 AND ROWNUM = 1),
+    (SELECT product_id FROM products WHERE product_code = 'MIN-AC-0613' AND status = 1 AND ROWNUM = 1),
     1, 48000
 );
 
 INSERT INTO sales_detail (invoice_id, product_id, quantity, mrp)
 VALUES (
-    (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000008' AND ROWNUM = 1) AND ROWNUM = 1),
-    (SELECT product_id FROM products WHERE product_code = 'PAN-MIC-0714' AND ROWNUM = 1),
+    (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000008' AND status = 1 AND ROWNUM = 1) AND status = 1 AND ROWNUM = 1),
+    (SELECT product_id FROM products WHERE product_code = 'PAN-MIC-0714' AND status = 1 AND ROWNUM = 1),
     1, 18000
 );
 
 INSERT INTO sales_detail (invoice_id, product_id, quantity, mrp)
 VALUES (
-    (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000009' AND ROWNUM = 1) AND ROWNUM = 1),
-    (SELECT product_id FROM products WHERE product_code = 'IPH-15-029' AND ROWNUM = 1),
+    (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000009' AND status = 1 AND ROWNUM = 1) AND status = 1 AND ROWNUM = 1),
+    (SELECT product_id FROM products WHERE product_code = 'IPH-15-029' AND status = 1 AND ROWNUM = 1),
     1, 145000
 );
 
 INSERT INTO sales_detail (invoice_id, product_id, quantity, mrp)
 VALUES (
-    (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000010' AND ROWNUM = 1) AND ROWNUM = 1),
-    (SELECT product_id FROM products WHERE product_code = 'LG-HOM-1017' AND ROWNUM = 1),
+    (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000010' AND status = 1 AND ROWNUM = 1) AND status = 1 AND ROWNUM = 1),
+    (SELECT product_id FROM products WHERE product_code = 'LG-HOM-1017' AND status = 1 AND ROWNUM = 1),
     1, 25000
 );
 
@@ -3166,13 +3244,13 @@ COMMIT;
 
 INSERT INTO sales_return_master (invoice_id, return_date)
 VALUES (
-    (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000001' AND ROWNUM = 1) AND ROWNUM = 1),
+    (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000001' AND status = 1 AND ROWNUM = 1) AND status = 1 AND ROWNUM = 1),
     SYSDATE - 5
 );
 
 INSERT INTO sales_return_master (invoice_id, return_date)
 VALUES (
-    (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000009' AND ROWNUM = 1) AND ROWNUM = 1),
+    (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000009' AND status = 1 AND ROWNUM = 1) AND status = 1 AND ROWNUM = 1),
     SYSDATE
 );
 
@@ -3190,10 +3268,10 @@ BEGIN
     -- Insert master record
     INSERT INTO service_master (customer_id, invoice_id, service_date, service_by, service_charge_total, vat, grand_total, warranty_applicable)
     VALUES (
-        (SELECT customer_id FROM customers WHERE phone_no = '01810000001' AND ROWNUM = 1),
-        (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000001' AND ROWNUM = 1) AND ROWNUM = 1),
+        (SELECT customer_id FROM customers WHERE phone_no = '01810000001' AND status = 1 AND ROWNUM = 1),
+        (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000001' AND status = 1 AND ROWNUM = 1) AND status = 1 AND ROWNUM = 1),
         SYSDATE - 5,
-        (SELECT employee_id FROM employees WHERE first_name = 'Mominul' AND last_name = 'Haque' AND ROWNUM = 1),
+        (SELECT employee_id FROM employees WHERE first_name = 'Mominul' AND last_name = 'Haque' AND status = 1 AND ROWNUM = 1),
         2500, 900, 6900, 'Y'
     )
     RETURNING service_id INTO v_service_id;
@@ -3202,9 +3280,9 @@ BEGIN
     INSERT INTO service_details (service_id, product_id, servicelist_id, parts_id, quantity, service_charge, parts_price, line_total, warranty_status, description)
     VALUES (
         v_service_id, 
-        (SELECT product_id FROM products WHERE product_code = 'WAL-TV-0512' AND ROWNUM = 1),
-        (SELECT servicelist_id FROM service_list WHERE service_name = 'TV Repair Service' AND ROWNUM = 1),
-        (SELECT parts_id FROM parts WHERE parts_name = 'LED TV Motherboard' AND ROWNUM = 1), 
+        (SELECT product_id FROM products WHERE product_code = 'WAL-TV-0512' AND status = 1 AND ROWNUM = 1),
+        (SELECT servicelist_id FROM service_list WHERE service_name = 'TV Repair Service' AND status = 1 AND ROWNUM = 1),
+        (SELECT parts_id FROM parts WHERE parts_name = 'LED TV Motherboard' AND status = 1 AND ROWNUM = 1), 
         1, 1250, 2000, 3250, 'Y', 
         'Replaced defective LED TV motherboard due to power surge damage'
     );
@@ -3212,9 +3290,9 @@ BEGIN
     INSERT INTO service_details (service_id, product_id, servicelist_id, parts_id, quantity, service_charge, parts_price, line_total, warranty_status, description)
     VALUES (
         v_service_id, 
-        (SELECT product_id FROM products WHERE product_code = 'WAL-TV-0512' AND ROWNUM = 1),
-        (SELECT servicelist_id FROM service_list WHERE service_name = 'TV Repair Service' AND ROWNUM = 1),
-        (SELECT parts_id FROM parts WHERE parts_name = 'LED TV Display Panel' AND ROWNUM = 1), 
+        (SELECT product_id FROM products WHERE product_code = 'WAL-TV-0512' AND status = 1 AND ROWNUM = 1),
+        (SELECT servicelist_id FROM service_list WHERE service_name = 'TV Repair Service' AND status = 1 AND ROWNUM = 1),
+        (SELECT parts_id FROM parts WHERE parts_name = 'LED TV Display Panel' AND status = 1 AND ROWNUM = 1), 
         1, 1250, 1500, 2750, 'Y', 
         'Replaced cracked display panel after physical impact'
     );
@@ -3230,10 +3308,10 @@ BEGIN
     -- Insert master record
     INSERT INTO service_master (customer_id, invoice_id, service_date, service_by, service_charge_total, vat, grand_total, warranty_applicable)
     VALUES (
-        (SELECT customer_id FROM customers WHERE phone_no = '01810000002' AND ROWNUM = 1),
-        (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000002' AND ROWNUM = 1) AND ROWNUM = 1),
+        (SELECT customer_id FROM customers WHERE phone_no = '01810000002' AND status = 1 AND ROWNUM = 1),
+        (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000002' AND status = 1 AND ROWNUM = 1) AND status = 1 AND ROWNUM = 1),
         SYSDATE - 3,
-        (SELECT employee_id FROM employees WHERE first_name = 'Ariful' AND last_name = 'Islam' AND ROWNUM = 1),
+        (SELECT employee_id FROM employees WHERE first_name = 'Ariful' AND last_name = 'Islam' AND status = 1 AND ROWNUM = 1),
         1800, 600, 4600, 'N'
     )
     RETURNING service_id INTO v_service_id;
@@ -3242,14 +3320,14 @@ BEGIN
     INSERT INTO service_details (service_id, product_id, servicelist_id, parts_id, quantity, service_charge, parts_price, line_total, warranty_status, description)
     VALUES (
         v_service_id, 
-        (SELECT d.product_id FROM sales_detail d 
-         JOIN sales_master m ON d.invoice_id = m.invoice_id 
-         JOIN products p ON d.product_id = p.product_id
-         JOIN product_categories pc ON p.category_id = pc.product_cat_id
-         WHERE m.customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000002' AND ROWNUM = 1)
+        (SELECT d.product_id FROM sales_detail d
+         JOIN sales_master m ON d.invoice_id = m.invoice_id AND m.status = 1 
+         JOIN products p ON d.product_id = p.product_id AND p.status = 1
+         JOIN product_categories pc ON p.category_id = pc.product_cat_id AND pc.status = 1
+         WHERE d.status = 1 AND m.customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000002' AND status = 1 AND ROWNUM = 1)
          AND pc.product_cat_name LIKE '%Air Conditioner%' AND ROWNUM = 1),
-        (SELECT servicelist_id FROM service_list WHERE service_name = 'AC Servicing' AND ROWNUM = 1),
-        (SELECT parts_id FROM parts WHERE parts_name = 'AC Outdoor Fan Motor' AND ROWNUM = 1), 
+        (SELECT servicelist_id FROM service_list WHERE service_name = 'AC Servicing' AND status = 1 AND ROWNUM = 1),
+        (SELECT parts_id FROM parts WHERE parts_name = 'AC Outdoor Fan Motor' AND status = 1 AND ROWNUM = 1), 
         1, 900, 1200, 2100, 'N', 
         'Replaced outdoor fan motor - warranty void due to improper installation by unauthorized technician'
     );
@@ -3257,14 +3335,14 @@ BEGIN
     INSERT INTO service_details (service_id, product_id, servicelist_id, parts_id, quantity, service_charge, parts_price, line_total, warranty_status, description)
     VALUES (
         v_service_id, 
-        (SELECT d.product_id FROM sales_detail d 
-         JOIN sales_master m ON d.invoice_id = m.invoice_id 
-         JOIN products p ON d.product_id = p.product_id
-         JOIN product_categories pc ON p.category_id = pc.product_cat_id
-         WHERE m.customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000002' AND ROWNUM = 1)
+        (SELECT d.product_id FROM sales_detail d
+         JOIN sales_master m ON d.invoice_id = m.invoice_id AND m.status = 1 
+         JOIN products p ON d.product_id = p.product_id AND p.status = 1
+         JOIN product_categories pc ON p.category_id = pc.product_cat_id AND pc.status = 1
+         WHERE d.status = 1 AND m.customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000002' AND status = 1 AND ROWNUM = 1)
          AND pc.product_cat_name LIKE '%Air Conditioner%' AND ROWNUM = 1),
-        (SELECT servicelist_id FROM service_list WHERE service_name = 'AC Servicing' AND ROWNUM = 1),
-        (SELECT parts_id FROM parts WHERE parts_name = 'AC Remote Controller' AND ROWNUM = 1), 
+        (SELECT servicelist_id FROM service_list WHERE service_name = 'AC Servicing' AND status = 1 AND ROWNUM = 1),
+        (SELECT parts_id FROM parts WHERE parts_name = 'AC Remote Controller' AND status = 1 AND ROWNUM = 1), 
         1, 900, 1000, 1900, 'N', 
         'Remote replacement not covered - physical damage due to customer mishandling'
     );
@@ -3279,10 +3357,10 @@ DECLARE
 BEGIN
     INSERT INTO service_master (customer_id, invoice_id, service_date, service_by, service_charge_total, vat, grand_total, warranty_applicable)
     VALUES (
-        (SELECT customer_id FROM customers WHERE phone_no = '01810000003' AND ROWNUM = 1),
-        (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000003' AND ROWNUM = 1) AND ROWNUM = 1),
+        (SELECT customer_id FROM customers WHERE phone_no = '01810000003' AND status = 1 AND ROWNUM = 1),
+        (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000003' AND status = 1 AND ROWNUM = 1) AND status = 1 AND ROWNUM = 1),
         SYSDATE - 2,
-        (SELECT employee_id FROM employees WHERE first_name = 'Keya' AND last_name = 'Payel' AND ROWNUM = 1),
+        (SELECT employee_id FROM employees WHERE first_name = 'Keya' AND last_name = 'Payel' AND status = 1 AND ROWNUM = 1),
         2200, 1005, 7705, 'N'
     )
     RETURNING service_id INTO v_service_id;
@@ -3290,13 +3368,13 @@ BEGIN
     INSERT INTO service_details (service_id, product_id, parts_id, quantity, parts_price, line_total, warranty_status, description)
     VALUES (
         v_service_id, 
-        (SELECT d.product_id FROM sales_detail d 
-         JOIN sales_master m ON d.invoice_id = m.invoice_id 
-         JOIN products p ON d.product_id = p.product_id
-         JOIN product_categories pc ON p.category_id = pc.product_cat_id
-         WHERE m.customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000003' AND ROWNUM = 1)
+        (SELECT d.product_id FROM sales_detail d
+         JOIN sales_master m ON d.invoice_id = m.invoice_id AND m.status = 1 
+         JOIN products p ON d.product_id = p.product_id AND p.status = 1
+         JOIN product_categories pc ON p.category_id = pc.product_cat_id AND pc.status = 1
+         WHERE d.status = 1 AND m.customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000003' AND status = 1 AND ROWNUM = 1)
          AND pc.product_cat_name LIKE '%Refrigerator%' AND ROWNUM = 1),
-        (SELECT parts_id FROM parts WHERE parts_name = 'Refrigerator Compressor Unit' AND ROWNUM = 1), 
+        (SELECT parts_id FROM parts WHERE parts_name = 'Refrigerator Compressor Unit' AND status = 1 AND ROWNUM = 1), 
         1, 3000, 3000, 'N', 
         'Replaced faulty compressor unit - refrigerator not cooling properly'
     );
@@ -3304,13 +3382,13 @@ BEGIN
     INSERT INTO service_details (service_id, product_id, parts_id, quantity, parts_price, line_total, warranty_status, description)
     VALUES (
         v_service_id, 
-        (SELECT d.product_id FROM sales_detail d 
-         JOIN sales_master m ON d.invoice_id = m.invoice_id 
-         JOIN products p ON d.product_id = p.product_id
-         JOIN product_categories pc ON p.category_id = pc.product_cat_id
-         WHERE m.customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000003' AND ROWNUM = 1)
+        (SELECT d.product_id FROM sales_detail d
+         JOIN sales_master m ON d.invoice_id = m.invoice_id AND m.status = 1 
+         JOIN products p ON d.product_id = p.product_id AND p.status = 1
+         JOIN product_categories pc ON p.category_id = pc.product_cat_id AND pc.status = 1
+         WHERE d.status = 1 AND m.customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000003' AND status = 1 AND ROWNUM = 1)
          AND pc.product_cat_name LIKE '%Refrigerator%' AND ROWNUM = 1),
-        (SELECT parts_id FROM parts WHERE parts_name = 'Refrigerator Thermostat' AND ROWNUM = 1), 
+        (SELECT parts_id FROM parts WHERE parts_name = 'Refrigerator Thermostat' AND status = 1 AND ROWNUM = 1), 
         1, 1500, 1500, 'N', 
         'Replaced malfunctioning thermostat for better temperature control'
     );
@@ -3325,10 +3403,10 @@ DECLARE
 BEGIN
     INSERT INTO service_master (customer_id, invoice_id, service_date, service_by, service_charge_total, vat, grand_total, warranty_applicable)
     VALUES (
-        (SELECT customer_id FROM customers WHERE phone_no = '01810000004' AND ROWNUM = 1),
-        (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000004' AND ROWNUM = 1) AND ROWNUM = 1),
+        (SELECT customer_id FROM customers WHERE phone_no = '01810000004' AND status = 1 AND ROWNUM = 1),
+        (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000004' AND status = 1 AND ROWNUM = 1) AND status = 1 AND ROWNUM = 1),
         SYSDATE - 1,
-        (SELECT employee_id FROM employees WHERE first_name = 'Imtiaz' AND last_name = 'Bulbul' AND ROWNUM = 1),
+        (SELECT employee_id FROM employees WHERE first_name = 'Imtiaz' AND last_name = 'Bulbul' AND status = 1 AND ROWNUM = 1),
         1500, 495, 3795, 'N'
     )
     RETURNING service_id INTO v_service_id;
@@ -3336,13 +3414,13 @@ BEGIN
     INSERT INTO service_details (service_id, product_id, parts_id, quantity, parts_price, line_total, warranty_status, description)
     VALUES (
         v_service_id, 
-        (SELECT d.product_id FROM sales_detail d 
-         JOIN sales_master m ON d.invoice_id = m.invoice_id 
-         JOIN products p ON d.product_id = p.product_id
-         JOIN product_categories pc ON p.category_id = pc.product_cat_id
-         WHERE m.customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000004' AND ROWNUM = 1)
+        (SELECT d.product_id FROM sales_detail d
+         JOIN sales_master m ON d.invoice_id = m.invoice_id AND m.status = 1 
+         JOIN products p ON d.product_id = p.product_id AND p.status = 1
+         JOIN product_categories pc ON p.category_id = pc.product_cat_id AND pc.status = 1
+         WHERE d.status = 1 AND m.customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000004' AND status = 1 AND ROWNUM = 1)
          AND pc.product_cat_name LIKE '%Washing Machine%' AND ROWNUM = 1),
-        (SELECT parts_id FROM parts WHERE parts_name = 'Washing Machine Drum Belt' AND ROWNUM = 1), 
+        (SELECT parts_id FROM parts WHERE parts_name = 'Washing Machine Drum Belt' AND status = 1 AND ROWNUM = 1), 
         1, 1800, 1800, 'N', 
         'Replaced worn-out drum belt - machine drum was not spinning'
     );
@@ -3357,10 +3435,10 @@ DECLARE
 BEGIN
     INSERT INTO service_master (customer_id, invoice_id, service_date, service_by, service_charge_total, vat, grand_total, warranty_applicable)
     VALUES (
-        (SELECT customer_id FROM customers WHERE phone_no = '01810000005' AND ROWNUM = 1),
-        (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000005' AND ROWNUM = 1) AND ROWNUM = 1),
+        (SELECT customer_id FROM customers WHERE phone_no = '01810000005' AND status = 1 AND ROWNUM = 1),
+        (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000005' AND status = 1 AND ROWNUM = 1) AND status = 1 AND ROWNUM = 1),
         SYSDATE - 4,
-        (SELECT employee_id FROM employees WHERE first_name = 'Ariful' AND last_name = 'Islam' AND ROWNUM = 1),
+        (SELECT employee_id FROM employees WHERE first_name = 'Ariful' AND last_name = 'Islam' AND status = 1 AND ROWNUM = 1),
         3000, 825, 6325, 'N'
     )
     RETURNING service_id INTO v_service_id;
@@ -3368,13 +3446,13 @@ BEGIN
     INSERT INTO service_details (service_id, product_id, parts_id, quantity, parts_price, line_total, warranty_status, description)
     VALUES (
         v_service_id, 
-        (SELECT d.product_id FROM sales_detail d 
-         JOIN sales_master m ON d.invoice_id = m.invoice_id 
-         JOIN products p ON d.product_id = p.product_id
-         JOIN product_categories pc ON p.category_id = pc.product_cat_id
-         WHERE m.customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000005' AND ROWNUM = 1)
+        (SELECT d.product_id FROM sales_detail d
+         JOIN sales_master m ON d.invoice_id = m.invoice_id AND m.status = 1 
+         JOIN products p ON d.product_id = p.product_id AND p.status = 1
+         JOIN product_categories pc ON p.category_id = pc.product_cat_id AND pc.status = 1
+         WHERE d.status = 1 AND m.customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000005' AND status = 1 AND ROWNUM = 1)
          AND pc.product_cat_name LIKE '%Laptop%' AND ROWNUM = 1),
-        (SELECT parts_id FROM parts WHERE parts_name = 'Laptop Charger Adapter' AND ROWNUM = 1), 
+        (SELECT parts_id FROM parts WHERE parts_name = 'Laptop Charger Adapter' AND status = 1 AND ROWNUM = 1), 
         1, 1500, 1500, 'N', 
         'Charger damage not covered - warranty void due to liquid spill damage'
     );
@@ -3382,13 +3460,13 @@ BEGIN
     INSERT INTO service_details (service_id, product_id, parts_id, quantity, parts_price, line_total, warranty_status, description)
     VALUES (
         v_service_id, 
-        (SELECT d.product_id FROM sales_detail d 
-         JOIN sales_master m ON d.invoice_id = m.invoice_id 
-         JOIN products p ON d.product_id = p.product_id
-         JOIN product_categories pc ON p.category_id = pc.product_cat_id
-         WHERE m.customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000005' AND ROWNUM = 1)
+        (SELECT d.product_id FROM sales_detail d
+         JOIN sales_master m ON d.invoice_id = m.invoice_id AND m.status = 1 
+         JOIN products p ON d.product_id = p.product_id AND p.status = 1
+         JOIN product_categories pc ON p.category_id = pc.product_cat_id AND pc.status = 1
+         WHERE d.status = 1 AND m.customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000005' AND status = 1 AND ROWNUM = 1)
          AND pc.product_cat_name LIKE '%Laptop%' AND ROWNUM = 1),
-        (SELECT parts_id FROM parts WHERE parts_name = 'LED TV Power Supply Board' AND ROWNUM = 1), 
+        (SELECT parts_id FROM parts WHERE parts_name = 'LED TV Power Supply Board' AND status = 1 AND ROWNUM = 1), 
         1, 1000, 1000, 'N', 
         'Power supply failure caused by liquid damage - warranty not applicable'
     );
@@ -3403,10 +3481,10 @@ DECLARE
 BEGIN
     INSERT INTO service_master (customer_id, invoice_id, service_date, service_by, service_charge_total, vat, grand_total, warranty_applicable)
     VALUES (
-        (SELECT customer_id FROM customers WHERE phone_no = '01810000006' AND ROWNUM = 1),
-        (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000006' AND ROWNUM = 1) AND ROWNUM = 1),
+        (SELECT customer_id FROM customers WHERE phone_no = '01810000006' AND status = 1 AND ROWNUM = 1),
+        (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000006' AND status = 1 AND ROWNUM = 1) AND status = 1 AND ROWNUM = 1),
         SYSDATE - 10,
-        (SELECT employee_id FROM employees WHERE first_name = 'Mominul' AND last_name = 'Haque' AND ROWNUM = 1),
+        (SELECT employee_id FROM employees WHERE first_name = 'Mominul' AND last_name = 'Haque' AND status = 1 AND ROWNUM = 1),
         1200, 405, 3105, 'Y'
     )
     RETURNING service_id INTO v_service_id;
@@ -3414,8 +3492,8 @@ BEGIN
     INSERT INTO service_details (service_id, product_id, parts_id, quantity, parts_price, line_total, warranty_status, description)
     VALUES (
         v_service_id, 
-        (SELECT product_id FROM products WHERE product_code = 'WAL-TV-0512' AND ROWNUM = 1),
-        (SELECT parts_id FROM parts WHERE parts_name = 'LED TV Display Panel' AND ROWNUM = 1), 
+        (SELECT product_id FROM products WHERE product_code = 'WAL-TV-0512' AND status = 1 AND ROWNUM = 1),
+        (SELECT parts_id FROM parts WHERE parts_name = 'LED TV Display Panel' AND status = 1 AND ROWNUM = 1), 
         1, 1500, 1500, 'Y', 
         'TV wall mount installation with display panel setup and cable management'
     );
@@ -3430,10 +3508,10 @@ DECLARE
 BEGIN
     INSERT INTO service_master (customer_id, invoice_id, service_date, service_by, service_charge_total, vat, grand_total, warranty_applicable)
     VALUES (
-        (SELECT customer_id FROM customers WHERE phone_no = '01810000007' AND ROWNUM = 1),
-        (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000007' AND ROWNUM = 1) AND ROWNUM = 1),
+        (SELECT customer_id FROM customers WHERE phone_no = '01810000007' AND status = 1 AND ROWNUM = 1),
+        (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000007' AND status = 1 AND ROWNUM = 1) AND status = 1 AND ROWNUM = 1),
         SYSDATE - 8,
-        (SELECT employee_id FROM employees WHERE first_name = 'Keya' AND last_name = 'Payel' AND ROWNUM = 1),
+        (SELECT employee_id FROM employees WHERE first_name = 'Keya' AND last_name = 'Payel' AND status = 1 AND ROWNUM = 1),
         2500, 675, 5175, 'Y'
     )
     RETURNING service_id INTO v_service_id;
@@ -3441,13 +3519,13 @@ BEGIN
     INSERT INTO service_details (service_id, product_id, parts_id, quantity, parts_price, line_total, warranty_status, description)
     VALUES (
         v_service_id, 
-        (SELECT d.product_id FROM sales_detail d 
-         JOIN sales_master m ON d.invoice_id = m.invoice_id 
-         JOIN products p ON d.product_id = p.product_id
-         JOIN product_categories pc ON p.category_id = pc.product_cat_id
-         WHERE m.customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000007' AND ROWNUM = 1)
+        (SELECT d.product_id FROM sales_detail d
+         JOIN sales_master m ON d.invoice_id = m.invoice_id AND m.status = 1 
+         JOIN products p ON d.product_id = p.product_id AND p.status = 1
+         JOIN product_categories pc ON p.category_id = pc.product_cat_id AND pc.status = 1
+         WHERE d.status = 1 AND m.customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000007' AND status = 1 AND ROWNUM = 1)
          AND pc.product_cat_name LIKE '%Air Conditioner%' AND ROWNUM = 1),
-        (SELECT parts_id FROM parts WHERE parts_name = 'AC Outdoor Fan Motor' AND ROWNUM = 1), 
+        (SELECT parts_id FROM parts WHERE parts_name = 'AC Outdoor Fan Motor' AND status = 1 AND ROWNUM = 1), 
         2, 1000, 2000, 'Y', 
         'Complete AC installation with outdoor unit setup and dual fan motor installation'
     );
@@ -3462,10 +3540,10 @@ DECLARE
 BEGIN
     INSERT INTO service_master (customer_id, invoice_id, service_date, service_by, service_charge_total, vat, grand_total, warranty_applicable)
     VALUES (
-        (SELECT customer_id FROM customers WHERE phone_no = '01810000008' AND ROWNUM = 1),
-        (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000008' AND ROWNUM = 1) AND ROWNUM = 1),
+        (SELECT customer_id FROM customers WHERE phone_no = '01810000008' AND status = 1 AND ROWNUM = 1),
+        (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000008' AND status = 1 AND ROWNUM = 1) AND status = 1 AND ROWNUM = 1),
         SYSDATE - 6,
-        (SELECT employee_id FROM employees WHERE first_name = 'Imtiaz' AND last_name = 'Bulbul' AND ROWNUM = 1),
+        (SELECT employee_id FROM employees WHERE first_name = 'Imtiaz' AND last_name = 'Bulbul' AND status = 1 AND ROWNUM = 1),
         1200, 600, 4600, 'N'
     )
     RETURNING service_id INTO v_service_id;
@@ -3473,13 +3551,13 @@ BEGIN
     INSERT INTO service_details (service_id, product_id, parts_id, quantity, parts_price, line_total, warranty_status, description)
     VALUES (
         v_service_id, 
-        (SELECT d.product_id FROM sales_detail d 
-         JOIN sales_master m ON d.invoice_id = m.invoice_id 
-         JOIN products p ON d.product_id = p.product_id
-         JOIN product_categories pc ON p.category_id = pc.product_cat_id
-         WHERE m.customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000008' AND ROWNUM = 1)
+        (SELECT d.product_id FROM sales_detail d
+         JOIN sales_master m ON d.invoice_id = m.invoice_id AND m.status = 1 
+         JOIN products p ON d.product_id = p.product_id AND p.status = 1
+         JOIN product_categories pc ON p.category_id = pc.product_cat_id AND pc.status = 1
+         WHERE d.status = 1 AND m.customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000008' AND status = 1 AND ROWNUM = 1)
          AND pc.product_cat_name LIKE '%Microwave%' AND ROWNUM = 1),
-        (SELECT parts_id FROM parts WHERE parts_name = 'Microwave Oven Magnetron Tube' AND ROWNUM = 1), 
+        (SELECT parts_id FROM parts WHERE parts_name = 'Microwave Oven Magnetron Tube' AND status = 1 AND ROWNUM = 1), 
         1, 2800, 2800, 'N', 
         'Replaced burnt magnetron tube - microwave not heating food properly'
     );
@@ -3494,10 +3572,10 @@ DECLARE
 BEGIN
     INSERT INTO service_master (customer_id, invoice_id, service_date, service_by, service_charge_total, vat, grand_total, warranty_applicable)
     VALUES (
-        (SELECT customer_id FROM customers WHERE phone_no = '01810000009' AND ROWNUM = 1),
-        (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000009' AND ROWNUM = 1) AND ROWNUM = 1),
+        (SELECT customer_id FROM customers WHERE phone_no = '01810000009' AND status = 1 AND ROWNUM = 1),
+        (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000009' AND status = 1 AND ROWNUM = 1) AND status = 1 AND ROWNUM = 1),
         SYSDATE - 7,
-        (SELECT employee_id FROM employees WHERE first_name = 'Ariful' AND last_name = 'Islam' AND ROWNUM = 1),
+        (SELECT employee_id FROM employees WHERE first_name = 'Ariful' AND last_name = 'Islam' AND status = 1 AND ROWNUM = 1),
         2200, 555, 4255, 'Y'
     )
     RETURNING service_id INTO v_service_id;
@@ -3505,13 +3583,13 @@ BEGIN
     INSERT INTO service_details (service_id, product_id, parts_id, quantity, parts_price, line_total, warranty_status, description)
     VALUES (
         v_service_id, 
-        (SELECT d.product_id FROM sales_detail d 
-         JOIN sales_master m ON d.invoice_id = m.invoice_id 
-         JOIN products p ON d.product_id = p.product_id
-         JOIN product_categories pc ON p.category_id = pc.product_cat_id
-         WHERE m.customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000009' AND ROWNUM = 1)
+        (SELECT d.product_id FROM sales_detail d
+         JOIN sales_master m ON d.invoice_id = m.invoice_id AND m.status = 1 
+         JOIN products p ON d.product_id = p.product_id AND p.status = 1
+         JOIN product_categories pc ON p.category_id = pc.product_cat_id AND pc.status = 1
+         WHERE d.status = 1 AND m.customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000009' AND status = 1 AND ROWNUM = 1)
          AND pc.product_cat_name LIKE '%Phone%' AND ROWNUM = 1),
-        (SELECT parts_id FROM parts WHERE parts_name = 'Laptop Charger Adapter' AND ROWNUM = 1), 
+        (SELECT parts_id FROM parts WHERE parts_name = 'Laptop Charger Adapter' AND status = 1 AND ROWNUM = 1), 
         1, 1500, 1500, 'Y', 
         'Mobile phone charging port repair and compatible charger replacement'
     );
@@ -3526,10 +3604,10 @@ DECLARE
 BEGIN
     INSERT INTO service_master (customer_id, invoice_id, service_date, service_by, service_charge_total, vat, grand_total, warranty_applicable)
     VALUES (
-        (SELECT customer_id FROM customers WHERE phone_no = '01810000010' AND ROWNUM = 1),
-        (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000010' AND ROWNUM = 1) AND ROWNUM = 1),
+        (SELECT customer_id FROM customers WHERE phone_no = '01810000010' AND status = 1 AND ROWNUM = 1),
+        (SELECT invoice_id FROM sales_master WHERE customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000010' AND status = 1 AND ROWNUM = 1) AND status = 1 AND ROWNUM = 1),
         SYSDATE - 9,
-        (SELECT employee_id FROM employees WHERE first_name = 'Mominul' AND last_name = 'Haque' AND ROWNUM = 1),
+        (SELECT employee_id FROM employees WHERE first_name = 'Mominul' AND last_name = 'Haque' AND status = 1 AND ROWNUM = 1),
         800, 300, 2300, 'N'
     )
     RETURNING service_id INTO v_service_id;
@@ -3537,12 +3615,12 @@ BEGIN
     INSERT INTO service_details (service_id, product_id, parts_id, quantity, parts_price, line_total, warranty_status, description)
     VALUES (
         v_service_id, 
-        (SELECT d.product_id FROM sales_detail d 
-         JOIN sales_master m ON d.invoice_id = m.invoice_id 
-         JOIN products p ON d.product_id = p.product_id
-         WHERE m.customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000010' AND ROWNUM = 1)
+        (SELECT d.product_id FROM sales_detail d
+         JOIN sales_master m ON d.invoice_id = m.invoice_id AND m.status = 1 
+         JOIN products p ON d.product_id = p.product_id AND p.status = 1
+         WHERE d.status = 1 AND m.customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000010' AND status = 1 AND ROWNUM = 1)
          AND ROWNUM = 1),
-        (SELECT parts_id FROM parts WHERE parts_name = 'LED TV Motherboard' AND ROWNUM = 1), 
+        (SELECT parts_id FROM parts WHERE parts_name = 'LED TV Motherboard' AND status = 1 AND ROWNUM = 1), 
         1, 1200, 1200, 'N', 
         'Complete diagnostic testing and motherboard inspection for home theater system'
     );
@@ -3577,7 +3655,7 @@ INSERT INTO com_users (user_name, password, employee_id, role)
 VALUES (
     'rafiqul.admin',
     'admin@2026',
-    (SELECT employee_id FROM employees WHERE first_name = 'Rafiqul' AND last_name = 'Hasan' AND ROWNUM = 1),
+    (SELECT employee_id FROM employees WHERE first_name = 'Rafiqul' AND last_name = 'Hasan' AND status = 1 AND ROWNUM = 1),
     'ADMIN'
 );
 
@@ -3585,7 +3663,7 @@ INSERT INTO com_users (user_name, password, employee_id, role)
 VALUES (
     'ariful.sales',
     'sales@2026',
-    (SELECT employee_id FROM employees WHERE first_name = 'Ariful' AND last_name = 'Islam' AND ROWNUM = 1),
+    (SELECT employee_id FROM employees WHERE first_name = 'Ariful' AND last_name = 'Islam' AND status = 1 AND ROWNUM = 1),
     'SALES_MANAGER'
 );
 
@@ -3593,7 +3671,7 @@ INSERT INTO com_users (user_name, password, employee_id, role)
 VALUES (
     'fatima.accounts',
     'account@2026',
-    (SELECT employee_id FROM employees WHERE first_name = 'Fatima' AND last_name = 'Zohra' AND ROWNUM = 1),
+    (SELECT employee_id FROM employees WHERE first_name = 'Fatima' AND last_name = 'Zohra' AND status = 1 AND ROWNUM = 1),
     'ACCOUNTANT'
 );
 
@@ -3601,7 +3679,7 @@ INSERT INTO com_users (user_name, password, employee_id, role)
 VALUES (
     'zahid.procurement',
     'purchase@2026',
-    (SELECT employee_id FROM employees WHERE first_name = 'Zahid' AND last_name = 'Hasib' AND ROWNUM = 1),
+    (SELECT employee_id FROM employees WHERE first_name = 'Zahid' AND last_name = 'Hasib' AND status = 1 AND ROWNUM = 1),
     'PROCUREMENT'
 );
 
@@ -3609,7 +3687,7 @@ INSERT INTO com_users (user_name, password, employee_id, role)
 VALUES (
     'mominul.service',
     'service@2026',
-    (SELECT employee_id FROM employees WHERE first_name = 'Mominul' AND last_name = 'Haque' AND ROWNUM = 1),
+    (SELECT employee_id FROM employees WHERE first_name = 'Mominul' AND last_name = 'Haque' AND status = 1 AND ROWNUM = 1),
     'SERVICE_TECH'
 );
 
@@ -3617,7 +3695,7 @@ INSERT INTO com_users (user_name, password, employee_id, role)
 VALUES (
     'tariq.sales',
     'sales@2026',
-    (SELECT employee_id FROM employees WHERE first_name = 'Tariq' AND last_name = 'Aziz' AND ROWNUM = 1),
+    (SELECT employee_id FROM employees WHERE first_name = 'Tariq' AND last_name = 'Aziz' AND status = 1 AND ROWNUM = 1),
     'SALES_EXECUTIVE'
 );
 
@@ -3625,7 +3703,7 @@ INSERT INTO com_users (user_name, password, employee_id, role)
 VALUES (
     'rumana.support',
     'support@2026',
-    (SELECT employee_id FROM employees WHERE first_name = 'Rumana' AND last_name = 'Afroz' AND ROWNUM = 1),
+    (SELECT employee_id FROM employees WHERE first_name = 'Rumana' AND last_name = 'Afroz' AND status = 1 AND ROWNUM = 1),
     'CUSTOMER_SUPPORT'
 );
 
@@ -3735,26 +3813,20 @@ BEGIN
 END;
 /
 
--- Trigger on sales_return_details to automatically adjust stock
--- Sales returns INCREASE stock (products coming back to inventory)
 CREATE OR REPLACE TRIGGER trg_auto_stock_sales_return
 AFTER INSERT OR UPDATE OR DELETE ON sales_return_details
 FOR EACH ROW
 BEGIN
     IF INSERTING THEN
-        -- Customer returns product, add back to stock (POSITIVE)
-        UPDATE_STOCK_QTY(:NEW.product_id, NVL(:NEW.qty_return, 0));
+        UPDATE_STOCK_QTY(:NEW.product_id, :NEW.quantity);
     ELSIF DELETING THEN
-        -- Cancel return record, remove from stock (NEGATIVE)
-        UPDATE_STOCK_QTY(:OLD.product_id, -NVL(:OLD.qty_return, 0));
+        UPDATE_STOCK_QTY(:OLD.product_id, -:OLD.quantity);
     ELSIF UPDATING THEN
         IF :OLD.product_id != :NEW.product_id THEN
-            -- Product changed: reverse old product and add to new product
-            UPDATE_STOCK_QTY(:OLD.product_id, -NVL(:OLD.qty_return, 0));
-            UPDATE_STOCK_QTY(:NEW.product_id, NVL(:NEW.qty_return, 0));
+            UPDATE_STOCK_QTY(:OLD.product_id, -:OLD.quantity);
+            UPDATE_STOCK_QTY(:NEW.product_id, :NEW.quantity);
         ELSE
-            -- Same product, different quantity: adjust by difference
-            UPDATE_STOCK_QTY(:NEW.product_id, NVL(:NEW.qty_return, 0) - NVL(:OLD.qty_return, 0));
+            UPDATE_STOCK_QTY(:NEW.product_id, :NEW.quantity - :OLD.quantity);
         END IF;
     END IF;
 END;
@@ -3796,3 +3868,72 @@ BEGIN
     END IF;
 END;
 /
+/* 
+IF NEEDED THEN......
+BEGIN
+    -- ১. স্টক টেবিল ক্লিয়ার করা
+    DELETE FROM stock;
+    
+    -- ২. ম্যানুয়াল ইনিশিয়াল স্টক ইনসার্ট করা (যদি রিসিভ ডিটেইলস না থাকে)
+    -- তোমার স্ক্রিপ্টের ম্যানুয়াল স্টক ইনসার্টগুলো এখানে রাখতে পারো, 
+    -- অথবা প্রোডাক্ট রিসিভ টেবিল থেকে অটোমেটিক আনতে পারো।
+    
+    -- উদাহরণ: রিসিভ থেকে স্টক জেনারেট করা
+    FOR r IN (SELECT product_id, SUM(receive_quantity) as qty FROM product_receive_details GROUP BY product_id) LOOP
+        UPDATE_STOCK_QTY(r.product_id, r.qty);
+    END LOOP;
+
+    -- ৩. সেলস থেকে স্টক মাইনাস করা
+    FOR s IN (SELECT product_id, SUM(quantity) as qty FROM sales_detail GROUP BY product_id) LOOP
+        UPDATE_STOCK_QTY(s.product_id, -s.qty);
+    END LOOP;
+*/
+
+--change sales_return
+CREATE OR REPLACE TRIGGER trg_auto_stock_sales_return
+AFTER INSERT OR UPDATE OR DELETE ON sales_return_details
+FOR EACH ROW
+BEGIN
+    IF INSERTING THEN
+        -- ভুল ছিল: :NEW.quantity (এটা ইনভয়েস কোয়ান্টিটি ৪)
+        -- সঠিক হবে: :NEW.qty_return (এটা রিটার্ন কোয়ান্টিটি ২)
+        UPDATE_STOCK_QTY(:NEW.product_id, NVL(:NEW.qty_return, 0));
+        
+    ELSIF DELETING THEN
+        UPDATE_STOCK_QTY(:OLD.product_id, -NVL(:OLD.qty_return, 0));
+        
+    ELSIF UPDATING THEN
+        IF :OLD.product_id != :NEW.product_id THEN
+            UPDATE_STOCK_QTY(:OLD.product_id, -NVL(:OLD.qty_return, 0));
+            UPDATE_STOCK_QTY(:NEW.product_id, NVL(:NEW.qty_return, 0));
+        ELSE
+            UPDATE_STOCK_QTY(:NEW.product_id, NVL(:NEW.qty_return, 0) - NVL(:OLD.qty_return, 0));
+        END IF;
+    END IF;
+END;
+/
+-- change purchase_return trigger 
+CREATE OR REPLACE TRIGGER trg_auto_stock_purchase_return
+AFTER INSERT OR UPDATE OR DELETE ON product_return_details
+FOR EACH ROW
+BEGIN
+    IF INSERTING THEN
+        -- NVL(:NEW.return_quantity, 0) ব্যবহার করা হয়েছে যাতে খালি থাকলে ০ ধরে নেয়
+        UPDATE_STOCK_QTY(:NEW.product_id, -NVL(:NEW.return_quantity, 0));
+    ELSIF DELETING THEN
+        UPDATE_STOCK_QTY(:OLD.product_id, NVL(:OLD.return_quantity, 0));
+    ELSIF UPDATING THEN
+        IF :OLD.product_id != :NEW.product_id THEN
+            UPDATE_STOCK_QTY(:OLD.product_id, NVL(:OLD.return_quantity, 0));
+            UPDATE_STOCK_QTY(:NEW.product_id, -NVL(:NEW.return_quantity, 0));
+        ELSE
+            UPDATE_STOCK_QTY(:NEW.product_id, -(NVL(:NEW.return_quantity, 0) - NVL(:OLD.return_quantity, 0)));
+        END IF;
+    END IF;
+END;
+/
+
+
+    
+    -- ৪. রিটার্ন এবং ড্যামেজ একইভাবে হ্যান্ডেল করতে হবে...
+    COMMIT;
