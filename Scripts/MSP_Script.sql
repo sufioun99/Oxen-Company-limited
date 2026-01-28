@@ -3324,7 +3324,7 @@ BEGIN
          JOIN sales_master m ON d.invoice_id = m.invoice_id AND m.status = 1 
          JOIN products p ON d.product_id = p.product_id AND p.status = 1
          JOIN product_categories pc ON p.category_id = pc.product_cat_id AND pc.status = 1
-         WHERE d.status = 1 AND m.customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000002' AND status = 1 AND ROWNUM = 1)
+         WHERE m.customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000002' AND status = 1 AND ROWNUM = 1)
          AND pc.product_cat_name LIKE '%Air Conditioner%' AND ROWNUM = 1),
         (SELECT servicelist_id FROM service_list WHERE service_name = 'AC Servicing' AND status = 1 AND ROWNUM = 1),
         (SELECT parts_id FROM parts WHERE parts_name = 'AC Outdoor Fan Motor' AND status = 1 AND ROWNUM = 1), 
@@ -3339,7 +3339,7 @@ BEGIN
          JOIN sales_master m ON d.invoice_id = m.invoice_id AND m.status = 1 
          JOIN products p ON d.product_id = p.product_id AND p.status = 1
          JOIN product_categories pc ON p.category_id = pc.product_cat_id AND pc.status = 1
-         WHERE d.status = 1 AND m.customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000002' AND status = 1 AND ROWNUM = 1)
+         WHERE m.customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000002' AND status = 1 AND ROWNUM = 1)
          AND pc.product_cat_name LIKE '%Air Conditioner%' AND ROWNUM = 1),
         (SELECT servicelist_id FROM service_list WHERE service_name = 'AC Servicing' AND status = 1 AND ROWNUM = 1),
         (SELECT parts_id FROM parts WHERE parts_name = 'AC Remote Controller' AND status = 1 AND ROWNUM = 1), 
@@ -3372,7 +3372,7 @@ BEGIN
          JOIN sales_master m ON d.invoice_id = m.invoice_id AND m.status = 1 
          JOIN products p ON d.product_id = p.product_id AND p.status = 1
          JOIN product_categories pc ON p.category_id = pc.product_cat_id AND pc.status = 1
-         WHERE d.status = 1 AND m.customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000003' AND status = 1 AND ROWNUM = 1)
+         WHERE m.customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000003' AND status = 1 AND ROWNUM = 1)
          AND pc.product_cat_name LIKE '%Refrigerator%' AND ROWNUM = 1),
         (SELECT parts_id FROM parts WHERE parts_name = 'Refrigerator Compressor Unit' AND status = 1 AND ROWNUM = 1), 
         1, 3000, 3000, 'N', 
@@ -3386,7 +3386,7 @@ BEGIN
          JOIN sales_master m ON d.invoice_id = m.invoice_id AND m.status = 1 
          JOIN products p ON d.product_id = p.product_id AND p.status = 1
          JOIN product_categories pc ON p.category_id = pc.product_cat_id AND pc.status = 1
-         WHERE d.status = 1 AND m.customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000003' AND status = 1 AND ROWNUM = 1)
+         WHERE m.customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000003' AND status = 1 AND ROWNUM = 1)
          AND pc.product_cat_name LIKE '%Refrigerator%' AND ROWNUM = 1),
         (SELECT parts_id FROM parts WHERE parts_name = 'Refrigerator Thermostat' AND status = 1 AND ROWNUM = 1), 
         1, 1500, 1500, 'N', 
@@ -3418,7 +3418,7 @@ BEGIN
          JOIN sales_master m ON d.invoice_id = m.invoice_id AND m.status = 1 
          JOIN products p ON d.product_id = p.product_id AND p.status = 1
          JOIN product_categories pc ON p.category_id = pc.product_cat_id AND pc.status = 1
-         WHERE d.status = 1 AND m.customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000004' AND status = 1 AND ROWNUM = 1)
+         WHERE m.customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000004' AND status = 1 AND ROWNUM = 1)
          AND pc.product_cat_name LIKE '%Washing Machine%' AND ROWNUM = 1),
         (SELECT parts_id FROM parts WHERE parts_name = 'Washing Machine Drum Belt' AND status = 1 AND ROWNUM = 1), 
         1, 1800, 1800, 'N', 
@@ -3450,7 +3450,7 @@ BEGIN
          JOIN sales_master m ON d.invoice_id = m.invoice_id AND m.status = 1 
          JOIN products p ON d.product_id = p.product_id AND p.status = 1
          JOIN product_categories pc ON p.category_id = pc.product_cat_id AND pc.status = 1
-         WHERE d.status = 1 AND m.customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000005' AND status = 1 AND ROWNUM = 1)
+         WHERE m.customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000005' AND status = 1 AND ROWNUM = 1)
          AND pc.product_cat_name LIKE '%Laptop%' AND ROWNUM = 1),
         (SELECT parts_id FROM parts WHERE parts_name = 'Laptop Charger Adapter' AND status = 1 AND ROWNUM = 1), 
         1, 1500, 1500, 'N', 
@@ -3464,7 +3464,7 @@ BEGIN
          JOIN sales_master m ON d.invoice_id = m.invoice_id AND m.status = 1 
          JOIN products p ON d.product_id = p.product_id AND p.status = 1
          JOIN product_categories pc ON p.category_id = pc.product_cat_id AND pc.status = 1
-         WHERE d.status = 1 AND m.customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000005' AND status = 1 AND ROWNUM = 1)
+         WHERE m.customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000005' AND status = 1 AND ROWNUM = 1)
          AND pc.product_cat_name LIKE '%Laptop%' AND ROWNUM = 1),
         (SELECT parts_id FROM parts WHERE parts_name = 'LED TV Power Supply Board' AND status = 1 AND ROWNUM = 1), 
         1, 1000, 1000, 'N', 
@@ -3523,7 +3523,7 @@ BEGIN
          JOIN sales_master m ON d.invoice_id = m.invoice_id AND m.status = 1 
          JOIN products p ON d.product_id = p.product_id AND p.status = 1
          JOIN product_categories pc ON p.category_id = pc.product_cat_id AND pc.status = 1
-         WHERE d.status = 1 AND m.customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000007' AND status = 1 AND ROWNUM = 1)
+         WHERE m.customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000007' AND status = 1 AND ROWNUM = 1)
          AND pc.product_cat_name LIKE '%Air Conditioner%' AND ROWNUM = 1),
         (SELECT parts_id FROM parts WHERE parts_name = 'AC Outdoor Fan Motor' AND status = 1 AND ROWNUM = 1), 
         2, 1000, 2000, 'Y', 
@@ -3555,7 +3555,7 @@ BEGIN
          JOIN sales_master m ON d.invoice_id = m.invoice_id AND m.status = 1 
          JOIN products p ON d.product_id = p.product_id AND p.status = 1
          JOIN product_categories pc ON p.category_id = pc.product_cat_id AND pc.status = 1
-         WHERE d.status = 1 AND m.customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000008' AND status = 1 AND ROWNUM = 1)
+         WHERE m.customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000008' AND status = 1 AND ROWNUM = 1)
          AND pc.product_cat_name LIKE '%Microwave%' AND ROWNUM = 1),
         (SELECT parts_id FROM parts WHERE parts_name = 'Microwave Oven Magnetron Tube' AND status = 1 AND ROWNUM = 1), 
         1, 2800, 2800, 'N', 
@@ -3587,7 +3587,7 @@ BEGIN
          JOIN sales_master m ON d.invoice_id = m.invoice_id AND m.status = 1 
          JOIN products p ON d.product_id = p.product_id AND p.status = 1
          JOIN product_categories pc ON p.category_id = pc.product_cat_id AND pc.status = 1
-         WHERE d.status = 1 AND m.customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000009' AND status = 1 AND ROWNUM = 1)
+         WHERE m.customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000009' AND status = 1 AND ROWNUM = 1)
          AND pc.product_cat_name LIKE '%Phone%' AND ROWNUM = 1),
         (SELECT parts_id FROM parts WHERE parts_name = 'Laptop Charger Adapter' AND status = 1 AND ROWNUM = 1), 
         1, 1500, 1500, 'Y', 
@@ -3618,7 +3618,7 @@ BEGIN
         (SELECT d.product_id FROM sales_detail d
          JOIN sales_master m ON d.invoice_id = m.invoice_id AND m.status = 1 
          JOIN products p ON d.product_id = p.product_id AND p.status = 1
-         WHERE d.status = 1 AND m.customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000010' AND status = 1 AND ROWNUM = 1)
+         WHERE m.customer_id = (SELECT customer_id FROM customers WHERE phone_no = '01810000010' AND status = 1 AND ROWNUM = 1)
          AND ROWNUM = 1),
         (SELECT parts_id FROM parts WHERE parts_name = 'LED TV Motherboard' AND status = 1 AND ROWNUM = 1), 
         1, 1200, 1200, 'N', 
