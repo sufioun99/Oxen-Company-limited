@@ -18,14 +18,13 @@ GRANT CONNECT, RESOURCE TO msp;
 ```
 See [LOCAL_SQL_SETUP_GUIDE.md](LOCAL_SQL_SETUP_GUIDE.md) for detailed setup if errors occur.
 
-### Setup Database (Choose One)
+### Setup Database
 ```bash
-# Recommended: Fresh installation with all-in-one script
+# Fresh installation with all-in-one script (ONLY option available)
 sqlplus sys as sysdba @clean_combined.sql
-
-# Alternative: Separate execution (for schema modifications)
-sqlplus sys as sysdba @Schema.sql      # Creates 33 tables + triggers
-sqlplus msp/msp @"Insert data"         # Populates master tables
+# This script creates 33 tables + sequences + triggers + sample data in one run
+# Note: Schema.sql and "Insert data" files are referenced in guides but do NOT exist
+# All functionality is consolidated in clean_combined.sql
 ```
 
 ### Connect as Application User
@@ -57,8 +56,8 @@ sqlplus msp/msp @automation_pkg.sql
 # Install forms LOV queries (for Oracle Forms 11g)
 sqlplus msp/msp @forms_lov.sql
 
-# Install APEX views (for Oracle APEX 5.x+)
-sqlplus msp/msp @apex_views.sql
+# Note: apex_views.sql does NOT exist in this repository
+# APEX integration is mentioned in docs but views are not yet implemented
 ```
 
 ## Architecture & Structure
@@ -110,15 +109,10 @@ BEGIN
         :NEW.service_det_id := 'SDT' || TO_CHAR(service_det_seq.NEXTVAL);
     END IF;
     
-    -- Generate line_no
-    IF :NEW.line_no IS NULL THEN
-        SELECT NVL(MAX(line_no), 0) + 1 INTO :NEW.line_no
-        FROM service_details WHERE service_id = :NEW.service_id;
-    END IF;
-    
     -- Audit columns
     IF :NEW.status IS NULL THEN :NEW.status := 1; END IF;
-    :NEW.cre_by := USER; :NEW.cre_dt := SYSDATE;
+    IF :NEW.cre_by IS NULL THEN :NEW.cre_by := USER; END IF;
+    IF :NEW.cre_dt IS NULL THEN :NEW.cre_dt := SYSDATE; END IF;
 END;
 /
 
@@ -127,6 +121,8 @@ END;
 CREATE OR REPLACE TRIGGER trg_service_det_bi ...  -- First trigger
 CREATE OR REPLACE TRIGGER trg_service_det_line_no_bi ...  -- Second trigger - CONFLICT!
 ```
+
+**IMPORTANT**: `line_no` columns were removed from all detail tables (Jan 2026) for Oracle Forms compatibility. Do NOT add line_no auto-generation triggers.
 
 ### Auto-ID Generation Pattern
 **Every table uses triggers for auto-ID generation**. Primary key format: `PREFIX + SEQUENCE_NUMBER`
@@ -137,7 +133,7 @@ CREATE OR REPLACE TRIGGER trg_service_det_line_no_bi ...  -- Second trigger - CO
   - Explicit code field if provided
   - Hardcoded prefix (e.g., `'INV'`, `'ORD'`, `'RCV'`)
 
-Example from [Schema.sql](Schema.sql#L616-L632):
+Example from [clean_combined.sql](clean_combined.sql) (line 683):
 ```sql
 CREATE OR REPLACE TRIGGER trg_sales_master_bi
 BEFORE INSERT OR UPDATE ON sales_master FOR EACH ROW
@@ -146,7 +142,15 @@ BEGIN
         :NEW.invoice_id := 'INV' || TO_CHAR(sales_seq.NEXTVAL);
     END IF;
     -- Audit columns auto-populated
+    IF INSERTING THEN
+        IF :NEW.status IS NULL THEN :NEW.status := 1; END IF;
+        IF :NEW.cre_by IS NULL THEN :NEW.cre_by := USER; END IF;
+        IF :NEW.cre_dt IS NULL THEN :NEW.cre_dt := SYSDATE; END IF;
+    ELSIF UPDATING THEN
+        :NEW.upd_by := USER; :NEW.upd_dt := SYSDATE;
+    END IF;
 END;
+/
 ```
 
 ### Audit Columns Standard
@@ -155,12 +159,12 @@ END;
 - Default status = `1` (active)
 
 ### Computed Columns
-Some tables use **virtual generated columns**:
+Some tables use **virtual generated columns** (auto-calculated, cannot be inserted/updated):
 ```sql
--- suppliers table (line 272)
+-- suppliers table (clean_combined.sql line ~313)
 due NUMBER GENERATED ALWAYS AS (NVL(purchase_total,0) - NVL(pay_total,0)) VIRTUAL
 ```
-**Important**: Virtual columns cannot be inserted/updated directly; they compute automatically.
+**Important**: Virtual columns cannot be inserted/updated directly; they compute automatically from other columns.
 
 ### Deferred Constraints
 Employee-Department circular references use **deferred constraints**:
@@ -185,61 +189,86 @@ VALUES ('Samsung TV',
 ```
 
 ### Warranty Logic
-Service requests check warranty automatically via trigger in [Schema.sql](Schema.sql#L1206-L1225):
+Service requests check warranty automatically via triggers in [clean_combined.sql](clean_combined.sql):
 - Compares `invoice_date + (warranty_months * 30)` against current date
 - Sets `warranty_applicable` to `'Y'` or `'N'`
 - Example: 12-month warranty = invoice_date + 360 days
-- **Important**: When linking service to sales, ensure `invoice_id` exists and has valid `warranty_months` column, or trigger will fail with **ORA-00904**
+- **Important**: When linking service to sales, ensure `invoice_id` exists in `sales_master` with valid `invoice_date`, or trigger will fail
+- **Multi-product invoices**: See [SERVICE_FORM_COMPLETE_GUIDE.md](SERVICE_FORM_COMPLETE_GUIDE.md) for handling different warranty periods per product
 
-### Stock Management
+### Stock Management (AUTOMATED - Active since Jan 2026)
+**Stock updates are FULLY AUTOMATED** via AFTER triggers - no manual SQL needed:
+
+1. **trg_stock_on_sales_det**: Auto-deducts stock on INSERT into `sales_detail`
+2. **trg_stock_on_receive_det**: Auto-adds stock on INSERT into `product_receive_details`
+3. **trg_validate_receive_direct**: Validates products were ordered before receiving
+4. **trg_stock_on_prod_return_det**: Deducts stock when returning to supplier
+5. **trg_stock_on_damage_det**: Writes off damaged stock automatically
+
+**Key points**:
 - Use `CHECK (quantity >= 0)` constraint prevents negative stock
-- `last_update` auto-updates to `SYSTIMESTAMP` on any stock change via trigger
-- Always verify stock before sales with: `SELECT quantity FROM stock WHERE product_id = ?`
+- `last_update` auto-updates to `SYSTIMESTAMP` on any stock change
+- INSERT/UPDATE/DELETE on detail tables triggers stock changes automatically
+- No need to write manual `UPDATE stock` statements in forms or applications
 
 ## File Structure & Execution
 
-### Core Files
-- [clean_combined.sql](clean_combined.sql): **PRIMARY** - Single executable (~3,900 lines) - creates 33 tables + sequences + triggers + sample data in one run
-- [Schema.sql](Schema.sql): DDL only (~2,546 lines) - tables, sequences, triggers (no data)
-- [Insert data](Insert%20data): DML only (~1,318 lines) - sample master/transaction data
+### Core Files (Database)
+- [clean_combined.sql](clean_combined.sql): **PRIMARY INSTALLATION FILE** - ~3,717 lines - creates 33 tables + sequences + 50+ triggers + sample data
+- [automation_pkg.sql](automation_pkg.sql): PL/SQL package `pkg_oxen_automation` - 933 lines - business logic procedures for stock, sales, service
 
-### Extension Modules (Optional)
-- [automation_pkg.sql](automation_pkg.sql): PL/SQL package with business procedures (stock mgmt, sales workflows, service tickets, supplier payments)
-- [forms_lov.sql](forms_lov.sql): Oracle Forms 11g List of Values (LOV) queries - dropdown data sources
-- [apex_views.sql](apex_views.sql): Oracle APEX 5.x+ ready views (`lov_*`, `dashboard_*`, `*_report_v`)
+### Oracle Forms Integration Files
+- [forms_lov.sql](forms_lov.sql): Oracle Forms 11g List of Values (LOV) queries - pre-built dropdown data sources
+- [FORMS_NEW_SALES_TRIGGER.sql](FORMS_NEW_SALES_TRIGGER.sql): WHEN-BUTTON-PRESSED triggers for new transaction records (3 implementation options)
+- [forms_invoice_control_setup.sql](forms_invoice_control_setup.sql): Optional control table for manual invoice number management
 - [service_form_setup.sql](service_form_setup.sql): Service management form-specific setup
-- [validation_checks.sql](validation_checks.sql): Data integrity validation queries
-- [FORMS_NEW_SALES_TRIGGER.sql](FORMS_NEW_SALES_TRIGGER.sql): Oracle Forms 11g triggers for new transaction records (3 options: sequence-based, control table, hybrid)
-- [forms_invoice_control_setup.sql](forms_invoice_control_setup.sql): Optional control table for invoice number audit trail
+- [service_form_upgrade.sql](service_form_upgrade.sql): Service form enhancements and modifications
 
-### Utility Files
-- [check_data_integrity.sql](check_data_integrity.sql): Run after data insertion to verify referential integrity
+### Comprehensive Implementation Guides (Markdown)
+- [FORMS_INTEGRATION_COMPLETE_GUIDE.md](FORMS_INTEGRATION_COMPLETE_GUIDE.md): 530 lines - Oracle Forms compatibility, multi-product patterns, LOV setup
+- [FORMS_NEW_RECORD_GUIDE.md](FORMS_NEW_RECORD_GUIDE.md): Step-by-step guide for implementing new record triggers in forms
+- [FORMS_LOV_QUICK_GUIDE.md](FORMS_LOV_QUICK_GUIDE.md): Quick reference for LOV implementation patterns
+- [SERVICE_FORM_COMPLETE_GUIDE.md](SERVICE_FORM_COMPLETE_GUIDE.md): 1,616 lines - Multi-product service form implementation with visual layouts
+- [SERVICE_FORM_VISUAL_REFERENCE.md](SERVICE_FORM_VISUAL_REFERENCE.md): Visual diagrams and form layouts for service management
+- [SERVICE_DESIGN_CORRECTED.md](SERVICE_DESIGN_CORRECTED.md): Service module design patterns and corrections
+- [SERVICE_TABLES_REFERENCE.md](SERVICE_TABLES_REFERENCE.md): Service table structure and relationships reference
+
+### Database Documentation
+- [complete_trigger_documentations](complete_trigger_documentations): HTML file (1,637 lines) - complete documentation of all 50+ triggers with naming conventions, categories, and usage patterns
+- [DATABASE_CHANGES_LOG.md](DATABASE_CHANGES_LOG.md): 194 lines - tracks schema changes, trigger activations, modifications (critical for understanding evolution)
+- [LOCAL_SQL_SETUP_GUIDE.md](LOCAL_SQL_SETUP_GUIDE.md): Step-by-step Oracle Database setup and troubleshooting
+
+### Testing & Validation Files
+- [check_data_integrity.sql](check_data_integrity.sql): Verify referential integrity after data insertion
 - [quick_check.sql](quick_check.sql): Rapid verification of core tables and record counts
+- [validation_checks.sql](validation_checks.sql): Comprehensive data integrity validation queries
+- [FORMS_TEST_QUERIES.sql](FORMS_TEST_QUERIES.sql): Test queries for validating forms functionality
+
+### Oracle Reports Integration
 - [oracle_reports.sql](oracle_reports.sql): Oracle Reports (RDF) compatible view definitions
 
-**Note**: Some filenames contain spaces - use quotes when referencing:
-```bash
-sqlplus msp/msp @"Insert data"
-sqlplus msp/msp @"DYNAMIC LIST CRATION"
-```
+**Missing Files** (referenced in guides but do NOT exist):
+- `Schema.sql` - consolidated into clean_combined.sql
+- `Insert data` - consolidated into clean_combined.sql
+- `apex_views.sql` - APEX integration not yet implemented
+- `DYNAMIC LIST CRATION` - referenced but missing
 
 ### Execution Workflow
 ```bash
-# Recommended: All-in-one approach (fresh setup)
+# Fresh installation (ONLY option - drops and recreates msp user)
 sqlplus sys as sysdba @clean_combined.sql
 
-# Alternative: Schema only (for modifications)
-sqlplus sys as sysdba @Schema.sql
-sqlplus msp/msp @"Insert data"
+# Verify installation
+sqlplus msp/msp @check_data_integrity.sql
+sqlplus msp/msp @quick_check.sql
 
-# Production: With automation & forms support
-sqlplus sys as sysdba @clean_combined.sql
+# Production: Add automation & forms support
 sqlplus msp/msp @automation_pkg.sql
 sqlplus msp/msp @forms_lov.sql
-sqlplus msp/msp @check_data_integrity.sql  # Verify success
+sqlplus msp/msp @service_form_setup.sql  # If using service forms
 ```
 
-**Important**: Scripts automatically drop and recreate the `msp` user. All objects are created in the `msp` schema.
+**Important**: `clean_combined.sql` automatically drops and recreates the `msp` user, deleting ALL existing data. For incremental changes, extract relevant sections from the script or comment out the `DROP USER msp CASCADE;` line (line 9).
 
 ## Development Guidelines
 
@@ -303,13 +332,23 @@ END;
 - Remember virtual columns cannot be inserted/updated directly
 
 ### Testing Database Scripts
-Run scripts in this order:
-1. Drop user: `DROP USER msp CASCADE;`
-2. [Schema.sql](Schema.sql) - Creates structure
-3. [Insert data](Insert%20data) - Populates masters
-4. Or use [clean_combined.sql](clean_combined.sql) - All-in-one
+```bash
+# Full reset (use this for testing schema changes)
+sqlplus sys as sysdba @clean_combined.sql
 
-**Testing tip**: After modifying [Schema.sql](Schema.sql), run it independently before re-running the combined script to catch DDL errors early.
+# Verify with integrity checks
+sqlplus msp/msp @check_data_integrity.sql
+sqlplus msp/msp @validation_checks.sql
+
+# Test specific forms functionality
+sqlplus msp/msp @FORMS_TEST_QUERIES.sql
+```
+
+**Testing tip**: To test individual schema changes without full reset:
+1. Extract relevant CREATE TABLE and trigger sections from clean_combined.sql
+2. Test DDL changes in isolation: `sqlplus msp/msp @your_test_changes.sql`
+3. Run `check_data_integrity.sql` to verify no broken references
+4. Once validated, merge changes back into clean_combined.sql
 
 ### Oracle Database Connection
 **Default user**: `msp` / `msp`
@@ -445,15 +484,26 @@ END your_procedure_name;
 ```
 
 ### Oracle APEX Integration Workflow
-1. **LOV Views**: All `lov_*_v` views return `(return_value, display_value)` columns for dropdowns
-2. **Dashboard Views**: Query `dashboard_*_v` for pre-aggregated KPIs (sales, stock, supplier due)
-3. **Report Views**: Use `*_report_v` views for transaction reports (no manual joins needed)
-4. **Example APEX Source**:
+**Note**: APEX views (`apex_views.sql`) are referenced in documentation but NOT YET IMPLEMENTED in this repository.
+
+When implementing APEX views, follow this pattern:
+1. **LOV Views**: Create `lov_*_v` views returning `(return_value, display_value)` columns for dropdowns
+2. **Dashboard Views**: Create `dashboard_*_v` for pre-aggregated KPIs (sales, stock, supplier due)
+3. **Report Views**: Create `*_report_v` views for transaction reports (pre-joined master-detail tables)
+4. **Example APEX LOV Source**:
    ```sql
+   -- Create view first (doesn't exist yet)
+   CREATE OR REPLACE VIEW lov_customers_v AS
+   SELECT customer_id AS return_value,
+          customer_name || ' (' || phone_no || ')' AS display_value,
+          status
+   FROM customers
+   WHERE status = 1;
+   
+   -- Then use in APEX
    SELECT display_value AS d, return_value AS r
    FROM lov_customers_v
-   WHERE status = 1
-   ORDER BY d
+   ORDER BY d;
    ```
 
 ### Oracle Forms LOV Setup
@@ -462,6 +512,11 @@ Configure LOVs from [forms_lov.sql](forms_lov.sql) queries:
 2. Map return columns: First column is `return_value`, second is display
 3. Set LOV property "Automatic Skip" based on validation requirements
 4. For multi-column LOVs (product + price), map additional columns as non-return values
+
+**Comprehensive guides available**:
+- [FORMS_LOV_QUICK_GUIDE.md](FORMS_LOV_QUICK_GUIDE.md): Quick reference for LOV patterns
+- [FORMS_INTEGRATION_COMPLETE_GUIDE.md](FORMS_INTEGRATION_COMPLETE_GUIDE.md): Complete forms integration patterns
+- [SERVICE_FORM_COMPLETE_GUIDE.md](SERVICE_FORM_COMPLETE_GUIDE.md): Service-specific LOV implementations with multi-product support
 
 ## Common Troubleshooting
 
@@ -481,14 +536,15 @@ Configure LOVs from [forms_lov.sql](forms_lov.sql) queries:
 - Ensure all NOT NULL columns have values or defaults
 
 ### "Sequence does not exist"
-- Run [Schema.sql](Schema.sql) before [Insert data](Insert%20data)
-- Sequences are created alongside tables
-- If adding new tables, create sequence before trigger
+- Ensure [clean_combined.sql](clean_combined.sql) ran successfully (sequences created with tables)
+- Check sequence exists: `SELECT sequence_name FROM user_sequences WHERE sequence_name LIKE '%_SEQ';`
+- If adding new tables, create sequence before trigger following pattern: `CREATE SEQUENCE <table>_seq START WITH 1 INCREMENT BY 1 NOCACHE NOCYCLE;`
 
 ### "ORA-01031: insufficient privileges"
 - Running [clean_combined.sql](clean_combined.sql) requires SYSDBA: `sqlplus sys as sysdba`
-- For regular user scripts, connect as `msp/msp`
-- User must be created first: see [LOCAL_SQL_SETUP_GUIDE.md](LOCAL_SQL_SETUP_GUIDE.md)
+- Script creates the `msp` user automatically (lines 9-19), so no pre-creation needed
+- For other scripts (automation_pkg.sql, forms_lov.sql), connect as `msp/msp`
+- If manual user creation needed, see [LOCAL_SQL_SETUP_GUIDE.md](LOCAL_SQL_SETUP_GUIDE.md)
 
 ### Duplicate data on re-run
 - Scripts include `DROP USER msp CASCADE;` which removes all existing data
