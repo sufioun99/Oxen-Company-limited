@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Innovation Hub - MSP Company Limited</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="pages.css">
+    <style>
+        .innovation-hero {
+            padding: 150px 5% 80px;
+            text-align: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .innovation-hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        .innovation-hero p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .idea-submission {
+            padding: 5rem 5%;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        }
+        .idea-form {
+            max-width: 700px;
+            margin: 0 auto;
+            background: white;
+            padding: 3rem;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+        }
+        .idea-form h2 {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: #333;
+        }
+        .idea-categories {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .idea-category {
+            padding: 0.8rem 1.5rem;
+            background: #f0f0f0;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .idea-category:hover,
+        .idea-category.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .innovation-showcase {
+            padding: 5rem 5%;
+        }
+        .innovation-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        .innovation-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+        .innovation-card-header {
+            padding: 2rem;
+            color: white;
+            text-align: center;
+        }
+        .innovation-card-body {
+            padding: 2rem;
+        }
+        .innovation-card-body ul {
+            list-style: none;
+            margin-bottom: 1.5rem;
+        }
+        .innovation-card-body li {
+            padding: 0.5rem 0;
+            padding-left: 2rem;
+            position: relative;
+        }
+        .innovation-card-body li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: #27ae60;
+            font-weight: bold;
+        }
+        .tech-demo-section {
+            padding: 5rem 5%;
+            background: #1a1a2e;
+            color: white;
+        }
+        .tech-demo-section h2 {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        .demo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .demo-card {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        .demo-card:hover {
+            background: rgba(255,255,255,0.2);
+            transform: scale(1.02);
+        }
+        .demo-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+        .demo-card h3 {
+            margin-bottom: 0.5rem;
+        }
+        .demo-card p {
+            opacity: 0.8;
+            font-size: 0.9rem;
+        }
+        .demo-btn {
+            margin-top: 1rem;
+            padding: 0.8rem 2rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .demo-btn:hover {
+            transform: scale(1.05);
+        }
+        .roadmap-section {
+            padding: 5rem 5%;
+        }
+        .roadmap-section h2 {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        .roadmap {
+            display: flex;
+            justify-content: space-between;
+            max-width: 1000px;
+            margin: 0 auto;
+            position: relative;
+        }
+        .roadmap::before {
+            content: '';
+            position: absolute;
+            top: 30px;
+            left: 10%;
+            right: 10%;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+        .roadmap-item {
+            text-align: center;
+            position: relative;
+            flex: 1;
+        }
+        .roadmap-dot {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            margin: 0 auto 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            position: relative;
+            z-index: 1;
+        }
+        .roadmap-item h4 {
+            margin-bottom: 0.5rem;
+        }
+        .roadmap-item p {
+            font-size: 0.85rem;
+            opacity: 0.8;
+        }
+        .partnership-section {
+            padding: 5rem 5%;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            text-align: center;
+        }
+        .partnership-section h2 {
+            margin-bottom: 1rem;
+        }
+        .partnership-section p {
+            max-width: 600px;
+            margin: 0 auto 2rem;
+        }
+        .partner-benefits {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        .benefit-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        .benefit-card h3 {
+            margin-bottom: 1rem;
+            color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">MSP Company Limited</div>
+        <ul class="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="about.html">About</a></li>
+            <li><a href="services.html">Services</a></li>
+            <li><a href="products.html">Products</a></li>
+            <li><a href="innovation.html" class="active">Innovation Hub</a></li>
+            <li><a href="contact.html">Contact</a></li>
+        </ul>
+        <button class="nav-toggle" id="navToggle">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+    </nav>
+
+    <section class="innovation-hero">
+        <h1>🚀 Innovation Hub</h1>
+        <p>Exploring creative ideas and cutting-edge technology solutions for tomorrow's challenges</p>
+    </section>
+
+    <section class="idea-submission">
+        <div class="idea-form">
+            <h2>💡 Submit Your Innovation Idea</h2>
+            <p style="text-align: center; margin-bottom: 2rem; color: #666;">Have a creative idea? Share it with us and let's bring it to life together!</p>
+            
+            <div class="idea-categories">
+                <button class="idea-category active" data-category="smart-home">Smart Home</button>
+                <button class="idea-category" data-category="ai-ml">AI & ML</button>
+                <button class="idea-category" data-category="iot">IoT</button>
+                <button class="idea-category" data-category="automation">Automation</button>
+                <button class="idea-category" data-category="sustainability">Sustainability</button>
+                <button class="idea-category" data-category="other">Other</button>
+            </div>
+            
+            <form id="ideaForm">
+                <div class="form-group">
+                    <label for="ideaName">Your Name</label>
+                    <input type="text" id="ideaName" required>
+                </div>
+                <div class="form-group">
+                    <label for="ideaEmail">Email</label>
+                    <input type="email" id="ideaEmail" required>
+                </div>
+                <div class="form-group">
+                    <label for="ideaTitle">Idea Title</label>
+                    <input type="text" id="ideaTitle" placeholder="Give your idea a catchy title" required>
+                </div>
+                <div class="form-group">
+                    <label for="ideaDescription">Describe Your Idea</label>
+                    <textarea id="ideaDescription" rows="5" placeholder="Tell us about your innovative idea..." required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="ideaImpact">Expected Impact</label>
+                    <textarea id="ideaImpact" rows="3" placeholder="How will this idea help people or solve problems?"></textarea>
+                </div>
+                <button type="submit" class="submit-btn">Submit Idea 🚀</button>
+            </form>
+        </div>
+    </section>
+
+    <section class="innovation-showcase">
+        <h2 style="text-align: center; margin-bottom: 3rem;">Featured Innovations</h2>
+        <div class="innovation-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 2rem; max-width: 1400px; margin: 0 auto;">
+            <div class="innovation-card">
+                <div class="innovation-card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    <div style="font-size: 4rem; margin-bottom: 1rem;">🏠</div>
+                    <h3>Smart Home Hub</h3>
+                    <p style="opacity: 0.9;">Centralized control for all smart devices</p>
+                </div>
+                <div class="innovation-card-body">
+                    <ul>
+                        <li>Voice-controlled automation</li>
+                        <li>Energy management system</li>
+                        <li>Security integration</li>
+                        <li>Remote access via mobile</li>
+                    </ul>
+                    <button class="demo-btn">Learn More</button>
+                </div>
+            </div>
+
+            <div class="innovation-card">
+                <div class="innovation-card-header" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                    <div style="font-size: 4rem; margin-bottom: 1rem;">🤖</div>
+                    <h3>AI Assistant</h3>
+                    <p style="opacity: 0.9;">Personal AI for daily tasks</p>
+                </div>
+                <div class="innovation-card-body">
+                    <ul>
+                        <li>Natural language processing</li>
+                        <li>Smart scheduling</li>
+                        <li>Task automation</li>
+                        <li>Learning preferences</li>
+                    </ul>
+                    <button class="demo-btn">Learn More</button>
+                </div>
+            </div>
+
+            <div class="innovation-card">
+                <div class="innovation-card-header" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                    <div style="font-size: 4rem; margin-bottom: 1rem;">🌐</div>
+                    <h3>IoT Ecosystem</h3>
+                    <p style="opacity: 0.9;">Connected devices ecosystem</p>
+                </div>
+                <div class="innovation-card-body">
+                    <ul>
+                        <li>Device interoperability</li>
+                        <li>Real-time monitoring</li>
+                        <li>Automated workflows</li>
+                        <li>Cloud integration</li>
+                    </ul>
+                    <button class="demo-btn">Learn More</button>
+                </div>
+            </div>
+
+            <div class="innovation-card">
+                <div class="innovation-card-header" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+                    <div style="font-size: 4rem; margin-bottom: 1rem;">♻️</div>
+                    <h3>Green Tech Solutions</h3>
+                    <p style="opacity: 0.9;">Eco-friendly technology innovations</p>
+                </div>
+                <div class="innovation-card-body">
+                    <ul>
+                        <li>Solar power integration</li>
+                        <li>Energy efficiency</li>
+                        <li>E-waste management</li>
+                        <li>Sustainable materials</li>
+                    </ul>
+                    <button class="demo-btn">Learn More</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="tech-demo-section">
+        <h2>🎮 Interactive Tech Demos</h2>
+        <div class="demo-grid">
+            <div class="demo-card">
+                <div class="demo-icon">💡</div>
+                <h3>Smart Lighting</h3>
+                <p>Control your lights with voice or app</p>
+                <button class="demo-btn">Try Demo</button>
+            </div>
+            <div class="demo-card">
+                <div class="demo-icon">🌡️</div>
+                <h3>Climate Control</h3>
+                <p>AI-powered temperature adjustment</p>
+                <button class="demo-btn">Try Demo</button>
+            </div>
+            <div class="demo-card">
+                <div class="demo-icon">🔐</div>
+                <h3>Smart Security</h3>
+                <p>Real-time surveillance and alerts</p>
+                <button class="demo-btn">Try Demo</button>
+            </div>
+            <div class="demo-card">
+                <div class="demo-icon">📊</div>
+                <h3>Energy Dashboard</h3>
+                <p>Monitor and optimize energy usage</p>
+                <button class="demo-btn">Try Demo</button>
+            </div>
+        </div>
+    </section>
+
+    <section class="roadmap-section">
+        <h2>🚀 Innovation Roadmap</h2>
+        <div class="roadmap">
+            <div class="roadmap-item">
+                <div class="roadmap-dot">📱</div>
+                <h4>Q1 2024</h4>
+                <p>Mobile App Launch</p>
+            </div>
+            <div class="roadmap-item">
+                <div class="roadmap-dot">🏠</div>
+                <h4>Q2 2024</h4>
+                <p>Smart Home Kits</p>
+            </div>
+            <div class="roadmap-item">
+                <div class="roadmap-dot">🤖</div>
+                <h4>Q3 2024</h4>
+                <p>AI Integration</p>
+            </div>
+            <div class="roadmap-item">
+                <div class="roadmap-dot">🌍</div>
+                <h4>Q4 2024</h4>
+                <p>Global Expansion</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="partnership-section">
+        <h2>🤝 Partnership Opportunities</h2>
+        <p>Collaborate with us to bring innovative ideas to life. We welcome startups, developers, and creative minds.</p>
+        <div class="partner-benefits">
+            <div class="benefit-card">
+                <h3>💰 Funding</h3>
+                <p>Get funding for promising innovative projects</p>
+            </div>
+            <div class="benefit-card">
+                <h3>🛠️ Resources</h3>
+                <p>Access to tools, equipment, and expertise</p>
+            </div>
+            <div class="benefit-card">
+                <h3>📈 Mentorship</h3>
+                <p>Guidance from industry experts</p>
+            </div>
+            <div class="benefit-card">
+                <h3>🌐 Network</h3>
+                <p>Connect with potential investors and partners</p>
+            </div>
+        </div>
+        <a href="contact.html" class="cta-button" style="margin-top: 2rem;">Partner With Us</a>
+    </section>
+
+    <section class="interactive-demo" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 4rem 5%; text-align: center;">
+        <h2>🎯 Innovation Quiz</h2>
+        <p style="margin-bottom: 2rem; opacity: 0.9;">Test your knowledge about future technology!</p>
+        <div id="quiz-container" style="max-width: 600px; margin: 0 auto; background: rgba(255,255,255,0.1); padding: 2rem; border-radius: 15px;">
+            <div id="quiz-question" style="font-size: 1.2rem; margin-bottom: 1.5rem;">Loading question...</div>
+            <div id="quiz-options" style="display: flex; flex-direction: column; gap: 0.8rem;"></div>
+            <div id="quiz-result" style="margin-top: 1.5rem; font-weight: bold; display: none;"></div>
+            <button id="quiz-next" class="demo-btn" style="margin-top: 1rem; display: none;">Next Question →</button>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>MSP Company Limited</h3>
+                <p>Your trusted partner for Electronics Sales & Services</p>
+                <p>📍 924/1, PR Tower, Shwerapara, Mirpur, Dhaka</p>
+            </div>
+            <div class="footer-section">
+                <h4>Quick Links</h4>
+                <a href="index.html">Home</a>
+                <a href="about.html">About</a>
+                <a href="services.html">Services</a>
+                <a href="products.html">Products</a>
+                <a href="innovation.html">Innovation</a>
+                <a href="contact.html">Contact</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 MSP Company Limited. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+    <script src="pages.js"></script>
+    <script>
+        // Idea Category Selection
+        const ideaCategories = document.querySelectorAll('.idea-category');
+        ideaCategories.forEach(cat => {
+            cat.addEventListener('click', () => {
+                ideaCategories.forEach(c => c.classList.remove('active'));
+                cat.classList.add('active');
+            });
+        });
+
+        // Idea Form Submission
+        const ideaForm = document.getElementById('ideaForm');
+        if (ideaForm) {
+            ideaForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                showToast('Thank you for your innovative idea! We will review it soon. 🚀');
+                ideaForm.reset();
+            });
+        }
+
+        // Innovation Quiz
+        const quizQuestions = [
+            {
+                question: "What does IoT stand for?",
+                options: ["Internet of Things", "Internet of Technology", "Internal Organization Tool", "Input Output Terminal"],
+                correct: 0
+            },
+            {
+                question: "Which technology is used for voice recognition?",
+                options: ["AI", "VR", "AR", "Blockchain"],
+                correct: 0
+            },
+            {
+                question: "What is the main benefit of smart home automation?",
+                options: ["Higher electricity bills", "Convenience and energy savings", "More devices to buy", "Complicated setup"],
+                correct: 1
+            },
+            {
+                question: "What does AI stand for?",
+                options: ["Automated Intelligence", "Artificial Intelligence", "Advanced Internet", "Automatic Input"],
+                correct: 1
+            },
+            {
+                question: "Which is a renewable energy source?",
+                options: ["Coal", "Natural Gas", "Solar Power", "Petroleum"],
+                correct: 2
+            }
+        ];
+
+        let currentQuestion = 0;
+        let score = 0;
+
+        function loadQuizQuestion() {
+            const q = quizQuestions[currentQuestion];
+            document.getElementById('quiz-question').textContent = `Q${currentQuestion + 1}: ${q.question}`;
+            
+            const optionsContainer = document.getElementById('quiz-options');
+            optionsContainer.innerHTML = '';
+            
+            q.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.textContent = opt;
+                btn.style.cssText = 'padding: 1rem; border: 2px solid rgba(255,255,255,0.3); background: transparent; color: white; border-radius: 10px; cursor: pointer; transition: all 0.3s ease;';
+                btn.onmouseover = () => btn.style.background = 'rgba(255,255,255,0.1)';
+                btn.onmouseout = () => btn.style.background = 'transparent';
+                btn.onclick = () => checkAnswer(idx);
+                optionsContainer.appendChild(btn);
+            });
+            
+            document.getElementById('quiz-result').style.display = 'none';
+            document.getElementById('quiz-next').style.display = 'none';
+        }
+
+        function checkAnswer(selected) {
+            const q = quizQuestions[currentQuestion];
+            const resultDiv = document.getElementById('quiz-result');
+            const nextBtn = document.getElementById('quiz-next');
+            const options = document.querySelectorAll('#quiz-options button');
+            
+            options.forEach((opt, idx) => {
+                opt.disabled = true;
+                if (idx === q.correct) {
+                    opt.style.background = '#27ae60';
+                    opt.style.borderColor = '#27ae60';
+                } else if (idx === selected && selected !== q.correct) {
+                    opt.style.background = '#e74c3c';
+                    opt.style.borderColor = '#e74c3c';
+                }
+            });
+            
+            if (selected === q.correct) {
+                score++;
+                resultDiv.textContent = '✅ Correct!';
+                resultDiv.style.color = '#27ae60';
+            } else {
+                resultDiv.textContent = '❌ Incorrect!';
+                resultDiv.style.color = '#e74c3c';
+            }
+            
+            resultDiv.style.display = 'block';
+            
+            if (currentQuestion < quizQuestions.length - 1) {
+                nextBtn.style.display = 'inline-block';
+            } else {
+                nextBtn.textContent = 'See Results';
+                nextBtn.style.display = 'inline-block';
+                nextBtn.onclick = showFinalResult;
+            }
+        }
+
+        function showFinalResult() {
+            const quizContainer = document.getElementById('quiz-container');
+            quizContainer.innerHTML = `
+                <h3 style="font-size: 2rem; margin-bottom: 1rem;">Quiz Complete! 🎉</h3>
+                <p style="font-size: 1.5rem;">Your Score: ${score}/${quizQuestions.length}</p>
+                <p style="margin-top: 1rem; opacity: 0.8;">${score >= 4 ? 'Excellent! You are a tech genius! 🧠' : score >= 2 ? 'Good job! Keep learning! 📚' : 'Keep exploring technology! 💡'}</p>
+                <button class="demo-btn" style="margin-top: 1.5rem;" onclick="location.reload()">Try Again</button>
+            `;
+        }
+
+        document.getElementById('quiz-next')?.addEventListener('click', () => {
+            currentQuestion++;
+            loadQuizQuestion();
+        });
+
+        // Initialize quiz
+        loadQuizQuestion();
+    </script>
+</body>
+</html>
