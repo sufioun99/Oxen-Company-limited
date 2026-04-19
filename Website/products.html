@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Products - MSP Company Limited</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="pages.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">MSP Company Limited</div>
+        <ul class="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="about.html">About</a></li>
+            <li><a href="services.html">Services</a></li>
+            <li><a href="products.html" class="active">Products</a></li>
+            <li><a href="innovation.html">Innovation Hub</a></li>
+            <li><a href="contact.html">Contact</a></li>
+        </ul>
+        <button class="nav-toggle" id="navToggle">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+    </nav>
+
+    <section class="page-hero">
+        <h1>Our <span class="highlight">Products</span></h1>
+        <p>Quality Electronics at Best Prices with Warranty</p>
+    </section>
+
+    <section class="product-search">
+        <div class="search-box">
+            <input type="text" id="productSearch" placeholder="Search products...">
+            <button class="search-btn">🔍</button>
+        </div>
+    </section>
+
+    <section class="product-filter">
+        <button class="filter-btn active" data-filter="all">All Products</button>
+        <button class="filter-btn" data-filter="smartphone">Smartphones</button>
+        <button class="filter-btn" data-filter="laptop">Laptops</button>
+        <button class="filter-btn" data-filter="tv">TVs</button>
+        <button class="filter-btn" data-filter="audio">Audio</button>
+        <button class="filter-btn" data-filter="home">Smart Home</button>
+        <button class="filter-btn" data-filter="accessories">Accessories</button>
+    </section>
+
+    <section class="products-grid-section">
+        <div class="products-grid">
+            <div class="product-item" data-category="smartphone">
+                <div class="product-badge">New</div>
+                <div class="product-image">📱</div>
+                <div class="product-info">
+                    <h3>iPhone 15 Pro Max</h3>
+                    <p>A17 Pro chip, 48MP camera</p>
+                    <div class="product-price">
+                        <span class="current-price">৳1,89,999</span>
+                        <span class="old-price">৳1,99,999</span>
+                    </div>
+                    <div class="product-actions">
+                        <button class="add-cart-btn">🛒 Add to Cart</button>
+                        <button class="wishlist-btn">❤️</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="product-item" data-category="smartphone">
+                <div class="product-badge hot">Hot</div>
+                <div class="product-image">📱</div>
+                <div class="product-info">
+                    <h3>Samsung Galaxy S24 Ultra</h3>
+                    <p>200MP camera, S Pen included</p>
+                    <div class="product-price">
+                        <span class="current-price">৳1,59,999</span>
+                        <span class="old-price">৳1,69,999</span>
+                    </div>
+                    <div class="product-actions">
+                        <button class="add-cart-btn">🛒 Add to Cart</button>
+                        <button class="wishlist-btn">❤️</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="product-item" data-category="smartphone">
+                <div class="product-image">📱</div>
+                <div class="product-info">
+                    <h3>Xiaomi 14 Ultra</h3>
+                    <p>Leica camera, Snapdragon 8 Gen 3</p>
+                    <div class="product-price">
+                        <span class="current-price">৳1,29,999</span>
+                    </div>
+                    <div class="product-actions">
+                        <button class="add-cart-btn">🛒 Add to Cart</button>
+                        <button class="wishlist-btn">❤️</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="product-item" data-category="laptop">
+                <div class="product-image">💻</div>
+                <div class="product-info">
+                    <h3>MacBook Pro 14" M3</h3>
+                    <p>M3 Pro chip, 18GB RAM</p>
+                    <div class="product-price">
+                        <span class="current-price">৳2,49,999</span>
+                        <span class="old-price">৳2,69,999</span>
+                    </div>
+                    <div class="product-actions">
+                        <button class="add-cart-btn">🛒 Add to Cart</button>
+                        <button class="wishlist-btn">❤️</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="product-item" data-category="laptop">
+                <div class="product-badge">Popular</div>
+                <div class="product-image">💻</div>
+                <div class="product-info">
+                    <h3>Dell XPS 15</h3>
+                    <p>Intel i7, 16GB RAM, 512GB SSD</p>
+                    <div class="product-price">
+                        <span class="current-price">৳1,79,999</span>
+                    </div>
+                    <div class="product-actions">
+                        <button class="add-cart-btn">🛒 Add to Cart</button>
+                        <button class="wishlist-btn">❤️</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="product-item" data-category="laptop">
+                <div class="product-image">💻</div>
+                <div class="product-info">
+                    <h3>HP Spectre x360</h3>
+                    <p>2-in-1 laptop, Touchscreen</p>
+                    <div class="product-price">
+                        <span class="current-price">৳1,59,999</span>
+                    </div>
+                    <div class="product-actions">
+                        <button class="add-cart-btn">🛒 Add to Cart</button>
+                        <button class="wishlist-btn">❤️</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="product-item" data-category="tv">
+                <div class="product-badge hot">Hot</div>
+                <div class="product-image">📺</div>
+                <div class="product-info">
+                    <h3>Samsung 55" OLED TV</h3>
+                    <p>4K OLED, Smart TV, 120Hz</p>
+                    <div class="product-price">
+                        <span class="current-price">৳1,29,999</span>
+                        <span class="old-price">৳1,49,999</span>
+                    </div>
+                    <div class="product-actions">
+                        <button class="add-cart-btn">🛒 Add to Cart</button>
+                        <button class="wishlist-btn">❤️</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="product-item" data-category="tv">
+                <div class="product-image">📺</div>
+                <div class="product-info">
+                    <h3>LG 65" NanoCell TV</h3>
+                    <p>4K NanoCell, webOS Smart</p>
+                    <div class="product-price">
+                        <span class="current-price">৳99,999</span>
+                    </div>
+                    <div class="product-actions">
+                        <button class="add-cart-btn">🛒 Add to Cart</button>
+                        <button class="wishlist-btn">❤️</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="product-item" data-category="audio">
+                <div class="product-image">🎧</div>
+                <div class="product-info">
+                    <h3>AirPods Pro 2</h3>
+                    <p>Active Noise Cancellation</p>
+                    <div class="product-price">
+                        <span class="current-price">৳36,999</span>
+                    </div>
+                    <div class="product-actions">
+                        <button class="add-cart-btn">🛒 Add to Cart</button>
+                        <button class="wishlist-btn">❤️</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="product-item" data-category="audio">
+                <div class="product-badge">New</div>
+                <div class="product-image">🎧</div>
+                <div class="product-info">
+                    <h3>Sony WH-1000XM5</h3>
+                    <p>Industry-leading noise cancellation</p>
+                    <div class="product-price">
+                        <span class="current-price">৳42,999</span>
+                    </div>
+                    <div class="product-actions">
+                        <button class="add-cart-btn">🛒 Add to Cart</button>
+                        <button class="wishlist-btn">❤️</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="product-item" data-category="home">
+                <div class="product-image">🏠</div>
+                <div class="product-info">
+                    <h3>Google Nest Hub</h3>
+                    <p>Smart display, Voice control</p>
+                    <div class="product-price">
+                        <span class="current-price">৳12,999</span>
+                    </div>
+                    <div class="product-actions">
+                        <button class="add-cart-btn">🛒 Add to Cart</button>
+                        <button class="wishlist-btn">❤️</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="product-item" data-category="home">
+                <div class="product-badge hot">Hot</div>
+                <div class="product-image">🏠</div>
+                <div class="product-info">
+                    <h3>Ring Video Doorbell</h3>
+                    <p>HD video, Two-way audio</p>
+                    <div class="product-price">
+                        <span class="current-price">৳18,999</span>
+                    </div>
+                    <div class="product-actions">
+                        <button class="add-cart-btn">🛒 Add to Cart</button>
+                        <button class="wishlist-btn">❤️</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="product-item" data-category="accessories">
+                <div class="product-image">🔌</div>
+                <div class="product-info">
+                    <h3>Apple Watch Series 9</h3>
+                    <p>GPS, 45mm, Smartwatch</p>
+                    <div class="product-price">
+                        <span class="current-price">৳59,999</span>
+                    </div>
+                    <div class="product-actions">
+                        <button class="add-cart-btn">🛒 Add to Cart</button>
+                        <button class="wishlist-btn">❤️</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="product-item" data-category="accessories">
+                <div class="product-image">⌨️</div>
+                <div class="product-info">
+                    <h3>Mechanical Keyboard</h3>
+                    <p>RGB backlit, Wireless</p>
+                    <div class="product-price">
+                        <span class="current-price">৳8,999</span>
+                    </div>
+                    <div class="product-actions">
+                        <button class="add-cart-btn">🛒 Add to Cart</button>
+                        <button class="wishlist-btn">❤️</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="product-item" data-category="accessories">
+                <div class="product-image">🖱️</div>
+                <div class="product-info">
+                    <h3>Wireless Mouse</h3>
+                    <p>Ergonomic, Precision tracking</p>
+                    <div class="product-price">
+                        <span class="current-price">৳2,999</span>
+                    </div>
+                    <div class="product-actions">
+                        <button class="add-cart-btn">🛒 Add to Cart</button>
+                        <button class="wishlist-btn">❤️</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="brands-section">
+        <h2>Brands We Carry</h2>
+        <div class="brands-grid">
+            <div class="brand-item">Apple</div>
+            <div class="brand-item">Samsung</div>
+            <div class="brand-item">Xiaomi</div>
+            <div class="brand-item">Sony</div>
+            <div class="brand-item">LG</div>
+            <div class="brand-item">Dell</div>
+            <div class="brand-item">HP</div>
+            <div class="brand-item">Lenovo</div>
+            <div class="brand-item">Google</div>
+            <div class="brand-item">Amazon</div>
+        </div>
+    </section>
+
+    <section class="features-section">
+        <h2>Why Buy From Us</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">✅</div>
+                <h3>100% Original Products</h3>
+                <p>Guaranteed authentic products with warranty</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🚚</div>
+                <h3>Fast Delivery</h3>
+                <p>Same-day delivery within Dhaka</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">💳</div>
+                <h3>Easy EMI</h3>
+                <p>0% EMI on select products</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🔄</div>
+                <h3>Easy Returns</h3>
+                <p>7-day return policy</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="cta-section">
+        <h2>Can't Find What You're Looking For?</h2>
+        <p>Contact us for custom orders and bulk purchases</p>
+        <a href="contact.html" class="cta-button">Contact Us</a>
+    </section>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>MSP Company Limited</h3>
+                <p>Your trusted partner for Electronics Sales & Services</p>
+                <p>📍 924/1, PR Tower, Shwerapara, Mirpur, Dhaka</p>
+            </div>
+            <div class="footer-section">
+                <h4>Quick Links</h4>
+                <a href="index.html">Home</a>
+                <a href="about.html">About</a>
+                <a href="services.html">Services</a>
+                <a href="products.html">Products</a>
+                <a href="innovation.html">Innovation</a>
+                <a href="contact.html">Contact</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 MSP Company Limited. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+    <script src="pages.js"></script>
+</body>
+</html>
