@@ -1,0 +1,25 @@
+NVL(:service_details.service_charge,0)+NVL(:service_details.parts_price,0)*:service_details.quantity
+POST_QUERY FOR DAMAGE FORM
+DECLARE
+    v_approver_name VARCHAR2(200);
+BEGIN
+    IF :DAMAGE.APPROVED_BY IS NOT NULL THEN
+        BEGIN
+            SELECT first_name || ' ' || last_name
+            INTO v_approver_name
+            FROM employees
+            WHERE employee_id = :DAMAGE.APPROVED_BY;
+            
+            -- Assuming you have a display-only field
+            :DAMAGE.APPROVED_BY_NAME := v_approver_name;
+        EXCEPTION
+            WHEN NO_DATA_FOUND THEN
+                :DAMAGE.APPROVED_BY_NAME := 'Unknown Employee';
+        END;
+    END IF;
+    
+    -- Display creator name
+    IF :DAMAGE.CRE_BY IS NOT NULL THEN
+        :DAMAGE.CREATED_BY_DISPLAY := :DAMAGE.CRE_BY ;
+    END IF;
+END;
